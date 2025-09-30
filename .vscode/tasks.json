@@ -1,0 +1,119 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Playwright: Install",
+      "type": "shell",
+      "command": "npx",
+      "args": [
+        "playwright",
+        "install",
+        "--with-deps"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev",
+      "type": "npm",
+      "script": "dev",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": [
+          {
+            "regexp": "^(ERROR\\s+.*)$",
+            "message": 1
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\s*>",
+          "endsPattern": "Local:\\s+http://localhost:5173\\/?"
+        }
+      }
+    },
+    {
+      "label": "Build",
+      "type": "npm",
+      "script": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Preview",
+      "type": "npm",
+      "script": "preview",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite-preview",
+        "pattern": [
+          {
+            "regexp": "^(ERROR\\s+.*)$",
+            "message": 1
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\s*>",
+          "endsPattern": "Local:\\s+http://localhost:5173\\/?"
+        }
+      }
+    },
+    {
+      "label": "Test: Unit (CI)",
+      "type": "npm",
+      "script": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Test: Unit (Watch)",
+      "type": "npm",
+      "script": "test:watch",
+      "problemMatcher": []
+    },
+    {
+      "label": "Test: E2E (CI)",
+      "type": "npm",
+      "script": "e2e",
+      "dependsOn": [
+        "Playwright: Install"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Test: E2E (Headed)",
+      "type": "npm",
+      "script": "e2e:headed",
+      "dependsOn": [
+        "Playwright: Install"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Test: All (Unit + E2E)",
+      "type": "shell",
+      "command": "date",
+      "args": [
+        "+Test pipeline started %Y-%m-%d %H:%M:%S %Z"
+      ],
+      "options": {
+        "env": {
+          "TZ": "Australia/Brisbane"
+        }
+      },
+      "dependsOn": [
+        "Test: Unit (CI)",
+        "Test: E2E (CI)"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Prod: Build + Preview",
+      "dependsOn": [
+        "Build",
+        "Preview"
+      ],
+      "dependsOrder": "sequence"
+    }
+  ]
+}

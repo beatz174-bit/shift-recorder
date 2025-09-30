@@ -1,0 +1,77 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Chrome: Attach to Vite (DEV)",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "timeout": 60000,
+      "sourceMaps": true,
+      "presentation": {
+        "group": "web"
+      }
+    },
+    {
+      "name": "Chrome: Attach to Preview (PROD)",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "timeout": 60000,
+      "presentation": {
+        "group": "web"
+      }
+    },
+    {
+      "name": "Playwright Tests (Debug)",
+      "type": "pwa-node",
+      "request": "launch",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "playwright",
+        "test",
+        "--debug"
+      ],
+      "env": {
+        "PWDEBUG": "1",
+        "TZ": "Australia/Brisbane"
+      },
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Vitest (Watch + Inspect)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+        "watch"
+      ],
+      "env": {
+        "TZ": "Australia/Brisbane"
+      },
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Dev (Vite + Chrome)",
+      "configurations": [
+        "Chrome: Attach to Vite (DEV)"
+      ],
+      "preLaunchTask": "Dev"
+    },
+    {
+      "name": "Prod Preview + Chrome",
+      "configurations": [
+        "Chrome: Attach to Preview (PROD)"
+      ],
+      "preLaunchTask": "Prod: Build + Preview"
+    }
+  ]
+}
