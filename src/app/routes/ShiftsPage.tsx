@@ -24,6 +24,7 @@ import ShiftForm, { type ShiftFormValues } from '../components/ShiftForm';
 import { createShift, deleteShift, getAllShifts, updateShift } from '../db/repo';
 import type { Shift, WeekStart } from '../db/schema';
 import { useSettings } from '../state/SettingsContext';
+import { useTimeFormatter } from '../state/useTimeFormatter';
 
 export const CALENDAR_WEEK_START: WeekStart = 1;
 
@@ -38,6 +39,8 @@ export default function ShiftsPage() {
     queryFn: getAllShifts,
     enabled: Boolean(settings)
   });
+
+  const timeFormatter = useTimeFormatter();
 
   const calendarDays = useMemo(() => {
     const options = { weekStartsOn: CALENDAR_WEEK_START } as const;
@@ -69,15 +72,6 @@ export default function ShiftsPage() {
 
     return grouped;
   }, [shifts]);
-
-  const timeFormatter = useMemo(
-    () =>
-      new Intl.DateTimeFormat(undefined, {
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
-    []
-  );
 
   const createMutation = useMutation({
     mutationFn: async (values: ShiftFormValues) => {
