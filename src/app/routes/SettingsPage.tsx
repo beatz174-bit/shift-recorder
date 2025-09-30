@@ -282,8 +282,18 @@ export default function SettingsPage() {
           />
         </div>
         <div className="grid gap-2">
-          <label className="text-xs font-semibold uppercase text-slate-500">Week starts on</label>
+          <label
+            className="text-xs font-semibold uppercase text-slate-500"
+            htmlFor="week-starts-on"
+          >
+            Pay week starts on
+          </label>
+          <p id="week-starts-on-help" className="text-xs text-slate-500 dark:text-slate-400">
+            Only affects summary and payslip alignment.
+          </p>
           <select
+            id="week-starts-on"
+            aria-describedby="week-starts-on-help"
             value={weekStartsOn}
             onChange={(event) => setWeekStartsOn(Number(event.target.value) as WeekStart)}
             className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
