@@ -4,6 +4,7 @@ import { computePayForShift } from '../logic/payRules';
 import { getWeekKey } from '../logic/week';
 
 export type WeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 Sunday through 6 Saturday
+export type Weekday = WeekStart;
 
 export type Settings = {
   id: 'singleton';
@@ -11,6 +12,12 @@ export type Settings = {
   penaltyRate: number;
   weekStartsOn: WeekStart;
   currency: string;
+  penaltyDailyStartMinute: number;
+  penaltyDailyEndMinute: number;
+  penaltyAllDayWeekdays: Weekday[];
+  includePublicHolidays: boolean;
+  publicHolidayCountry: string;
+  publicHolidayDates: string[];
   createdAt: string;
   updatedAt: string;
 };
@@ -36,9 +43,85 @@ export const DEFAULT_SETTINGS: Settings = {
   penaltyRate: 35,
   weekStartsOn: 1,
   currency: 'USD',
+  penaltyDailyStartMinute: 0,
+  penaltyDailyEndMinute: 7 * 60,
+  penaltyAllDayWeekdays: [0, 6],
+  includePublicHolidays: false,
+  publicHolidayCountry: 'AU',
+  publicHolidayDates: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
 };
+
+function sanitizePenaltyMinutes(value: unknown, fallback: number): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return fallback;
+  }
+  if (value < 0) return 0;
+  if (value > 24 * 60) return 24 * 60;
+  return Math.floor(value);
+}
+
+function sanitizeWeekdays(values: unknown, fallback: Weekday[]): Weekday[] {
+  if (!Array.isArray(values)) {
+    return [...fallback];
+  }
+  const filtered = values
+    .map((value) => (typeof value === 'number' ? Math.floor(value) : Number.NaN))
+    .filter((value) => value >= 0 && value <= 6) as Weekday[];
+  return Array.from(new Set(filtered)).sort((a, b) => a - b) as Weekday[];
+}
+
+function sanitizeHolidayDates(values: unknown): string[] {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+  const unique = new Set<string>();
+  values.forEach((value) => {
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      unique.add(value);
+    }
+  });
+  return Array.from(unique).sort();
+}
+
+export function applySettingsDefaults(partial: Partial<Settings> | undefined): Settings {
+  const base = partial ?? {};
+  const startMinute = sanitizePenaltyMinutes(base.penaltyDailyStartMinute, DEFAULT_SETTINGS.penaltyDailyStartMinute);
+  let endMinute = sanitizePenaltyMinutes(base.penaltyDailyEndMinute, DEFAULT_SETTINGS.penaltyDailyEndMinute);
+  if (endMinute <= startMinute) {
+    endMinute = DEFAULT_SETTINGS.penaltyDailyEndMinute;
+  }
+
+  const penaltyAllDayWeekdays = sanitizeWeekdays(
+    base.penaltyAllDayWeekdays ?? DEFAULT_SETTINGS.penaltyAllDayWeekdays,
+    DEFAULT_SETTINGS.penaltyAllDayWeekdays
+  );
+
+  const includePublicHolidays = Boolean(base.includePublicHolidays ?? DEFAULT_SETTINGS.includePublicHolidays);
+  const rawCountry = typeof base.publicHolidayCountry === 'string' ? base.publicHolidayCountry : DEFAULT_SETTINGS.publicHolidayCountry;
+  const normalizedCountry = rawCountry.trim().toUpperCase();
+  const publicHolidayCountry = /^[A-Z]{2}$/.test(normalizedCountry)
+    ? normalizedCountry
+    : DEFAULT_SETTINGS.publicHolidayCountry;
+  const publicHolidayDates = sanitizeHolidayDates(base.publicHolidayDates ?? DEFAULT_SETTINGS.publicHolidayDates);
+
+  return {
+    id: 'singleton',
+    baseRate: typeof base.baseRate === 'number' ? base.baseRate : DEFAULT_SETTINGS.baseRate,
+    penaltyRate: typeof base.penaltyRate === 'number' ? base.penaltyRate : DEFAULT_SETTINGS.penaltyRate,
+    weekStartsOn: (typeof base.weekStartsOn === 'number' ? base.weekStartsOn : DEFAULT_SETTINGS.weekStartsOn) as WeekStart,
+    currency: typeof base.currency === 'string' && base.currency.trim() ? base.currency : DEFAULT_SETTINGS.currency,
+    penaltyDailyStartMinute: startMinute,
+    penaltyDailyEndMinute: endMinute,
+    penaltyAllDayWeekdays,
+    includePublicHolidays,
+    publicHolidayCountry,
+    publicHolidayDates,
+    createdAt: base.createdAt ?? DEFAULT_SETTINGS.createdAt,
+    updatedAt: base.updatedAt ?? DEFAULT_SETTINGS.updatedAt
+  };
+}
 
 export class ShiftRecorderDB extends Dexie {
   shifts!: Table<Shift, string>;
@@ -58,7 +141,9 @@ export const db = new ShiftRecorderDB();
 export async function ensureSettings(): Promise<Settings> {
   const existing = await db.settings.get('singleton');
   if (existing) {
-    return existing;
+    const normalized = applySettingsDefaults(existing);
+    await db.settings.put(normalized);
+    return normalized;
   }
   await db.settings.put(DEFAULT_SETTINGS);
   return DEFAULT_SETTINGS;
@@ -89,7 +174,12 @@ export async function upsertShift(
       startISO: input.startISO,
       endISO: input.endISO,
       baseRate: settings.baseRate,
-      penaltyRate: settings.penaltyRate
+      penaltyRate: settings.penaltyRate,
+      penaltyDailyStartMinute: settings.penaltyDailyStartMinute,
+      penaltyDailyEndMinute: settings.penaltyDailyEndMinute,
+      penaltyAllDayWeekdays: settings.penaltyAllDayWeekdays,
+      includePublicHolidays: settings.includePublicHolidays,
+      publicHolidayDates: settings.publicHolidayDates
     });
     baseMinutes = breakdown.baseMinutes;
     penaltyMinutes = breakdown.penaltyMinutes;

@@ -1,13 +1,4 @@
-import {
-  addDays,
-  differenceInMinutes,
-  formatISO,
-  isSaturday,
-  isSunday,
-  max,
-  min,
-  startOfDay
-} from 'date-fns';
+import { addDays, addMinutes, differenceInMinutes, formatISO, getDay, max, min, startOfDay } from 'date-fns';
 
 export type DailySegment = {
   dateISO: string;
@@ -16,8 +7,13 @@ export type DailySegment = {
   minutesBase: number;
 };
 
-const PENALTY_START_HOUR = 0;
-const PENALTY_END_HOUR = 7;
+export type PenaltyConfig = {
+  penaltyDailyStartMinute: number;
+  penaltyDailyEndMinute: number;
+  penaltyAllDayWeekdays: number[];
+  includePublicHolidays: boolean;
+  publicHolidayDates: string[];
+};
 
 function assertValidRange(start: Date, end: Date) {
   if (!(start instanceof Date) || Number.isNaN(start.getTime())) {
@@ -31,11 +27,13 @@ function assertValidRange(start: Date, end: Date) {
   }
 }
 
-export function splitIntoDailySegments(start: Date, end: Date): DailySegment[] {
+export function splitIntoDailySegments(start: Date, end: Date, config: PenaltyConfig): DailySegment[] {
   assertValidRange(start, end);
 
   const segments: DailySegment[] = [];
   let cursor = start;
+  const publicHolidaySet = new Set(config.publicHolidayDates ?? []);
+  const hasDailyWindow = config.penaltyDailyEndMinute > config.penaltyDailyStartMinute;
 
   while (cursor < end) {
     const dayStart = startOfDay(cursor);
@@ -49,12 +47,16 @@ export function splitIntoDailySegments(start: Date, end: Date): DailySegment[] {
     }
 
     let minutesPenalty = 0;
-    if (isSaturday(dayStart) || isSunday(dayStart)) {
+    const dayOfWeek = getDay(dayStart);
+    const isAllDayPenalty = config.penaltyAllDayWeekdays.includes(dayOfWeek);
+    const dateISO = formatISO(dayStart, { representation: 'date' });
+    const isPublicHoliday = config.includePublicHolidays && publicHolidaySet.has(dateISO);
+
+    if (isAllDayPenalty || isPublicHoliday) {
       minutesPenalty = minutesTotal;
-    } else {
-      const penaltyWindowStart = dayStart;
-      const penaltyWindowEnd = new Date(dayStart);
-      penaltyWindowEnd.setHours(PENALTY_END_HOUR, 0, 0, 0);
+    } else if (hasDailyWindow) {
+      const penaltyWindowStart = addMinutes(dayStart, config.penaltyDailyStartMinute);
+      const penaltyWindowEnd = addMinutes(dayStart, config.penaltyDailyEndMinute);
 
       const overlapStart = max([cursor, penaltyWindowStart]);
       const overlapEnd = min([segmentEnd, penaltyWindowEnd]);
@@ -67,7 +69,6 @@ export function splitIntoDailySegments(start: Date, end: Date): DailySegment[] {
     }
 
     const minutesBase = minutesTotal - minutesPenalty;
-    const dateISO = formatISO(dayStart, { representation: 'date' });
 
     segments.push({
       dateISO,
