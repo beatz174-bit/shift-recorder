@@ -6,6 +6,11 @@ export type ComputePayInput = {
   endISO: string;
   baseRate: number;
   penaltyRate: number;
+  penaltyDailyStartMinute: number;
+  penaltyDailyEndMinute: number;
+  penaltyAllDayWeekdays: number[];
+  includePublicHolidays: boolean;
+  publicHolidayDates: string[];
 };
 
 export type ShiftPayBreakdown = {
@@ -34,7 +39,12 @@ export function computePayForShift({
   startISO,
   endISO,
   baseRate,
-  penaltyRate
+  penaltyRate,
+  penaltyDailyStartMinute,
+  penaltyDailyEndMinute,
+  penaltyAllDayWeekdays,
+  includePublicHolidays,
+  publicHolidayDates
 }: ComputePayInput): ShiftPayBreakdown {
   const start = parseISO(startISO);
   const end = parseISO(endISO);
@@ -43,7 +53,13 @@ export function computePayForShift({
     throw new Error('Invalid ISO date provided');
   }
 
-  const segments = splitIntoDailySegments(start, end);
+  const segments = splitIntoDailySegments(start, end, {
+    penaltyDailyStartMinute,
+    penaltyDailyEndMinute,
+    penaltyAllDayWeekdays,
+    includePublicHolidays,
+    publicHolidayDates
+  });
 
   const baseMinutes = segments.reduce((total, segment) => total + segment.minutesBase, 0);
   const penaltyMinutes = segments.reduce((total, segment) => total + segment.minutesPenalty, 0);

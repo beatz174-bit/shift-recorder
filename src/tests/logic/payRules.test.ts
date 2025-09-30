@@ -3,9 +3,23 @@ import { computePayForShift } from '../../app/logic/payRules';
 
 const BASE_RATE = 25;
 const PENALTY_RATE = 35;
+const DEFAULT_CONFIG = {
+  penaltyDailyStartMinute: 0,
+  penaltyDailyEndMinute: 7 * 60,
+  penaltyAllDayWeekdays: [0, 6],
+  includePublicHolidays: false,
+  publicHolidayDates: [] as string[]
+};
 
-function createShift(start: string, end: string) {
-  return computePayForShift({ startISO: start, endISO: end, baseRate: BASE_RATE, penaltyRate: PENALTY_RATE });
+function createShift(start: string, end: string, overrides: Partial<typeof DEFAULT_CONFIG> = {}) {
+  return computePayForShift({
+    startISO: start,
+    endISO: end,
+    baseRate: BASE_RATE,
+    penaltyRate: PENALTY_RATE,
+    ...DEFAULT_CONFIG,
+    ...overrides
+  });
 }
 
 describe('computePayForShift', () => {
@@ -31,6 +45,25 @@ describe('computePayForShift', () => {
     const result = createShift('2024-04-01T06:50:00', '2024-04-01T07:10:00');
     expect(result.penaltyMinutes).toBe(10);
     expect(result.baseMinutes).toBe(10);
+  });
+
+  it('treats configured public holidays as penalty days', () => {
+    const result = createShift('2024-12-25T09:00:00', '2024-12-25T17:00:00', {
+      includePublicHolidays: true,
+      publicHolidayDates: ['2024-12-25']
+    });
+    expect(result.penaltyMinutes).toBe(8 * 60);
+    expect(result.baseMinutes).toBe(0);
+  });
+
+  it('respects custom daily penalty window when no all-day rules match', () => {
+    const result = createShift('2024-04-02T21:00:00', '2024-04-02T23:00:00', {
+      penaltyDailyStartMinute: 22 * 60,
+      penaltyDailyEndMinute: 24 * 60,
+      penaltyAllDayWeekdays: []
+    });
+    expect(result.penaltyMinutes).toBe(60);
+    expect(result.baseMinutes).toBe(60);
   });
 
   it('throws when end equals start', () => {

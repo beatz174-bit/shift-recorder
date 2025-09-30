@@ -1,4 +1,15 @@
-import { db, ensureSettings, listAllShifts, listShiftsByWeek, removeShift, type Settings, type Shift, type ShiftInput, upsertShift } from './schema';
+import {
+  applySettingsDefaults,
+  db,
+  ensureSettings,
+  listAllShifts,
+  listShiftsByWeek,
+  removeShift,
+  type Settings,
+  type Shift,
+  type ShiftInput,
+  upsertShift
+} from './schema';
 import { computePayForShift } from '../logic/payRules';
 import { getWeekKey } from '../logic/week';
 
@@ -10,7 +21,7 @@ export async function saveSettings(partial: Partial<Settings>): Promise<Settings
   return db.transaction('rw', db.settings, db.shifts, async () => {
     const current = await ensureSettings();
     const nowISO = new Date().toISOString();
-    const next: Settings = { ...current, ...partial, updatedAt: nowISO };
+    const next: Settings = applySettingsDefaults({ ...current, ...partial, updatedAt: nowISO });
     await db.settings.put(next);
 
     const shifts = await db.shifts.toArray();
@@ -25,7 +36,12 @@ export async function saveSettings(partial: Partial<Settings>): Promise<Settings
           startISO: shift.startISO,
           endISO: shift.endISO,
           baseRate: next.baseRate,
-          penaltyRate: next.penaltyRate
+          penaltyRate: next.penaltyRate,
+          penaltyDailyStartMinute: next.penaltyDailyStartMinute,
+          penaltyDailyEndMinute: next.penaltyDailyEndMinute,
+          penaltyAllDayWeekdays: next.penaltyAllDayWeekdays,
+          includePublicHolidays: next.includePublicHolidays,
+          publicHolidayDates: next.publicHolidayDates
         });
         await db.shifts.put({
           ...shift,
