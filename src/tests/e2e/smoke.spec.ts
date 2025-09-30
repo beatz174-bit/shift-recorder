@@ -1,7 +1,12 @@
-import { describe, it } from 'vitest';
+import { test, expect } from '@playwright/test';
 
-describe.skip('pwa smoke e2e placeholder', () => {
-  it('is pending Playwright coverage', () => {
-    // Placeholder to keep Vitest satisfied while Playwright is configured later.
+const APP_TITLE = /Shift Recorder/i;
+
+test.describe('pwa smoke test', () => {
+  test('app loads', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(page).toHaveTitle(APP_TITLE);
+    await expect(page.getByRole('heading', { level: 1, name: APP_TITLE })).toBeVisible();
   });
 });
