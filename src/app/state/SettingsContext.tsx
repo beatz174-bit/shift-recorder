@@ -102,7 +102,11 @@ export function useSettings() {
   return context;
 }
 
-export function useWeekStart(): WeekStart {
+/**
+ * Returns the week start preference used for pay-period grouping.
+ * The calendar UI keeps a fixed orientation independent from this value.
+ */
+export function usePayWeekStart(): WeekStart {
   const { settings } = useSettings();
   return settings?.weekStartsOn ?? 1;
 }
