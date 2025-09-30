@@ -37,6 +37,7 @@ export async function saveSettings(partial: Partial<Settings>): Promise<Settings
           endISO: shift.endISO,
           baseRate: next.baseRate,
           penaltyRate: next.penaltyRate,
+          penaltyDailyWindowEnabled: next.penaltyDailyWindowEnabled,
           penaltyDailyStartMinute: next.penaltyDailyStartMinute,
           penaltyDailyEndMinute: next.penaltyDailyEndMinute,
           penaltyAllDayWeekdays: next.penaltyAllDayWeekdays,
