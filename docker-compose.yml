@@ -19,7 +19,7 @@ services:
       - "traefik.http.routers.shifts.entrypoints=websecure"
       - "traefik.http.routers.shifts.tls=true"
       - "traefik.http.routers.shifts.tls.certresolver=myresolver"
-      - "traefik.http.services.shifts.loadbalancer.server.port=80"
+      - "traefik.http.services.shifts.loadbalancer.server.port=3001"
       - "traefik.http.routers.shifts.middlewares=error-pages-middleware"
       - "io.portainer.accesscontrol.public"
 
