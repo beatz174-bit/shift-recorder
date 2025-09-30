@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Shift } from '../db/schema';
+import { nowLocalInputValue, toISO, toLocalDateTimeInput } from '../utils/datetime';
 
 export type ShiftFormValues = {
   start: string;
@@ -13,26 +14,6 @@ export type ShiftFormProps = {
   onCancel?: () => void;
   submitLabel?: string;
 };
-
-function toLocalDateTimeInput(iso: string) {
-  const date = new Date(iso);
-  const pad = (value: number) => value.toString().padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
-function nowLocalInputValue() {
-  const now = new Date();
-  now.setSeconds(0, 0);
-  return toLocalDateTimeInput(now.toISOString());
-}
-
-function toISO(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    throw new Error('Invalid date value');
-  }
-  return date.toISOString();
-}
 
 export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabel }: ShiftFormProps) {
   const [start, setStart] = useState(

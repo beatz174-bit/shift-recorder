@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   addDays,
@@ -15,7 +15,6 @@ import {
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  PencilSquareIcon,
   PlusIcon,
   TrashIcon
 } from '@heroicons/react/24/outline';
@@ -25,6 +24,7 @@ import { createShift, deleteShift, getAllShifts, updateShift } from '../db/repo'
 import type { Shift, WeekStart } from '../db/schema';
 import { useSettings } from '../state/SettingsContext';
 import { useTimeFormatter } from '../state/useTimeFormatter';
+import { toISO, toLocalDateTimeInput } from '../utils/datetime';
 
 export const CALENDAR_WEEK_START: WeekStart = 1;
 
@@ -41,6 +41,16 @@ export default function ShiftsPage() {
   });
 
   const timeFormatter = useTimeFormatter();
+  const currencyFormatter = useMemo(() => {
+    const currency = settings?.currency && settings.currency.trim() ? settings.currency : 'USD';
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency
+    });
+  }, [settings?.currency]);
+  const [editedTimes, setEditedTimes] = useState<{ start: string; end: string }>({ start: '', end: '' });
+  const [initialTimes, setInitialTimes] = useState<{ start: string; end: string }>({ start: '', end: '' });
+  const [detailError, setDetailError] = useState<string | null>(null);
 
   const calendarDays = useMemo(() => {
     const options = { weekStartsOn: CALENDAR_WEEK_START } as const;
@@ -113,8 +123,26 @@ export default function ShiftsPage() {
     }
   });
 
+  useEffect(() => {
+    if (!editingShift) {
+      setEditedTimes({ start: '', end: '' });
+      setInitialTimes({ start: '', end: '' });
+      setDetailError(null);
+      return;
+    }
+
+    const start = toLocalDateTimeInput(editingShift.startISO);
+    const end = editingShift.endISO ? toLocalDateTimeInput(editingShift.endISO) : start;
+    setEditedTimes({ start, end });
+    setInitialTimes({ start, end });
+    setDetailError(null);
+  }, [editingShift]);
+
   const now = new Date();
   const monthLabel = format(currentMonth, 'MMMM yyyy');
+  const hasTimeChanges = Boolean(
+    editingShift && (editedTimes.start !== initialTimes.start || editedTimes.end !== initialTimes.end)
+  );
 
   return (
     <section className="flex flex-col gap-6">
@@ -216,30 +244,24 @@ export default function ShiftsPage() {
                     return (
                       <article
                         key={shift.id}
-                        className={`flex flex-col gap-2 rounded-xl border px-3 py-2 text-xs shadow-sm transition ${shiftClasses}`}
+                        className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-3 py-2 text-xs shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/40 ${shiftClasses}`}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setEditingShift(shift)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            setEditingShift(shift);
+                          }
+                        }}
+                        aria-label={`Shift starting ${timeFormatter.format(startDate)}${
+                          endDate ? ` and ending ${timeFormatter.format(endDate)}` : ''
+                        }`}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex flex-col">
                             <span className="text-sm font-semibold">{timeFormatter.format(startDate)}</span>
                             <span className="text-[0.65rem] opacity-80">{totalHours}h</span>
-                          </div>
-                          <div className="flex items-center gap-1 self-start">
-                            <button
-                              type="button"
-                              onClick={() => setEditingShift(shift)}
-                              className="rounded-full p-1.5 text-current transition hover:bg-black/5 dark:hover:bg-white/10"
-                              aria-label="Edit shift"
-                            >
-                              <PencilSquareIcon className="h-4 w-4" aria-hidden="true" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => deleteMutation.mutate(shift)}
-                              className="rounded-full p-1.5 text-current transition hover:bg-black/5 dark:hover:bg-white/10"
-                              aria-label="Delete shift"
-                            >
-                              <TrashIcon className="h-4 w-4" aria-hidden="true" />
-                            </button>
                           </div>
                         </div>
                       </article>
@@ -273,17 +295,96 @@ export default function ShiftsPage() {
         />
       </Modal>
 
-      <Modal isOpen={Boolean(editingShift)} onClose={() => setEditingShift(null)} title="Edit shift">
+      <Modal isOpen={Boolean(editingShift)} onClose={() => setEditingShift(null)} title="Shift details">
         {editingShift && (
-          <ShiftForm
-            key={editingShift.id}
-            initialShift={editingShift}
-            onSubmit={async (values) => {
-              await updateMutation.mutateAsync({ shift: editingShift, values });
-            }}
-            onCancel={() => setEditingShift(null)}
-            submitLabel="Update shift"
-          />
+          <div className="flex flex-col gap-6">
+            <div className="grid gap-3">
+              <div className="grid gap-2">
+                <label className="text-xs font-semibold uppercase text-slate-500">Start</label>
+                <input
+                  type="datetime-local"
+                  value={editedTimes.start}
+                  onChange={(event) => {
+                    setEditedTimes((times) => ({ ...times, start: event.target.value }));
+                    setDetailError(null);
+                  }}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+                />
+              </div>
+              <div className="grid gap-2">
+                <label className="text-xs font-semibold uppercase text-slate-500">End</label>
+                <input
+                  type="datetime-local"
+                  value={editedTimes.end}
+                  onChange={(event) => {
+                    setEditedTimes((times) => ({ ...times, end: event.target.value }));
+                    setDetailError(null);
+                  }}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+                />
+              </div>
+              <div className="grid gap-1 text-sm text-slate-600 dark:text-slate-300">
+                <span className="font-medium text-slate-700 dark:text-slate-100">Summary</span>
+                <span>{format(new Date(editingShift.startISO), 'PPpp')}</span>
+                {editingShift.endISO && <span>Ends {format(new Date(editingShift.endISO), 'PPpp')}</span>}
+                <span>
+                  Base: {(editingShift.baseMinutes / 60).toFixed(2)}h · Penalty: {(editingShift.penaltyMinutes / 60).toFixed(2)}h
+                </span>
+                <span>Total pay: {currencyFormatter.format(editingShift.totalPay)}</span>
+                {editingShift.note && <span className="text-slate-500 dark:text-slate-400">Note: {editingShift.note}</span>}
+              </div>
+            </div>
+
+            {detailError && <p className="text-sm text-red-500">{detailError}</p>}
+
+            <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+              <button
+                type="button"
+                onClick={() => deleteMutation.mutate(editingShift)}
+                className="flex items-center justify-center gap-2 rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-500/40 dark:text-red-200 dark:hover:bg-red-500/10"
+                disabled={deleteMutation.isPending || updateMutation.isPending}
+              >
+                <TrashIcon className="h-4 w-4" aria-hidden="true" /> Delete shift
+              </button>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingShift(null)}
+                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200"
+                  disabled={deleteMutation.isPending || updateMutation.isPending}
+                >
+                  Close
+                </button>
+                {hasTimeChanges && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!editingShift) return;
+                      setDetailError(null);
+                      try {
+                        const startISO = toISO(editedTimes.start);
+                        const endISO = toISO(editedTimes.end);
+                        if (new Date(endISO) <= new Date(startISO)) {
+                          setDetailError('End time must be after start time.');
+                          return;
+                        }
+                        await updateMutation.mutateAsync({
+                          shift: editingShift,
+                          values: { start: startISO, end: endISO, note: editingShift.note ?? '' }
+                        });
+                      } catch (error) {
+                        setDetailError((error as Error).message);
+                      }
+                    }}
+                    disabled={updateMutation.isPending || deleteMutation.isPending}
+                    className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 disabled:opacity-60"
+                  >
+                    {updateMutation.isPending ? 'Saving…' : 'Save changes'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         )}
       </Modal>
     </section>
