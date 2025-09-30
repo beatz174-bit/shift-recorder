@@ -48,15 +48,45 @@ function minutesToTime(minutes: number): string {
   return `${hours}:${mins}`;
 }
 
-function timeToMinutes(value: string): number {
-  if (!value || !value.includes(':')) {
+export function timeToMinutes(value: string): number {
+  if (!value) {
     return 0;
   }
-  const [hours, mins] = value.split(':').map((part) => Number.parseInt(part, 10));
-  if (Number.isNaN(hours) || Number.isNaN(mins)) {
+
+  const trimmed = value.trim();
+  if (!trimmed) {
     return 0;
   }
-  return Math.max(0, Math.min(hours * 60 + mins, 24 * 60));
+
+  const suffixMatch = trimmed.match(/\s*(am|pm)$/i);
+  const suffix = suffixMatch ? (suffixMatch[1].toLowerCase() as 'am' | 'pm') : null;
+  const timePart = suffixMatch ? trimmed.slice(0, suffixMatch.index).trim() : trimmed;
+
+  if (!timePart.includes(':')) {
+    return 0;
+  }
+
+  const [hoursPart, minutesPart] = timePart.split(':');
+  const hours = Number.parseInt(hoursPart, 10);
+  const minutes = Number.parseInt(minutesPart, 10);
+
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return 0;
+  }
+
+  if (minutes < 0 || minutes >= 60) {
+    return 0;
+  }
+
+  let normalizedHours = hours;
+  if (suffix === 'am') {
+    normalizedHours = hours % 12;
+  } else if (suffix === 'pm') {
+    normalizedHours = (hours % 12) + 12;
+  }
+
+  const totalMinutes = normalizedHours * 60 + minutes;
+  return Math.max(0, Math.min(totalMinutes, 24 * 60));
 }
 
 export default function SettingsPage() {
