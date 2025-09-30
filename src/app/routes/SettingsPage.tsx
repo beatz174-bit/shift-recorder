@@ -1,11 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useSettings } from '../state/SettingsContext';
+import type { WeekStart } from '../db/schema';
+
+const WEEK_START_OPTIONS: Array<{ value: WeekStart; label: string }> = [
+  { value: 0, label: 'Sunday' },
+  { value: 1, label: 'Monday' },
+  { value: 2, label: 'Tuesday' },
+  { value: 3, label: 'Wednesday' },
+  { value: 4, label: 'Thursday' },
+  { value: 5, label: 'Friday' },
+  { value: 6, label: 'Saturday' }
+];
 
 export default function SettingsPage() {
   const { settings, updateSettings, isLoading, error } = useSettings();
   const [baseRate, setBaseRate] = useState(() => settings?.baseRate ?? 25);
   const [penaltyRate, setPenaltyRate] = useState(() => settings?.penaltyRate ?? 35);
-  const [weekStartsOn, setWeekStartsOn] = useState(() => settings?.weekStartsOn ?? 1);
+  const [weekStartsOn, setWeekStartsOn] = useState<WeekStart>(() => settings?.weekStartsOn ?? 1);
   const [currency, setCurrency] = useState(() => settings?.currency ?? 'USD');
   const [status, setStatus] = useState<string | null>(null);
 
@@ -36,7 +47,7 @@ export default function SettingsPage() {
           await updateSettings({
             baseRate: Number(baseRate),
             penaltyRate: Number(penaltyRate),
-            weekStartsOn: Number(weekStartsOn) as 0 | 1,
+            weekStartsOn,
             currency
           });
           setStatus('Settings saved');
@@ -69,11 +80,14 @@ export default function SettingsPage() {
           <label className="text-xs font-semibold uppercase text-slate-500">Week starts on</label>
           <select
             value={weekStartsOn}
-            onChange={(event) => setWeekStartsOn(Number(event.target.value) as 0 | 1)}
+            onChange={(event) => setWeekStartsOn(Number(event.target.value) as WeekStart)}
             className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
           >
-            <option value={0}>Sunday</option>
-            <option value={1}>Monday</option>
+            {WEEK_START_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
         <div className="grid gap-2">

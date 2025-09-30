@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { computePayForShift } from '../logic/payRules';
 import { getWeekKey } from '../logic/week';
 
-export type WeekStart = 0 | 1; // 0 Sunday, 1 Monday
+export type WeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 Sunday through 6 Saturday
 
 export type Settings = {
   id: 'singleton';
