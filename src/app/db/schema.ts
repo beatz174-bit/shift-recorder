@@ -15,6 +15,7 @@ export type Settings = {
   weekStartsOn: WeekStart;
   currency: string;
   theme: ThemePreference;
+  penaltyDailyWindowEnabled: boolean;
   penaltyDailyStartMinute: number;
   penaltyDailyEndMinute: number;
   penaltyAllDayWeekdays: Weekday[];
@@ -48,6 +49,7 @@ export const DEFAULT_SETTINGS: Settings = {
   weekStartsOn: 1,
   currency: 'USD',
   theme: 'system',
+  penaltyDailyWindowEnabled: true,
   penaltyDailyStartMinute: 0,
   penaltyDailyEndMinute: 7 * 60,
   penaltyAllDayWeekdays: [0, 6],
@@ -117,9 +119,12 @@ function sanitizeTheme(value: unknown): ThemePreference {
 
 export function applySettingsDefaults(partial: Partial<Settings> | undefined): Settings {
   const base = partial ?? {};
+  const penaltyDailyWindowEnabled = Boolean(
+    base.penaltyDailyWindowEnabled ?? DEFAULT_SETTINGS.penaltyDailyWindowEnabled
+  );
   const startMinute = sanitizePenaltyMinutes(base.penaltyDailyStartMinute, DEFAULT_SETTINGS.penaltyDailyStartMinute);
   let endMinute = sanitizePenaltyMinutes(base.penaltyDailyEndMinute, DEFAULT_SETTINGS.penaltyDailyEndMinute);
-  if (endMinute <= startMinute) {
+  if (penaltyDailyWindowEnabled && endMinute <= startMinute) {
     endMinute = DEFAULT_SETTINGS.penaltyDailyEndMinute;
   }
 
@@ -147,6 +152,7 @@ export function applySettingsDefaults(partial: Partial<Settings> | undefined): S
     weekStartsOn: (typeof base.weekStartsOn === 'number' ? base.weekStartsOn : DEFAULT_SETTINGS.weekStartsOn) as WeekStart,
     currency: typeof base.currency === 'string' && base.currency.trim() ? base.currency : DEFAULT_SETTINGS.currency,
     theme: sanitizeTheme(base.theme ?? DEFAULT_SETTINGS.theme),
+    penaltyDailyWindowEnabled,
     penaltyDailyStartMinute: startMinute,
     penaltyDailyEndMinute: endMinute,
     penaltyAllDayWeekdays,
@@ -211,6 +217,7 @@ export async function upsertShift(
       endISO: input.endISO,
       baseRate: settings.baseRate,
       penaltyRate: settings.penaltyRate,
+      penaltyDailyWindowEnabled: settings.penaltyDailyWindowEnabled,
       penaltyDailyStartMinute: settings.penaltyDailyStartMinute,
       penaltyDailyEndMinute: settings.penaltyDailyEndMinute,
       penaltyAllDayWeekdays: settings.penaltyAllDayWeekdays,

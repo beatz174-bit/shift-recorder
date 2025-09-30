@@ -4,6 +4,7 @@ import { computePayForShift } from '../../app/logic/payRules';
 const BASE_RATE = 25;
 const PENALTY_RATE = 35;
 const DEFAULT_CONFIG = {
+  penaltyDailyWindowEnabled: true,
   penaltyDailyStartMinute: 0,
   penaltyDailyEndMinute: 7 * 60,
   penaltyAllDayWeekdays: [0, 6],
@@ -63,6 +64,14 @@ describe('computePayForShift', () => {
       penaltyAllDayWeekdays: []
     });
     expect(result.penaltyMinutes).toBe(60);
+    expect(result.baseMinutes).toBe(60);
+  });
+
+  it('treats entire shift as base when daily penalty window disabled', () => {
+    const result = createShift('2024-04-02T06:30:00', '2024-04-02T07:30:00', {
+      penaltyDailyWindowEnabled: false
+    });
+    expect(result.penaltyMinutes).toBe(0);
     expect(result.baseMinutes).toBe(60);
   });
 

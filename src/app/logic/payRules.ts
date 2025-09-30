@@ -6,6 +6,7 @@ export type ComputePayInput = {
   endISO: string;
   baseRate: number;
   penaltyRate: number;
+  penaltyDailyWindowEnabled: boolean;
   penaltyDailyStartMinute: number;
   penaltyDailyEndMinute: number;
   penaltyAllDayWeekdays: number[];
@@ -40,6 +41,7 @@ export function computePayForShift({
   endISO,
   baseRate,
   penaltyRate,
+  penaltyDailyWindowEnabled,
   penaltyDailyStartMinute,
   penaltyDailyEndMinute,
   penaltyAllDayWeekdays,
@@ -54,6 +56,7 @@ export function computePayForShift({
   }
 
   const segments = splitIntoDailySegments(start, end, {
+    penaltyDailyWindowEnabled,
     penaltyDailyStartMinute,
     penaltyDailyEndMinute,
     penaltyAllDayWeekdays,

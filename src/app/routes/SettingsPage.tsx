@@ -68,6 +68,9 @@ export default function SettingsPage() {
   const [theme, setTheme] = useState<ThemePreference>(() => settings?.theme ?? 'system');
   const [penaltyStartTime, setPenaltyStartTime] = useState(() => minutesToTime(settings?.penaltyDailyStartMinute ?? 0));
   const [penaltyEndTime, setPenaltyEndTime] = useState(() => minutesToTime(settings?.penaltyDailyEndMinute ?? 7 * 60));
+  const [penaltyDailyWindowEnabled, setPenaltyDailyWindowEnabled] = useState(
+    () => settings?.penaltyDailyWindowEnabled ?? true
+  );
   const [penaltyAllDayWeekdays, setPenaltyAllDayWeekdays] = useState<Weekday[]>(() => settings?.penaltyAllDayWeekdays ?? [0, 6]);
   const [includePublicHolidays, setIncludePublicHolidays] = useState(() => settings?.includePublicHolidays ?? false);
   const [publicHolidayCountry, setPublicHolidayCountry] = useState(() => settings?.publicHolidayCountry ?? 'AU');
@@ -88,6 +91,7 @@ export default function SettingsPage() {
       setWeekStartsOn(settings.weekStartsOn);
       setCurrency(settings.currency);
       setTheme(settings.theme ?? 'system');
+      setPenaltyDailyWindowEnabled(settings.penaltyDailyWindowEnabled);
       setPenaltyStartTime(minutesToTime(settings.penaltyDailyStartMinute));
       setPenaltyEndTime(minutesToTime(settings.penaltyDailyEndMinute));
       setPenaltyAllDayWeekdays(settings.penaltyAllDayWeekdays);
@@ -190,7 +194,7 @@ export default function SettingsPage() {
           const startMinutes = timeToMinutes(penaltyStartTime);
           const endMinutes = timeToMinutes(penaltyEndTime);
 
-          if (endMinutes <= startMinutes) {
+          if (penaltyDailyWindowEnabled && endMinutes <= startMinutes) {
             setFormError('Penalty end time must be after the start time.');
             setIsSaving(false);
             return;
@@ -233,6 +237,7 @@ export default function SettingsPage() {
               weekStartsOn,
               currency,
               theme,
+              penaltyDailyWindowEnabled,
               penaltyDailyStartMinute: startMinutes,
               penaltyDailyEndMinute: endMinutes,
               penaltyAllDayWeekdays: selectedDays,
@@ -326,6 +331,15 @@ export default function SettingsPage() {
         </fieldset>
         <fieldset className="grid gap-3">
           <legend className="text-xs font-semibold uppercase text-slate-500">Penalty hours (daily window)</legend>
+          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-200">
+            <input
+              type="checkbox"
+              checked={penaltyDailyWindowEnabled}
+              onChange={(event) => setPenaltyDailyWindowEnabled(event.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+            />
+            Enable a daily penalty window
+          </label>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-200">
               <span className="text-xs font-semibold uppercase text-slate-500">Start time</span>
@@ -333,7 +347,8 @@ export default function SettingsPage() {
                 type="time"
                 value={penaltyStartTime}
                 onChange={(event) => setPenaltyStartTime(event.target.value)}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+                disabled={!penaltyDailyWindowEnabled}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900"
               />
             </label>
             <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-200">
@@ -342,12 +357,15 @@ export default function SettingsPage() {
                 type="time"
                 value={penaltyEndTime}
                 onChange={(event) => setPenaltyEndTime(event.target.value)}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+                disabled={!penaltyDailyWindowEnabled}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900"
               />
             </label>
           </div>
           <p className="text-xs text-slate-500">
-            Time range applies to every day unless the day is configured as an all-day penalty below.
+            {penaltyDailyWindowEnabled
+              ? 'Time range applies to every day unless the day is configured as an all-day penalty below.'
+              : 'When disabled, no time of day automatically attracts penalty rates.'}
           </p>
         </fieldset>
         <fieldset className="grid gap-3">
