@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Shift Recorder maskable icon">
+  <defs>
+    <radialGradient id="maskBg" cx="50%" cy="40%" r="75%">
+      <stop offset="0%" stop-color="#1e3a8a" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#maskBg)" />
+  <g fill="none" stroke="#e0f2fe" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="256" cy="256" r="152" opacity="0.3" />
+    <path d="M256 132v124l108 68" />
+  </g>
+  <circle cx="256" cy="256" r="28" fill="#38bdf8" />
+  <path d="M148 360c34 42 72 64 108 64s74-22 108-64" fill="none" stroke="#38bdf8" stroke-width="32" stroke-linecap="round" />
+</svg>
