@@ -48,15 +48,45 @@ function minutesToTime(minutes: number): string {
   return `${hours}:${mins}`;
 }
 
-function timeToMinutes(value: string): number {
-  if (!value || !value.includes(':')) {
+export function timeToMinutes(value: string): number {
+  if (!value) {
     return 0;
   }
-  const [hours, mins] = value.split(':').map((part) => Number.parseInt(part, 10));
-  if (Number.isNaN(hours) || Number.isNaN(mins)) {
+
+  const trimmed = value.trim();
+  if (!trimmed) {
     return 0;
   }
-  return Math.max(0, Math.min(hours * 60 + mins, 24 * 60));
+
+  const suffixMatch = trimmed.match(/\s*(am|pm)$/i);
+  const suffix = suffixMatch ? (suffixMatch[1].toLowerCase() as 'am' | 'pm') : null;
+  const timePart = suffixMatch ? trimmed.slice(0, suffixMatch.index).trim() : trimmed;
+
+  if (!timePart.includes(':')) {
+    return 0;
+  }
+
+  const [hoursPart, minutesPart] = timePart.split(':');
+  const hours = Number.parseInt(hoursPart, 10);
+  const minutes = Number.parseInt(minutesPart, 10);
+
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return 0;
+  }
+
+  if (minutes < 0 || minutes >= 60) {
+    return 0;
+  }
+
+  let normalizedHours = hours;
+  if (suffix === 'am') {
+    normalizedHours = hours % 12;
+  } else if (suffix === 'pm') {
+    normalizedHours = (hours % 12) + 12;
+  }
+
+  const totalMinutes = normalizedHours * 60 + minutes;
+  return Math.max(0, Math.min(totalMinutes, 24 * 60));
 }
 
 export default function SettingsPage() {
@@ -66,6 +96,7 @@ export default function SettingsPage() {
   const [weekStartsOn, setWeekStartsOn] = useState<WeekStart>(() => settings?.weekStartsOn ?? 1);
   const [currency, setCurrency] = useState(() => settings?.currency ?? 'USD');
   const [theme, setTheme] = useState<ThemePreference>(() => settings?.theme ?? 'system');
+  const [use24HourTime, setUse24HourTime] = useState(() => settings?.use24HourTime ?? false);
   const [penaltyStartTime, setPenaltyStartTime] = useState(() => minutesToTime(settings?.penaltyDailyStartMinute ?? 0));
   const [penaltyEndTime, setPenaltyEndTime] = useState(() => minutesToTime(settings?.penaltyDailyEndMinute ?? 7 * 60));
   const [penaltyDailyWindowEnabled, setPenaltyDailyWindowEnabled] = useState(
@@ -91,6 +122,7 @@ export default function SettingsPage() {
       setWeekStartsOn(settings.weekStartsOn);
       setCurrency(settings.currency);
       setTheme(settings.theme ?? 'system');
+      setUse24HourTime(settings.use24HourTime ?? false);
       setPenaltyDailyWindowEnabled(settings.penaltyDailyWindowEnabled);
       setPenaltyStartTime(minutesToTime(settings.penaltyDailyStartMinute));
       setPenaltyEndTime(minutesToTime(settings.penaltyDailyEndMinute));
@@ -237,6 +269,7 @@ export default function SettingsPage() {
               weekStartsOn,
               currency,
               theme,
+              use24HourTime,
               penaltyDailyWindowEnabled,
               penaltyDailyStartMinute: startMinutes,
               penaltyDailyEndMinute: endMinutes,
@@ -314,6 +347,21 @@ export default function SettingsPage() {
             className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm uppercase shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
             maxLength={3}
           />
+        </div>
+        <div className="grid gap-2">
+          <span className="text-xs font-semibold uppercase text-slate-500">Time format</span>
+          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-200">
+            <input
+              type="checkbox"
+              checked={use24HourTime}
+              onChange={(event) => setUse24HourTime(event.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+            />
+            Use 24-hour clock
+          </label>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Applies to shift start and end times shown in the app.
+          </p>
         </div>
         <fieldset className="grid gap-3">
           <legend className="text-xs font-semibold uppercase text-slate-500">Appearance</legend>

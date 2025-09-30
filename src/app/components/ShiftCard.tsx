@@ -1,14 +1,10 @@
 import type { Shift } from '../db/schema';
+import { useTimeFormatter } from '../state/useTimeFormatter';
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   weekday: 'short',
   month: 'short',
   day: 'numeric'
-});
-
-const timeFormatter = new Intl.DateTimeFormat(undefined, {
-  hour: '2-digit',
-  minute: '2-digit'
 });
 
 export type ShiftCardProps = {
@@ -19,6 +15,7 @@ export type ShiftCardProps = {
 };
 
 export default function ShiftCard({ shift, currency, onEdit, onDelete }: ShiftCardProps) {
+  const timeFormatter = useTimeFormatter();
   const startDate = new Date(shift.startISO);
   const endDate = shift.endISO ? new Date(shift.endISO) : null;
   const currencyFormatter = new Intl.NumberFormat(undefined, {

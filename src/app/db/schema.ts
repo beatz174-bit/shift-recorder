@@ -15,6 +15,7 @@ export type Settings = {
   weekStartsOn: WeekStart;
   currency: string;
   theme: ThemePreference;
+  use24HourTime: boolean;
   penaltyDailyWindowEnabled: boolean;
   penaltyDailyStartMinute: number;
   penaltyDailyEndMinute: number;
@@ -49,6 +50,7 @@ export const DEFAULT_SETTINGS: Settings = {
   weekStartsOn: 1,
   currency: 'USD',
   theme: 'system',
+  use24HourTime: false,
   penaltyDailyWindowEnabled: true,
   penaltyDailyStartMinute: 0,
   penaltyDailyEndMinute: 7 * 60,
@@ -144,6 +146,7 @@ export function applySettingsDefaults(partial: Partial<Settings> | undefined): S
     publicHolidayCountry
   );
   const publicHolidayDates = sanitizeHolidayDates(base.publicHolidayDates ?? DEFAULT_SETTINGS.publicHolidayDates);
+  const use24HourTime = Boolean(base.use24HourTime ?? DEFAULT_SETTINGS.use24HourTime);
 
   return {
     id: 'singleton',
@@ -152,6 +155,7 @@ export function applySettingsDefaults(partial: Partial<Settings> | undefined): S
     weekStartsOn: (typeof base.weekStartsOn === 'number' ? base.weekStartsOn : DEFAULT_SETTINGS.weekStartsOn) as WeekStart,
     currency: typeof base.currency === 'string' && base.currency.trim() ? base.currency : DEFAULT_SETTINGS.currency,
     theme: sanitizeTheme(base.theme ?? DEFAULT_SETTINGS.theme),
+    use24HourTime,
     penaltyDailyWindowEnabled,
     penaltyDailyStartMinute: startMinute,
     penaltyDailyEndMinute: endMinute,
