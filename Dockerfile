@@ -4,6 +4,7 @@ WORKDIR /app
 
 # Install deps first (better layer caching)
 COPY package*.json ./
+COPY scripts ./scripts
 RUN npm ci
 
 # Copy source
