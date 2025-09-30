@@ -2,6 +2,7 @@
   "name": "shift-recorder",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@11.6.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,7 +15,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "postinstall": "playwright install"
+    "postinstall": "node ./scripts/install-playwright.mjs"
   },
   "dependencies": {
     "@heroicons/react": "2.1.5",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.49.0",
+    "playwright": "1.49.0",
     "@testing-library/jest-dom": "6.6.3",
     "@testing-library/react": "16.1.0",
     "@testing-library/user-event": "14.5.2",
