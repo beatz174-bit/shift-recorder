@@ -8,6 +8,7 @@ export type DailySegment = {
 };
 
 export type PenaltyConfig = {
+  penaltyDailyWindowEnabled: boolean;
   penaltyDailyStartMinute: number;
   penaltyDailyEndMinute: number;
   penaltyAllDayWeekdays: number[];
@@ -33,7 +34,8 @@ export function splitIntoDailySegments(start: Date, end: Date, config: PenaltyCo
   const segments: DailySegment[] = [];
   let cursor = start;
   const publicHolidaySet = new Set(config.publicHolidayDates ?? []);
-  const hasDailyWindow = config.penaltyDailyEndMinute > config.penaltyDailyStartMinute;
+  const hasDailyWindow =
+    config.penaltyDailyWindowEnabled && config.penaltyDailyEndMinute > config.penaltyDailyStartMinute;
 
   while (cursor < end) {
     const dayStart = startOfDay(cursor);
