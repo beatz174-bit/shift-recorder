@@ -6,11 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "test": "vitest",
-    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "preview": "vite preview --strictPort --port 5173",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "lint": "eslint .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "postinstall": "playwright install"
   },
   "dependencies": {
     "@heroicons/react": "2.1.5",
@@ -24,6 +28,7 @@
     "vite-plugin-pwa": "0.20.5"
   },
   "devDependencies": {
+    "@playwright/test": "1.49.0",
     "@testing-library/jest-dom": "6.6.3",
     "@testing-library/react": "16.1.0",
     "@testing-library/user-event": "14.5.2",
