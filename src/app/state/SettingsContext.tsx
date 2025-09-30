@@ -41,6 +41,42 @@ export function SettingsProvider({ children }: PropsWithChildren) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!settings) {
+      return;
+    }
+
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+
+    const root = document.documentElement;
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const theme = settings.theme;
+
+    const resolveTheme = () => (theme === 'system' ? (media.matches ? 'dark' : 'light') : theme);
+
+    const applyTheme = () => {
+      const resolvedTheme = resolveTheme();
+      root.classList.toggle('dark', resolvedTheme === 'dark');
+      root.dataset.theme = resolvedTheme;
+    };
+
+    applyTheme();
+
+    if (theme !== 'system') {
+      return () => {
+        applyTheme();
+      };
+    }
+
+    const handleChange = () => applyTheme();
+    media.addEventListener('change', handleChange);
+    return () => {
+      media.removeEventListener('change', handleChange);
+    };
+  }, [settings?.theme]);
+
   const value = useMemo<SettingsContextValue>(
     () => ({
       settings,

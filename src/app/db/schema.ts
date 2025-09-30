@@ -6,12 +6,15 @@ import { getWeekKey } from '../logic/week';
 export type WeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 Sunday through 6 Saturday
 export type Weekday = WeekStart;
 
+export type ThemePreference = 'system' | 'light' | 'dark';
+
 export type Settings = {
   id: 'singleton';
   baseRate: number;
   penaltyRate: number;
   weekStartsOn: WeekStart;
   currency: string;
+  theme: ThemePreference;
   penaltyDailyStartMinute: number;
   penaltyDailyEndMinute: number;
   penaltyAllDayWeekdays: Weekday[];
@@ -44,6 +47,7 @@ export const DEFAULT_SETTINGS: Settings = {
   penaltyRate: 35,
   weekStartsOn: 1,
   currency: 'USD',
+  theme: 'system',
   penaltyDailyStartMinute: 0,
   penaltyDailyEndMinute: 7 * 60,
   penaltyAllDayWeekdays: [0, 6],
@@ -104,6 +108,13 @@ function sanitizeHolidaySubdivision(value: unknown, countryCode: string): string
   return normalized;
 }
 
+function sanitizeTheme(value: unknown): ThemePreference {
+  if (value === 'light' || value === 'dark' || value === 'system') {
+    return value;
+  }
+  return 'system';
+}
+
 export function applySettingsDefaults(partial: Partial<Settings> | undefined): Settings {
   const base = partial ?? {};
   const startMinute = sanitizePenaltyMinutes(base.penaltyDailyStartMinute, DEFAULT_SETTINGS.penaltyDailyStartMinute);
@@ -135,6 +146,7 @@ export function applySettingsDefaults(partial: Partial<Settings> | undefined): S
     penaltyRate: typeof base.penaltyRate === 'number' ? base.penaltyRate : DEFAULT_SETTINGS.penaltyRate,
     weekStartsOn: (typeof base.weekStartsOn === 'number' ? base.weekStartsOn : DEFAULT_SETTINGS.weekStartsOn) as WeekStart,
     currency: typeof base.currency === 'string' && base.currency.trim() ? base.currency : DEFAULT_SETTINGS.currency,
+    theme: sanitizeTheme(base.theme ?? DEFAULT_SETTINGS.theme),
     penaltyDailyStartMinute: startMinute,
     penaltyDailyEndMinute: endMinute,
     penaltyAllDayWeekdays,
