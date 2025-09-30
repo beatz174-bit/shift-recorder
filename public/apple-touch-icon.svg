@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Shift Recorder apple touch icon">
+  <defs>
+    <linearGradient id="appleBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#appleBg)" />
+  <g fill="none" stroke="#f8fafc" stroke-width="32" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="256" cy="256" r="160" opacity="0.35" />
+    <path d="M256 148v108l96 72" />
+  </g>
+  <circle cx="256" cy="256" r="26" fill="#f8fafc" />
+  <path d="M168 352c30 36 60 54 88 54s58-18 88-54" fill="none" stroke="#f8fafc" stroke-width="28" stroke-linecap="round" />
+</svg>
