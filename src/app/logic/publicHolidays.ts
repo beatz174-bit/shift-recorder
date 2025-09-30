@@ -134,7 +134,9 @@ export async function fetchPublicHolidays(
       }
 
       if (!normalizedSubdivision) {
-        holidayDates.add(holiday.date);
+        if (holiday.counties == null) {
+          holidayDates.add(holiday.date);
+        }
         return;
       }
 

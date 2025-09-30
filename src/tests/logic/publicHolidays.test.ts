@@ -29,7 +29,23 @@ describe('public holiday utilities', () => {
     expect(dates).toEqual(['2024-01-01', '2024-03-01', '2024-06-01']);
   });
 
-  it('returns holidays for the whole country when subdivision is invalid', async () => {
+  it('returns only national holidays when subdivision is missing', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        mockFetchResponse([
+          { date: '2024-01-01', counties: null },
+          { date: '2024-02-01', counties: ['AU-NSW'] },
+          { date: '2024-05-20' }
+        ])
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const dates = await fetchPublicHolidays('AU', [2024]);
+    expect(dates).toEqual(['2024-01-01', '2024-05-20']);
+  });
+
+  it('returns only national holidays when subdivision is invalid', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue(
@@ -41,7 +57,7 @@ describe('public holiday utilities', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     const dates = await fetchPublicHolidays('AU', [2024], 'NSW');
-    expect(dates).toEqual(['2024-01-01', '2024-02-01']);
+    expect(dates).toEqual(['2024-01-01']);
   });
 
   it('loads and sorts holiday regions for a country', async () => {
