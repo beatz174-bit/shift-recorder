@@ -22,7 +22,7 @@ COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 # Static site
 COPY --from=build /app/dist /usr/share/nginx/html
 
-EXPOSE 80
+EXPOSE 3000
 
 # Simple healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD wget -qO- http://localhost/ >/dev/null 2>&1 || exit 1
