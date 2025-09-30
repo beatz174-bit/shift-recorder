@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import type { Shift } from '../db/schema';
-import { nowLocalInputValue, toISO, toLocalDateTimeInput } from '../utils/datetime';
+import {
+  createDateFromLocalInputs,
+  nowLocalDateInputValue,
+  nowLocalTimeInputValue,
+  toLocalDateInput,
+  toLocalTimeInput
+} from '../utils/datetime';
 
 export type ShiftFormValues = {
   start: string;
@@ -16,12 +22,19 @@ export type ShiftFormProps = {
 };
 
 export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabel }: ShiftFormProps) {
-  const [start, setStart] = useState(
-    initialShift?.startISO ? toLocalDateTimeInput(initialShift.startISO) : nowLocalInputValue()
-  );
-  const [end, setEnd] = useState(
-    initialShift?.endISO ? toLocalDateTimeInput(initialShift.endISO) : nowLocalInputValue()
-  );
+  const defaultDate = initialShift?.startISO
+    ? toLocalDateInput(initialShift.startISO)
+    : nowLocalDateInputValue();
+  const defaultStartTime = initialShift?.startISO
+    ? toLocalTimeInput(initialShift.startISO)
+    : nowLocalTimeInputValue();
+  const defaultEndTime = initialShift?.endISO
+    ? toLocalTimeInput(initialShift.endISO)
+    : defaultStartTime;
+
+  const [date, setDate] = useState(defaultDate);
+  const [startTime, setStartTime] = useState(defaultStartTime);
+  const [endTime, setEndTime] = useState(defaultEndTime);
   const [note, setNote] = useState(initialShift?.note ?? '');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,41 +45,62 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
       onSubmit={async (event) => {
         event.preventDefault();
         setError(null);
+
         try {
-          const startISO = toISO(start);
-          const endISO = toISO(end);
-          if (new Date(endISO) <= new Date(startISO)) {
-            setError('End time must be after start time.');
+          const startDate = createDateFromLocalInputs(date, startTime);
+          let finishDate = createDateFromLocalInputs(date, endTime);
+
+          if (finishDate <= startDate) {
+            finishDate = new Date(finishDate.getTime());
+            finishDate.setDate(finishDate.getDate() + 1);
+          }
+
+          if (finishDate <= startDate) {
+            setError('Finish time must be after the start time.');
             return;
           }
+
           setIsSubmitting(true);
-          await onSubmit({ start: startISO, end: endISO, note });
-          setIsSubmitting(false);
+          await onSubmit({ start: startDate.toISOString(), end: finishDate.toISOString(), note });
         } catch (err) {
-          setIsSubmitting(false);
           setError((err as Error).message);
+        } finally {
+          setIsSubmitting(false);
         }
       }}
     >
       <div className="grid gap-2">
-        <label className="text-xs font-semibold uppercase text-slate-500">Start</label>
+        <label className="text-xs font-semibold uppercase text-slate-500">Date</label>
         <input
-          type="datetime-local"
-          value={start}
-          onChange={(event) => setStart(event.target.value)}
+          type="date"
+          value={date}
+          onChange={(event) => setDate(event.target.value)}
           className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
           required
         />
       </div>
       <div className="grid gap-2">
-        <label className="text-xs font-semibold uppercase text-slate-500">End</label>
+        <label className="text-xs font-semibold uppercase text-slate-500">Start time</label>
         <input
-          type="datetime-local"
-          value={end}
-          onChange={(event) => setEnd(event.target.value)}
+          type="time"
+          value={startTime}
+          onChange={(event) => setStartTime(event.target.value)}
           className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
           required
         />
+      </div>
+      <div className="grid gap-2">
+        <label className="text-xs font-semibold uppercase text-slate-500">Finish time</label>
+        <input
+          type="time"
+          value={endTime}
+          onChange={(event) => setEndTime(event.target.value)}
+          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+          required
+        />
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Finish times earlier than the start are saved on the following day.
+        </p>
       </div>
       <div className="grid gap-2">
         <label className="text-xs font-semibold uppercase text-slate-500">Note</label>

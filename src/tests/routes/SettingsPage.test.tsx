@@ -151,6 +151,7 @@ describe('SettingsPage', () => {
       weekStartsOn: 0,
       currency: 'EUR',
       theme: 'dark',
+      use24HourTime: false,
       penaltyDailyWindowEnabled: true,
       penaltyDailyStartMinute: 150,
       penaltyDailyEndMinute: 375,
