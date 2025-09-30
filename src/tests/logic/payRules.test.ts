@@ -78,4 +78,40 @@ describe('computePayForShift', () => {
   it('throws when end equals start', () => {
     expect(() => createShift('2024-04-01T07:00:00', '2024-04-01T07:00:00')).toThrowError(/after start/);
   });
+
+  it('calculates mixed base and penalty pay with accurate rounding', () => {
+    const result = createShift('2024-04-02T05:30:00', '2024-04-02T08:00:00');
+
+    expect(result.penaltyMinutes).toBe(90);
+    expect(result.baseMinutes).toBe(60);
+    expect(result.penaltyHours).toBeCloseTo(1.5, 4);
+    expect(result.baseHours).toBeCloseTo(1, 4);
+    expect(result.totalHours).toBeCloseTo(2.5, 4);
+    expect(result.penaltyPay).toBeCloseTo(52.5, 2);
+    expect(result.basePay).toBeCloseTo(25, 2);
+    expect(result.totalPay).toBe(result.basePay + result.penaltyPay);
+  });
+
+  it('rounds short base-only shifts to expected precision', () => {
+    const result = createShift('2024-04-02T07:00:00', '2024-04-02T07:01:00');
+
+    expect(result.penaltyMinutes).toBe(0);
+    expect(result.baseMinutes).toBe(1);
+    expect(result.baseHours).toBeCloseTo(0.0167, 4);
+    expect(result.totalHours).toBeCloseTo(0.0167, 4);
+    expect(result.basePay).toBeCloseTo(0.42, 2);
+    expect(result.totalPay).toBeCloseTo(0.42, 2);
+  });
+
+  it('treats configured weekdays as all-day penalty periods', () => {
+    const result = createShift('2024-04-03T10:00:00', '2024-04-03T12:00:00', {
+      penaltyAllDayWeekdays: [3]
+    });
+
+    expect(result.penaltyMinutes).toBe(120);
+    expect(result.baseMinutes).toBe(0);
+    expect(result.penaltyPay).toBeCloseTo(70, 2);
+    expect(result.basePay).toBe(0);
+    expect(result.totalPay).toBe(result.penaltyPay);
+  });
 });
