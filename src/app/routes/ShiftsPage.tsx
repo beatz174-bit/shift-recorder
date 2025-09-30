@@ -39,8 +39,6 @@ export default function ShiftsPage() {
     enabled: Boolean(settings)
   });
 
-  const currency = settings?.currency ?? 'USD';
-
   const calendarDays = useMemo(() => {
     const options = { weekStartsOn: CALENDAR_WEEK_START } as const;
     const start = startOfWeek(startOfMonth(currentMonth), options);
@@ -79,16 +77,6 @@ export default function ShiftsPage() {
         minute: '2-digit'
       }),
     []
-  );
-
-  const currencyFormatter = useMemo(
-    () =>
-      new Intl.NumberFormat(undefined, {
-        style: 'currency',
-        currency,
-        maximumFractionDigits: 2
-      }),
-    [currency]
   );
 
   const createMutation = useMutation({
@@ -236,14 +224,10 @@ export default function ShiftsPage() {
                         key={shift.id}
                         className={`flex flex-col gap-2 rounded-xl border px-3 py-2 text-xs shadow-sm transition ${shiftClasses}`}
                       >
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center justify-between gap-2">
                           <div className="flex flex-col">
-                            <span className="font-semibold">
-                              {timeFormatter.format(startDate)} — {endDate ? timeFormatter.format(endDate) : 'In progress'}
-                            </span>
-                            <span className="text-[0.65rem] opacity-80">
-                              {totalHours}h • {currencyFormatter.format(shift.totalPay)}
-                            </span>
+                            <span className="text-sm font-semibold">{timeFormatter.format(startDate)}</span>
+                            <span className="text-[0.65rem] opacity-80">{totalHours}h</span>
                           </div>
                           <div className="flex items-center gap-1 self-start">
                             <button
@@ -264,7 +248,6 @@ export default function ShiftsPage() {
                             </button>
                           </div>
                         </div>
-                        {shift.note && <p className="text-[0.65rem] leading-relaxed opacity-80">{shift.note}</p>}
                       </article>
                     );
                   })}
