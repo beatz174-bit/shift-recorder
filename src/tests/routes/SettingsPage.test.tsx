@@ -5,12 +5,12 @@ import { DEFAULT_SETTINGS, type Settings } from '../../app/db/schema';
 import type { HolidayRegion } from '../../app/logic/publicHolidays';
 
 const useSettingsMock = vi.fn();
-const mockFetchPublicHolidayRegions = vi.fn(
-  async (_country: string): Promise<HolidayRegion[]> => []
-);
-const mockFetchPublicHolidays = vi.fn(
-  async (): Promise<string[]> => []
-);
+const mockFetchPublicHolidayRegions = vi.fn<
+  (country: string) => Promise<HolidayRegion[]>
+>(async (_country) => []);
+const mockFetchPublicHolidays = vi.fn<
+  (country: string, years: number[], subdivision?: string) => Promise<string[]>
+>(async (_country, _years, _subdivision) => []);
 
 vi.mock('../../app/state/SettingsContext', () => ({
   useSettings: () => useSettingsMock()
