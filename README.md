@@ -9,6 +9,15 @@ npm install
 npm run dev
 ```
 
+> [!NOTE]
+> The project is configured for **npm 11.6.1** (see the `packageManager` field in `package.json`). If you're using Corepack, run `corepack enable` first to pick up the pinned version.
+
+During `npm install` the post-install script attempts to download Playwright browsers. In restricted network environments the download may fail; when that happens the script will log a warning and continue so the rest of the installation completes. Once you have network access, rerun:
+
+```bash
+npx playwright install
+```
+
 The development server runs at http://localhost:5173.
 
 ## Available scripts
