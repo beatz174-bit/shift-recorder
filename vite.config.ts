@@ -45,6 +45,8 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     setupFiles: './vitest.setup.ts',
+    include: ['src/tests/**/*.{test,spec}.{ts,tsx}'],
+    exclude: ['src/tests/e2e/**'],
     coverage: {
       reporter: ['text', 'lcov']
     }
