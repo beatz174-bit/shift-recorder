@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSettings } from '../state/SettingsContext';
 import type { WeekStart, Weekday } from '../db/schema';
-import { fetchPublicHolidays } from '../logic/publicHolidays';
+import { fetchPublicHolidays, fetchPublicHolidayRegions, type HolidayRegion } from '../logic/publicHolidays';
 
 const WEEK_START_OPTIONS: Array<{ value: WeekStart; label: string }> = [
   { value: 0, label: 'Sunday' },
@@ -64,6 +64,12 @@ export default function SettingsPage() {
   const [penaltyAllDayWeekdays, setPenaltyAllDayWeekdays] = useState<Weekday[]>(() => settings?.penaltyAllDayWeekdays ?? [0, 6]);
   const [includePublicHolidays, setIncludePublicHolidays] = useState(() => settings?.includePublicHolidays ?? false);
   const [publicHolidayCountry, setPublicHolidayCountry] = useState(() => settings?.publicHolidayCountry ?? 'AU');
+  const [publicHolidaySubdivision, setPublicHolidaySubdivision] = useState(
+    () => settings?.publicHolidaySubdivision ?? ''
+  );
+  const [holidayRegions, setHolidayRegions] = useState<HolidayRegion[]>([]);
+  const [regionsError, setRegionsError] = useState<string | null>(null);
+  const [isLoadingRegions, setIsLoadingRegions] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -79,6 +85,7 @@ export default function SettingsPage() {
       setPenaltyAllDayWeekdays(settings.penaltyAllDayWeekdays);
       setIncludePublicHolidays(settings.includePublicHolidays);
       setPublicHolidayCountry(settings.publicHolidayCountry);
+      setPublicHolidaySubdivision(settings.publicHolidaySubdivision ?? '');
     }
   }, [settings]);
 
@@ -90,6 +97,68 @@ export default function SettingsPage() {
     }
     return [...PUBLIC_HOLIDAY_REGIONS, { code: publicHolidayCountry.toUpperCase(), label: publicHolidayCountry.toUpperCase() }];
   }, [publicHolidayCountry]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const normalizedCountry = publicHolidayCountry?.toUpperCase() ?? '';
+    if (!normalizedCountry) {
+      setHolidayRegions([]);
+      setRegionsError(null);
+      setPublicHolidaySubdivision('');
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setIsLoadingRegions(true);
+    setRegionsError(null);
+
+    fetchPublicHolidayRegions(normalizedCountry)
+      .then((regions) => {
+        if (cancelled) {
+          return;
+        }
+        setHolidayRegions(regions);
+        setPublicHolidaySubdivision((current) => {
+          if (!current) {
+            return '';
+          }
+          return regions.some((region) => region.code === current) ? current : '';
+        });
+      })
+      .catch((regionError) => {
+        if (cancelled) {
+          return;
+        }
+        setRegionsError(
+          regionError instanceof Error
+            ? regionError.message
+            : 'Failed to load regions for the selected country.'
+        );
+      })
+      .finally(() => {
+        if (cancelled) {
+          return;
+        }
+        setIsLoadingRegions(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [publicHolidayCountry]);
+
+  const selectedSubdivisionName = useMemo(() => {
+    if (!publicHolidaySubdivision) {
+      return null;
+    }
+    const match = holidayRegions.find((region) => region.code === publicHolidaySubdivision);
+    if (match) {
+      return match.name;
+    }
+    const [, name] = publicHolidaySubdivision.split('-');
+    return name ?? publicHolidaySubdivision;
+  }, [holidayRegions, publicHolidaySubdivision]);
 
   if (isLoading) {
     return <p className="text-sm text-slate-500">Loading settings…</p>;
@@ -122,13 +191,22 @@ export default function SettingsPage() {
           const selectedDays = Array.from(new Set(penaltyAllDayWeekdays)).sort((a, b) => a - b) as Weekday[];
 
           let publicHolidayDates = includePublicHolidays ? settings?.publicHolidayDates ?? [] : [];
+          const normalizedSubdivision = publicHolidaySubdivision.trim().toUpperCase();
           const countryChanged = settings?.publicHolidayCountry !== publicHolidayCountry.toUpperCase();
+          const subdivisionChanged = (settings?.publicHolidaySubdivision ?? '') !== normalizedSubdivision;
           const includeChanged = settings?.includePublicHolidays !== includePublicHolidays;
 
-          if (includePublicHolidays && (publicHolidayDates.length === 0 || countryChanged || includeChanged)) {
+          if (
+            includePublicHolidays &&
+            (publicHolidayDates.length === 0 || countryChanged || includeChanged || subdivisionChanged)
+          ) {
             try {
               const currentYear = new Date().getFullYear();
-              publicHolidayDates = await fetchPublicHolidays(publicHolidayCountry, [currentYear - 1, currentYear, currentYear + 1]);
+              publicHolidayDates = await fetchPublicHolidays(
+                publicHolidayCountry,
+                [currentYear - 1, currentYear, currentYear + 1],
+                normalizedSubdivision
+              );
             } catch (holidayError) {
               setFormError(
                 holidayError instanceof Error
@@ -151,6 +229,7 @@ export default function SettingsPage() {
               penaltyAllDayWeekdays: selectedDays,
               includePublicHolidays,
               publicHolidayCountry: publicHolidayCountry.toUpperCase(),
+              publicHolidaySubdivision: normalizedSubdivision,
               publicHolidayDates
             });
             setStatus('Settings saved');
@@ -291,6 +370,28 @@ export default function SettingsPage() {
                 ))}
               </select>
             </label>
+            {isLoadingRegions ? (
+              <p className="text-xs text-slate-500">Loading regions…</p>
+            ) : null}
+            {holidayRegions.length > 0 ? (
+              <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-200">
+                <span className="text-xs font-semibold uppercase text-slate-500">State or region</span>
+                <select
+                  value={publicHolidaySubdivision}
+                  onChange={(event) => setPublicHolidaySubdivision(event.target.value)}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+                  disabled={!includePublicHolidays || isLoadingRegions}
+                >
+                  <option value="">Whole country</option>
+                  {holidayRegions.map((region) => (
+                    <option key={region.code} value={region.code}>
+                      {region.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            {regionsError ? <p className="text-xs text-red-500">{regionsError}</p> : null}
           </div>
           <p className="text-xs text-slate-500">
             Holiday dates are sourced from{' '}
@@ -305,7 +406,10 @@ export default function SettingsPage() {
             and cached for offline use.
           </p>
           {includePublicHolidays && cachedHolidayCount > 0 ? (
-            <p className="text-xs text-emerald-600">Cached {cachedHolidayCount} holidays for {publicHolidayCountry}.</p>
+            <p className="text-xs text-emerald-600">
+              Cached {cachedHolidayCount} holidays for {publicHolidayCountry}
+              {selectedSubdivisionName ? ` (${selectedSubdivisionName})` : ''}.
+            </p>
           ) : null}
         </fieldset>
         <button

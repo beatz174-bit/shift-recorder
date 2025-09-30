@@ -17,6 +17,7 @@ export type Settings = {
   penaltyAllDayWeekdays: Weekday[];
   includePublicHolidays: boolean;
   publicHolidayCountry: string;
+  publicHolidaySubdivision: string;
   publicHolidayDates: string[];
   createdAt: string;
   updatedAt: string;
@@ -48,6 +49,7 @@ export const DEFAULT_SETTINGS: Settings = {
   penaltyAllDayWeekdays: [0, 6],
   includePublicHolidays: false,
   publicHolidayCountry: 'AU',
+  publicHolidaySubdivision: '',
   publicHolidayDates: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
@@ -85,6 +87,23 @@ function sanitizeHolidayDates(values: unknown): string[] {
   return Array.from(unique).sort();
 }
 
+function sanitizeHolidaySubdivision(value: unknown, countryCode: string): string {
+  if (typeof value !== 'string') {
+    return '';
+  }
+  const normalized = value.trim().toUpperCase();
+  if (!normalized) {
+    return '';
+  }
+  if (!normalized.startsWith(`${countryCode}-`)) {
+    return '';
+  }
+  if (!/^[A-Z]{2}-[A-Z0-9]{1,10}$/.test(normalized)) {
+    return '';
+  }
+  return normalized;
+}
+
 export function applySettingsDefaults(partial: Partial<Settings> | undefined): Settings {
   const base = partial ?? {};
   const startMinute = sanitizePenaltyMinutes(base.penaltyDailyStartMinute, DEFAULT_SETTINGS.penaltyDailyStartMinute);
@@ -104,6 +123,10 @@ export function applySettingsDefaults(partial: Partial<Settings> | undefined): S
   const publicHolidayCountry = /^[A-Z]{2}$/.test(normalizedCountry)
     ? normalizedCountry
     : DEFAULT_SETTINGS.publicHolidayCountry;
+  const publicHolidaySubdivision = sanitizeHolidaySubdivision(
+    base.publicHolidaySubdivision ?? DEFAULT_SETTINGS.publicHolidaySubdivision,
+    publicHolidayCountry
+  );
   const publicHolidayDates = sanitizeHolidayDates(base.publicHolidayDates ?? DEFAULT_SETTINGS.publicHolidayDates);
 
   return {
@@ -117,6 +140,7 @@ export function applySettingsDefaults(partial: Partial<Settings> | undefined): S
     penaltyAllDayWeekdays,
     includePublicHolidays,
     publicHolidayCountry,
+    publicHolidaySubdivision,
     publicHolidayDates,
     createdAt: base.createdAt ?? DEFAULT_SETTINGS.createdAt,
     updatedAt: base.updatedAt ?? DEFAULT_SETTINGS.updatedAt
