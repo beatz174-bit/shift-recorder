@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSettings } from '../state/SettingsContext';
-import type { WeekStart, Weekday } from '../db/schema';
+import type { ThemePreference, WeekStart, Weekday } from '../db/schema';
 import { fetchPublicHolidays, fetchPublicHolidayRegions, type HolidayRegion } from '../logic/publicHolidays';
 
 const WEEK_START_OPTIONS: Array<{ value: WeekStart; label: string }> = [
@@ -31,6 +31,12 @@ const PUBLIC_HOLIDAY_REGIONS: Array<{ code: string; label: string }> = [
   { code: 'CA', label: 'Canada' }
 ];
 
+const THEME_OPTIONS: Array<{ value: ThemePreference; label: string; description: string }> = [
+  { value: 'system', label: 'System', description: 'Match your device appearance settings.' },
+  { value: 'light', label: 'Light', description: 'Always use the light theme.' },
+  { value: 'dark', label: 'Dark', description: 'Always use the dark theme.' }
+];
+
 function minutesToTime(minutes: number): string {
   const safeMinutes = Number.isFinite(minutes) ? Math.max(0, Math.min(minutes, 24 * 60)) : 0;
   const hours = Math.floor(safeMinutes / 60)
@@ -59,6 +65,7 @@ export default function SettingsPage() {
   const [penaltyRate, setPenaltyRate] = useState(() => settings?.penaltyRate ?? 35);
   const [weekStartsOn, setWeekStartsOn] = useState<WeekStart>(() => settings?.weekStartsOn ?? 1);
   const [currency, setCurrency] = useState(() => settings?.currency ?? 'USD');
+  const [theme, setTheme] = useState<ThemePreference>(() => settings?.theme ?? 'system');
   const [penaltyStartTime, setPenaltyStartTime] = useState(() => minutesToTime(settings?.penaltyDailyStartMinute ?? 0));
   const [penaltyEndTime, setPenaltyEndTime] = useState(() => minutesToTime(settings?.penaltyDailyEndMinute ?? 7 * 60));
   const [penaltyDailyWindowEnabled, setPenaltyDailyWindowEnabled] = useState(
@@ -83,6 +90,7 @@ export default function SettingsPage() {
       setPenaltyRate(settings.penaltyRate);
       setWeekStartsOn(settings.weekStartsOn);
       setCurrency(settings.currency);
+      setTheme(settings.theme ?? 'system');
       setPenaltyDailyWindowEnabled(settings.penaltyDailyWindowEnabled);
       setPenaltyStartTime(minutesToTime(settings.penaltyDailyStartMinute));
       setPenaltyEndTime(minutesToTime(settings.penaltyDailyEndMinute));
@@ -228,6 +236,7 @@ export default function SettingsPage() {
               penaltyRate: Number(penaltyRate),
               weekStartsOn,
               currency,
+              theme,
               penaltyDailyWindowEnabled,
               penaltyDailyStartMinute: startMinutes,
               penaltyDailyEndMinute: endMinutes,
@@ -296,6 +305,30 @@ export default function SettingsPage() {
             maxLength={3}
           />
         </div>
+        <fieldset className="grid gap-3">
+          <legend className="text-xs font-semibold uppercase text-slate-500">Appearance</legend>
+          <div className="grid gap-2">
+            {THEME_OPTIONS.map((option) => (
+              <label
+                key={option.value}
+                className="flex items-start gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm transition hover:border-primary/60 dark:border-slate-700 dark:bg-slate-900"
+              >
+                <input
+                  type="radio"
+                  name="theme"
+                  value={option.value}
+                  checked={theme === option.value}
+                  onChange={() => setTheme(option.value)}
+                  className="mt-1 h-4 w-4 border-slate-300 text-primary focus:ring-primary"
+                />
+                <span className="flex flex-col">
+                  <span className="font-medium text-slate-700 dark:text-slate-100">{option.label}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{option.description}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <fieldset className="grid gap-3">
           <legend className="text-xs font-semibold uppercase text-slate-500">Penalty hours (daily window)</legend>
           <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-200">
