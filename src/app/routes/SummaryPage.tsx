@@ -3,11 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import WeekNavigator from '../components/WeekNavigator';
 import ShiftCard from '../components/ShiftCard';
 import { getShiftsForWeek } from '../db/repo';
-import { useSettings, useWeekStart } from '../state/SettingsContext';
+import { usePayWeekStart, useSettings } from '../state/SettingsContext';
 import { getWeekKey, getWeekRangeForDate, type WeekRange } from '../logic/week';
 
 function useWeekNavigation(): [WeekRange, () => void, () => void] {
-  const weekStartsOn = useWeekStart();
+  const weekStartsOn = usePayWeekStart();
   const [anchorDate, setAnchorDate] = useState(() => new Date());
 
   const range = useMemo(() => getWeekRangeForDate(anchorDate, weekStartsOn), [anchorDate, weekStartsOn]);
@@ -20,7 +20,7 @@ function useWeekNavigation(): [WeekRange, () => void, () => void] {
 
 export default function SummaryPage() {
   const { settings } = useSettings();
-  const weekStartsOn = useWeekStart();
+  const weekStartsOn = usePayWeekStart();
   const [range, goPrev, goNext] = useWeekNavigation();
   const weekKey = useMemo(() => getWeekKey(range.start, weekStartsOn), [range.start, weekStartsOn]);
   const { data: shifts = [], isLoading } = useQuery({

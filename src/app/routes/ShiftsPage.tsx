@@ -22,8 +22,10 @@ import {
 import Modal from '../components/Modal';
 import ShiftForm, { type ShiftFormValues } from '../components/ShiftForm';
 import { createShift, deleteShift, getAllShifts, updateShift } from '../db/repo';
-import type { Shift } from '../db/schema';
+import type { Shift, WeekStart } from '../db/schema';
 import { useSettings } from '../state/SettingsContext';
+
+export const CALENDAR_WEEK_START: WeekStart = 1;
 
 export default function ShiftsPage() {
   const queryClient = useQueryClient();
@@ -38,21 +40,20 @@ export default function ShiftsPage() {
   });
 
   const currency = settings?.currency ?? 'USD';
-  const weekStartsOn = (settings?.weekStartsOn ?? 1) as 0 | 1;
 
   const calendarDays = useMemo(() => {
-    const options = { weekStartsOn } as const;
+    const options = { weekStartsOn: CALENDAR_WEEK_START } as const;
     const start = startOfWeek(startOfMonth(currentMonth), options);
     const end = endOfWeek(endOfMonth(currentMonth), options);
     const total = differenceInCalendarDays(end, start) + 1;
     return Array.from({ length: total }, (_, index) => addDays(start, index));
-  }, [currentMonth, weekStartsOn]);
+  }, [currentMonth]);
 
   const weekdayLabels = useMemo(() => {
-    const options = { weekStartsOn } as const;
+    const options = { weekStartsOn: CALENDAR_WEEK_START } as const;
     const start = startOfWeek(new Date(), options);
     return Array.from({ length: 7 }, (_, index) => format(addDays(start, index), 'EEE'));
-  }, [weekStartsOn]);
+  }, []);
 
   const shiftsByDay = useMemo(() => {
     const grouped = new Map<string, Shift[]>();
