@@ -10,7 +10,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["vite/client", "happy-dom"],
+    "types": ["vite/client", "happy-dom", "@testing-library/jest-dom"],
     "strict": true,
     "skipLibCheck": true
   },
