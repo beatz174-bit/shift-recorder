@@ -665,7 +665,7 @@ export default function SettingsPage() {
                   />
                 </div>
               </div>
-              {renderFormActions()}
+              {renderFormActions(true)}
             </form>
           ) : null}
 
