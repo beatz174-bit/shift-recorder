@@ -16,6 +16,9 @@ export type Settings = {
   currency: string;
   theme: ThemePreference;
   use24HourTime: boolean;
+  notificationLongLeadMinutes: number;
+  notificationShortLeadMinutes: number;
+  notificationRepeatMinutes: number;
   penaltyDailyWindowEnabled: boolean;
   penaltyDailyStartMinute: number;
   penaltyDailyEndMinute: number;
@@ -43,6 +46,22 @@ export type Shift = {
   note?: string;
 };
 
+export type NotificationType = 'long-range' | 'short-range';
+
+export type NotificationSchedule = {
+  id: string;
+  shiftId: string;
+  shiftStartISO: string;
+  shiftEndISO: string | null;
+  type: NotificationType;
+  nextTriggerISO: string;
+  validUntilISO: string;
+  repeatIntervalMinutes: number | null;
+  lastTriggeredISO: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export const DEFAULT_SETTINGS: Settings = {
   id: 'singleton',
   baseRate: 25,
@@ -51,6 +70,9 @@ export const DEFAULT_SETTINGS: Settings = {
   currency: 'USD',
   theme: 'system',
   use24HourTime: false,
+  notificationLongLeadMinutes: 6 * 60,
+  notificationShortLeadMinutes: 2 * 60,
+  notificationRepeatMinutes: 15,
   penaltyDailyWindowEnabled: true,
   penaltyDailyStartMinute: 0,
   penaltyDailyEndMinute: 7 * 60,
@@ -119,6 +141,23 @@ function sanitizeTheme(value: unknown): ThemePreference {
   return 'system';
 }
 
+function sanitizeNotificationMinutes(
+  value: unknown,
+  fallback: number,
+  { min = 0, max = 24 * 60 }: { min?: number; max?: number } = {}
+): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return fallback;
+  }
+  if (value < min) {
+    return min;
+  }
+  if (value > max) {
+    return max;
+  }
+  return Math.floor(value);
+}
+
 export function applySettingsDefaults(partial: Partial<Settings> | undefined): Settings {
   const base = partial ?? {};
   const penaltyDailyWindowEnabled = Boolean(
@@ -147,6 +186,21 @@ export function applySettingsDefaults(partial: Partial<Settings> | undefined): S
   );
   const publicHolidayDates = sanitizeHolidayDates(base.publicHolidayDates ?? DEFAULT_SETTINGS.publicHolidayDates);
   const use24HourTime = Boolean(base.use24HourTime ?? DEFAULT_SETTINGS.use24HourTime);
+  const notificationLongLeadMinutes = sanitizeNotificationMinutes(
+    base.notificationLongLeadMinutes ?? DEFAULT_SETTINGS.notificationLongLeadMinutes,
+    DEFAULT_SETTINGS.notificationLongLeadMinutes,
+    { min: 0, max: 7 * 24 * 60 }
+  );
+  const notificationShortLeadMinutes = sanitizeNotificationMinutes(
+    base.notificationShortLeadMinutes ?? DEFAULT_SETTINGS.notificationShortLeadMinutes,
+    DEFAULT_SETTINGS.notificationShortLeadMinutes,
+    { min: 0, max: 24 * 60 }
+  );
+  const notificationRepeatMinutes = sanitizeNotificationMinutes(
+    base.notificationRepeatMinutes ?? DEFAULT_SETTINGS.notificationRepeatMinutes,
+    DEFAULT_SETTINGS.notificationRepeatMinutes,
+    { min: 5, max: 24 * 60 }
+  );
 
   return {
     id: 'singleton',
@@ -156,6 +210,9 @@ export function applySettingsDefaults(partial: Partial<Settings> | undefined): S
     currency: typeof base.currency === 'string' && base.currency.trim() ? base.currency : DEFAULT_SETTINGS.currency,
     theme: sanitizeTheme(base.theme ?? DEFAULT_SETTINGS.theme),
     use24HourTime,
+    notificationLongLeadMinutes,
+    notificationShortLeadMinutes,
+    notificationRepeatMinutes,
     penaltyDailyWindowEnabled,
     penaltyDailyStartMinute: startMinute,
     penaltyDailyEndMinute: endMinute,
@@ -172,12 +229,18 @@ export function applySettingsDefaults(partial: Partial<Settings> | undefined): S
 export class ShiftRecorderDB extends Dexie {
   shifts!: Table<Shift, string>;
   settings!: Table<Settings, string>;
+  notificationSchedules!: Table<NotificationSchedule, string>;
 
   constructor() {
     super('shift-recorder');
     this.version(1).stores({
       shifts: 'id, weekKey, startISO, endISO',
       settings: 'id'
+    });
+    this.version(2).stores({
+      shifts: 'id, weekKey, startISO, endISO',
+      settings: 'id',
+      notificationSchedules: 'id, shiftId, type, nextTriggerISO'
     });
   }
 }

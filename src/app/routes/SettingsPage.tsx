@@ -97,6 +97,15 @@ export default function SettingsPage() {
   const [currency, setCurrency] = useState(() => settings?.currency ?? 'USD');
   const [theme, setTheme] = useState<ThemePreference>(() => settings?.theme ?? 'system');
   const [use24HourTime, setUse24HourTime] = useState(() => settings?.use24HourTime ?? false);
+  const [notificationLongLead, setNotificationLongLead] = useState(
+    () => settings?.notificationLongLeadMinutes ?? 6 * 60
+  );
+  const [notificationShortLead, setNotificationShortLead] = useState(
+    () => settings?.notificationShortLeadMinutes ?? 2 * 60
+  );
+  const [notificationRepeat, setNotificationRepeat] = useState(
+    () => settings?.notificationRepeatMinutes ?? 15
+  );
   const [penaltyStartTime, setPenaltyStartTime] = useState(() => minutesToTime(settings?.penaltyDailyStartMinute ?? 0));
   const [penaltyEndTime, setPenaltyEndTime] = useState(() => minutesToTime(settings?.penaltyDailyEndMinute ?? 7 * 60));
   const [penaltyDailyWindowEnabled, setPenaltyDailyWindowEnabled] = useState(
@@ -123,6 +132,9 @@ export default function SettingsPage() {
       setCurrency(settings.currency);
       setTheme(settings.theme ?? 'system');
       setUse24HourTime(settings.use24HourTime ?? false);
+      setNotificationLongLead(settings.notificationLongLeadMinutes);
+      setNotificationShortLead(settings.notificationShortLeadMinutes);
+      setNotificationRepeat(settings.notificationRepeatMinutes);
       setPenaltyDailyWindowEnabled(settings.penaltyDailyWindowEnabled);
       setPenaltyStartTime(minutesToTime(settings.penaltyDailyStartMinute));
       setPenaltyEndTime(minutesToTime(settings.penaltyDailyEndMinute));
@@ -234,6 +246,10 @@ export default function SettingsPage() {
 
           const selectedDays = Array.from(new Set(penaltyAllDayWeekdays)).sort((a, b) => a - b) as Weekday[];
 
+          const normalizedNotificationLongLead = Math.max(0, Math.floor(Number(notificationLongLead) || 0));
+          const normalizedNotificationShortLead = Math.max(0, Math.floor(Number(notificationShortLead) || 0));
+          const normalizedNotificationRepeat = Math.max(5, Math.floor(Number(notificationRepeat) || 0));
+
           let publicHolidayDates = includePublicHolidays ? settings?.publicHolidayDates ?? [] : [];
           const normalizedSubdivision = publicHolidaySubdivision.trim().toUpperCase();
           const countryChanged = settings?.publicHolidayCountry !== publicHolidayCountry.toUpperCase();
@@ -270,6 +286,9 @@ export default function SettingsPage() {
               currency,
               theme,
               use24HourTime,
+              notificationLongLeadMinutes: normalizedNotificationLongLead,
+              notificationShortLeadMinutes: normalizedNotificationShortLead,
+              notificationRepeatMinutes: normalizedNotificationRepeat,
               penaltyDailyWindowEnabled,
               penaltyDailyStartMinute: startMinutes,
               penaltyDailyEndMinute: endMinutes,
@@ -363,6 +382,56 @@ export default function SettingsPage() {
             Applies to shift start and end times shown in the app.
           </p>
         </div>
+        <fieldset className="grid gap-3">
+          <legend className="text-xs font-semibold uppercase text-slate-500">Shift reminders</legend>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Configure how far in advance the app reminds you about upcoming shifts.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-200">
+              <span className="text-xs font-semibold uppercase text-slate-500">Long-range (minutes)</span>
+              <input
+                type="number"
+                min={0}
+                max={7 * 24 * 60}
+                value={notificationLongLead}
+                onChange={(event) => setNotificationLongLead(Number(event.target.value))}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+              />
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                Send a one-off reminder this many minutes before the shift.
+              </span>
+            </label>
+            <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-200">
+              <span className="text-xs font-semibold uppercase text-slate-500">Short-range (minutes)</span>
+              <input
+                type="number"
+                min={0}
+                max={24 * 60}
+                value={notificationShortLead}
+                onChange={(event) => setNotificationShortLead(Number(event.target.value))}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+              />
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                Start persistent reminders once the shift is this close.
+              </span>
+            </label>
+            <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-200">
+              <span className="text-xs font-semibold uppercase text-slate-500">Repeat every (minutes)</span>
+              <input
+                type="number"
+                min={5}
+                max={24 * 60}
+                value={notificationRepeat}
+                onChange={(event) => setNotificationRepeat(Number(event.target.value))}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+              />
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                How often short-range reminders repeat until the shift starts.
+              </span>
+            </label>
+          </div>
+        </fieldset>
         <fieldset className="grid gap-3">
           <legend className="text-xs font-semibold uppercase text-slate-500">Appearance</legend>
           <div className="grid gap-2">
