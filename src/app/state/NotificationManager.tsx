@@ -9,7 +9,8 @@ function formatShiftTime(date: Date, use24HourTime: boolean): string {
   return new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: !use24HourTime
+    hour12: !use24HourTime,
+    hourCycle: use24HourTime ? 'h23' : 'h12'
   }).format(date);
 }
 

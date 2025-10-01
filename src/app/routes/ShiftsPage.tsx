@@ -18,7 +18,7 @@ import type { ShiftFormValues } from '../components/ShiftForm';
 import { deleteShift, getAllShifts, updateShift } from '../db/repo';
 import type { Shift, WeekStart } from '../db/schema';
 import { useSettings } from '../state/SettingsContext';
-import { useTimeFormatter } from '../state/useTimeFormatter';
+import { useDateTimeFormatter, useTimeFormatter } from '../state/useTimeFormatter';
 import { toISO, toLocalDateTimeInput } from '../utils/datetime';
 
 function ShiftSummaryCard({
@@ -81,6 +81,7 @@ export default function ShiftsPage() {
   });
 
   const timeFormatter = useTimeFormatter();
+  const dateTimeFormatter = useDateTimeFormatter();
   const currencyFormatter = useMemo(() => {
     const currency = settings?.currency && settings.currency.trim() ? settings.currency : 'USD';
     return new Intl.NumberFormat(undefined, {
@@ -381,8 +382,10 @@ export default function ShiftsPage() {
               </div>
               <div className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
                 <span className="font-medium text-neutral-700 dark:text-neutral-100">Summary</span>
-                <span>{format(new Date(editingShift.startISO), 'PPpp')}</span>
-                {editingShift.endISO && <span>Ends {format(new Date(editingShift.endISO), 'PPpp')}</span>}
+                <span>{dateTimeFormatter.format(new Date(editingShift.startISO))}</span>
+                {editingShift.endISO && (
+                  <span>Ends {dateTimeFormatter.format(new Date(editingShift.endISO))}</span>
+                )}
                 <span>
                   Base: {(editingShift.baseMinutes / 60).toFixed(2)}h · Penalty: {(editingShift.penaltyMinutes / 60).toFixed(2)}h
                 </span>
