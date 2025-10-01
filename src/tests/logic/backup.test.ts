@@ -115,6 +115,75 @@ describe('backup archive', () => {
     `);
   });
 
+  it('exports only settings when requested', async () => {
+    const { blob, logs, meta } = await exportBackupArchive(
+      new Date(EXPORT_TIME),
+      { settingsOnly: true }
+    );
+
+    const buffer = await blob.arrayBuffer();
+    const unzipped = gunzipSync(new Uint8Array(buffer));
+    const tarBuffer = unzipped.buffer.slice(
+      unzipped.byteOffset,
+      unzipped.byteOffset + unzipped.byteLength
+    );
+    const reader = await TarReader.load(tarBuffer);
+    const shifts = JSON.parse(reader.getTextFile('shifts.json') ?? 'null');
+    const notifications = JSON.parse(
+      reader.getTextFile('notifications.json') ?? 'null'
+    );
+
+    expect(shifts).toEqual([]);
+    expect(notifications).toEqual([buildNotification()]);
+    expect(meta).toEqual({
+      schemaVersion: 1,
+      exportedAt: EXPORT_TIME,
+      shiftCount: 0,
+      notificationCount: 1,
+    });
+    expect(logs).toContain('Settings-only backup selected.');
+    expect(logs).toContain('Included 0 shifts and 1 notification schedule.');
+  });
+
+  it('restores a settings-only backup including notification schedules', async () => {
+    const { blob } = await exportBackupArchive(new Date(EXPORT_TIME), {
+      settingsOnly: true,
+    });
+
+    await db.transaction(
+      'rw',
+      db.settings,
+      db.shifts,
+      db.notificationSchedules,
+      async () => {
+        await db.notificationSchedules.clear();
+        await db.shifts.clear();
+        await db.settings.clear();
+      }
+    );
+
+    const buffer = await blob.arrayBuffer();
+    const file = new File([buffer], 'settings-only.tar.gz', {
+      type: 'application/gzip',
+    });
+
+    const result = await restoreBackupArchive(file, new Date(RESTORE_TIME));
+
+    const settings = await db.settings.get('singleton');
+    const shifts = await db.shifts.toArray();
+    const schedules = await db.notificationSchedules.toArray();
+
+    expect(settings?.notificationLongLeadMinutes).toBe(6 * 60);
+    expect(shifts).toHaveLength(0);
+    expect(schedules).toEqual([buildNotification()]);
+    expect(result.logs).toContain(
+      'Skipping notification schedule shift validation because no shifts were included in the backup.'
+    );
+    expect(result.logs).toContain(
+      'Skipped notification schedule rebuild because no shifts were restored.'
+    );
+  });
+
   it('restores data and rebuilds notification schedules', async () => {
     const exportResult = await exportBackupArchive(new Date(EXPORT_TIME));
 
