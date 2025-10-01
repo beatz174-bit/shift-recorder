@@ -356,12 +356,12 @@ export default function SettingsPage() {
     }
   };
 
-  const renderFormActions = () => (
+  const renderFormActions = (hasActiveForm: boolean) => (
     <div className="mt-10 flex w-full flex-col items-center gap-2 pt-6 text-center">
       <button
         type="submit"
         className="w-full max-w-xs rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-midnight-900 disabled:cursor-not-allowed disabled:opacity-60"
-        disabled={isSaving}
+        disabled={isSaving || !hasActiveForm}
       >
         {isSaving ? 'Saving…' : 'Save settings'}
       </button>
@@ -509,7 +509,6 @@ export default function SettingsPage() {
           </p>
         ) : null}
       </fieldset>
-      {!hidden ? renderFormActions() : null}
     </form>
   );
 
@@ -561,7 +560,6 @@ export default function SettingsPage() {
           Applies to shift start and end times shown in the app.
         </p>
       </div>
-      {!hidden ? renderFormActions() : null}
     </form>
   );
 
@@ -723,7 +721,6 @@ export default function SettingsPage() {
                 </label>
               </div>
             </fieldset>
-              {renderFormActions()}
             </form>
           ) : null}
 
@@ -779,6 +776,7 @@ export default function SettingsPage() {
             </div>
           ) : null}
         </div>
+        {renderFormActions(activeTab !== 'data')}
       </div>
     </section>
   );

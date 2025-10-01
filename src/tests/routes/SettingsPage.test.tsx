@@ -135,7 +135,8 @@ describe('SettingsPage', () => {
 
     const saveButton = screen.getByRole('button', { name: /save settings/i });
     expect(saveButton).not.toBeDisabled();
-    const form = saveButton.closest('form');
+    expect(saveButton).toHaveAttribute('form', 'settings-form');
+    const form = document.getElementById('settings-form');
     expect(form).not.toBeNull();
     fireEvent.submit(form!);
 
@@ -183,7 +184,8 @@ describe('SettingsPage', () => {
     fireEvent.change(endTimeInput, { target: { value: '09:00' } });
 
     const saveButton = screen.getByRole('button', { name: /save settings/i });
-    const form = saveButton.closest('form');
+    expect(saveButton).toHaveAttribute('form', 'settings-form');
+    const form = document.getElementById('settings-form');
     expect(form).not.toBeNull();
     fireEvent.submit(form!);
 
