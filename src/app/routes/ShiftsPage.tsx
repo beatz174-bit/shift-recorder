@@ -12,15 +12,10 @@ import {
   startOfMonth,
   startOfWeek
 } from 'date-fns';
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  PlusIcon,
-  TrashIcon
-} from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, ChevronRightIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Modal from '../components/Modal';
-import ShiftForm, { type ShiftFormValues } from '../components/ShiftForm';
-import { createShift, deleteShift, getAllShifts, updateShift } from '../db/repo';
+import type { ShiftFormValues } from '../components/ShiftForm';
+import { deleteShift, getAllShifts, updateShift } from '../db/repo';
 import type { Shift, WeekStart } from '../db/schema';
 import { useSettings } from '../state/SettingsContext';
 import { useTimeFormatter } from '../state/useTimeFormatter';
@@ -76,7 +71,6 @@ export const CALENDAR_WEEK_START: WeekStart = 1;
 export default function ShiftsPage() {
   const queryClient = useQueryClient();
   const { settings } = useSettings();
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
@@ -128,20 +122,6 @@ export default function ShiftsPage() {
 
     return grouped;
   }, [shifts]);
-
-  const createMutation = useMutation({
-    mutationFn: async (values: ShiftFormValues) => {
-      if (!settings) throw new Error('Settings not loaded');
-      return createShift({ startISO: values.start, endISO: values.end, note: values.note }, settings);
-    },
-    onSuccess: async () => {
-      setIsCreateModalOpen(false);
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['shifts'] }),
-        queryClient.invalidateQueries({ queryKey: ['summary'] })
-      ]);
-    }
-  });
 
   const updateMutation = useMutation({
     mutationFn: async ({ shift, values }: { shift: Shift; values: ShiftFormValues }) => {
@@ -245,16 +225,6 @@ export default function ShiftsPage() {
             className="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200"
           >
             Today
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setIsCreateModalOpen(true);
-            }}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 sm:flex-none"
-          >
-            <PlusIcon className="h-5 w-5" aria-hidden="true" />
-            Add shift
           </button>
         </div>
       </header>
@@ -377,24 +347,9 @@ export default function ShiftsPage() {
 
       {!isLoading && shifts.length === 0 && (
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Chrona hasn't logged any shifts yet. Tap “Add shift” to start building your timeline.
+          Chrona hasn't logged any shifts yet. Use the plus button in the top menu to start building your timeline.
         </p>
       )}
-
-      <Modal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        title="Add a shift"
-      >
-        <ShiftForm
-          key={isCreateModalOpen ? 'create-open' : 'create-closed'}
-          onSubmit={async (values) => {
-            await createMutation.mutateAsync(values);
-          }}
-          onCancel={() => setIsCreateModalOpen(false)}
-          submitLabel="Save shift"
-        />
-      </Modal>
 
       <Modal isOpen={Boolean(editingShift)} onClose={() => setEditingShift(null)} title="Shift details">
         {editingShift && (
