@@ -243,7 +243,7 @@ export default function ShiftsPage() {
                   const hasShifts = dayShifts.length > 0;
 
                   const shouldHighlightSelection =
-                    isSelected && (hasUserInteracted || hasShifts || !isCurrentDay);
+                    isSelected && (hasUserInteracted || hasShifts || isCurrentDay);
                   const shouldHighlightToday = !shouldHighlightSelection && isCurrentDay && hasShifts;
 
                   const dayNumberClasses = [
