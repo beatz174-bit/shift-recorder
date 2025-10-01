@@ -7,14 +7,15 @@ import ShiftsPage from './routes/ShiftsPage';
 import SettingsPage from './routes/SettingsPage';
 import { useSettings } from './state/SettingsContext';
 import NotificationManager from './state/NotificationManager';
-import { Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { CalendarDaysIcon, ChartPieIcon, Cog6ToothIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
+import { ShiftCreationProvider, useShiftCreation } from './state/ShiftCreationContext';
 
 function NavigationLink({ to, children, label }: { to: string; children: ReactNode; label?: string }) {
   return (
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+        `inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-colors ${
           isActive
             ? 'bg-primary text-primary-foreground shadow'
             : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
@@ -30,6 +31,7 @@ function NavigationLink({ to, children, label }: { to: string; children: ReactNo
 
 function Layout() {
   const { settings } = useSettings();
+  const { openCreateModal } = useShiftCreation();
   useQuery({
     queryKey: ['settings'],
     queryFn: getSettings,
@@ -58,11 +60,23 @@ function Layout() {
           </div>
           <nav className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
             <NavigationLink to="/" label="Summary">
-              Summary
+              <span className="sr-only">Summary</span>
+              <ChartPieIcon className="h-5 w-5" aria-hidden />
             </NavigationLink>
             <NavigationLink to="/shifts" label="Shifts">
-              Shifts
+              <span className="sr-only">Shifts</span>
+              <CalendarDaysIcon className="h-5 w-5" aria-hidden />
             </NavigationLink>
+            <button
+              type="button"
+              onClick={openCreateModal}
+              disabled={!settings}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow transition hover:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-60 disabled:hover:bg-primary dark:focus-visible:ring-offset-slate-900"
+              aria-label="Add shift"
+              title="Add shift"
+            >
+              <PlusCircleIcon className="h-6 w-6" aria-hidden />
+            </button>
             <NavigationLink to="/settings" label="Settings">
               <span className="sr-only">Settings</span>
               <Cog6ToothIcon className="h-5 w-5" aria-hidden />
@@ -84,7 +98,9 @@ function Layout() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Layout />
+      <ShiftCreationProvider>
+        <Layout />
+      </ShiftCreationProvider>
     </BrowserRouter>
   );
 }

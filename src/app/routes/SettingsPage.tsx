@@ -230,6 +230,7 @@ export default function SettingsPage() {
 
   return (
     <section className="max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <h1 className="sr-only">Settings</h1>
       <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">Chrona preferences</h2>
       <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
         Tune pay rates, notifications, and penalty windows so Chrona mirrors the way you work.
