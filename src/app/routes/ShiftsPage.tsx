@@ -26,6 +26,51 @@ import { useSettings } from '../state/SettingsContext';
 import { useTimeFormatter } from '../state/useTimeFormatter';
 import { toISO, toLocalDateTimeInput } from '../utils/datetime';
 
+function ShiftSummaryCard({
+  shift,
+  now,
+  timeFormatter,
+  onSelect
+}: {
+  shift: Shift;
+  now: Date;
+  timeFormatter: Intl.DateTimeFormat;
+  onSelect: (shift: Shift) => void;
+}) {
+  const startDate = new Date(shift.startISO);
+  const endDate = shift.endISO ? new Date(shift.endISO) : null;
+  const upcoming = endDate ? endDate >= now : startDate >= now;
+  const totalHours = ((shift.baseMinutes + shift.penaltyMinutes) / 60).toFixed(2);
+  const shiftClasses = upcoming
+    ? 'border-emerald-200 bg-emerald-100/80 text-emerald-900 dark:border-emerald-500/40 dark:bg-emerald-500/20 dark:text-emerald-100'
+    : 'border-slate-200 bg-slate-100/80 text-slate-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200';
+
+  return (
+    <article
+      className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-3 py-2 text-xs shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/40 ${shiftClasses}`}
+      role="button"
+      tabIndex={0}
+      onClick={() => onSelect(shift)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onSelect(shift);
+        }
+      }}
+      aria-label={`Shift starting ${timeFormatter.format(startDate)}${
+        endDate ? ` and ending ${timeFormatter.format(endDate)}` : ''
+      }`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold">{timeFormatter.format(startDate)}</span>
+          <span className="text-[0.65rem] opacity-80">{totalHours}h</span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export const CALENDAR_WEEK_START: WeekStart = 1;
 
 export default function ShiftsPage() {
@@ -34,6 +79,7 @@ export default function ShiftsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
+  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const { data: shifts = [], isLoading } = useQuery({
     queryKey: ['shifts', 'all'],
     queryFn: getAllShifts,
@@ -139,10 +185,34 @@ export default function ShiftsPage() {
   }, [editingShift]);
 
   const now = new Date();
+  const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
+  const selectedDayShifts = shiftsByDay.get(selectedDateKey) ?? [];
   const monthLabel = format(currentMonth, 'MMMM yyyy');
   const hasTimeChanges = Boolean(
     editingShift && (editedTimes.start !== initialTimes.start || editedTimes.end !== initialTimes.end)
   );
+
+  const handleDaySelect = (day: Date) => {
+    const selected = new Date(day);
+    setSelectedDate(selected);
+    if (!isSameMonth(selected, currentMonth)) {
+      setCurrentMonth(startOfMonth(selected));
+    }
+  };
+
+  const goToMonth = (offset: number) => {
+    setCurrentMonth((month) => {
+      const next = startOfMonth(addMonths(month, offset));
+      setSelectedDate((date) => (isSameMonth(date, next) ? date : new Date(next)));
+      return next;
+    });
+  };
+
+  const goToToday = () => {
+    const todayDate = new Date();
+    setCurrentMonth(startOfMonth(todayDate));
+    setSelectedDate(todayDate);
+  };
 
   return (
     <section className="flex flex-col gap-6">
@@ -157,7 +227,7 @@ export default function ShiftsPage() {
           <div className="flex w-full items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900 sm:w-auto">
             <button
               type="button"
-              onClick={() => setCurrentMonth((month) => startOfMonth(addMonths(month, -1)))}
+              onClick={() => goToMonth(-1)}
               className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
               aria-label="Previous month"
             >
@@ -168,7 +238,7 @@ export default function ShiftsPage() {
             </span>
             <button
               type="button"
-              onClick={() => setCurrentMonth((month) => startOfMonth(addMonths(month, 1)))}
+              onClick={() => goToMonth(1)}
               className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
               aria-label="Next month"
             >
@@ -177,8 +247,8 @@ export default function ShiftsPage() {
           </div>
           <button
             type="button"
-            onClick={() => setCurrentMonth(startOfMonth(new Date()))}
-            className="flex-1 rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200 sm:flex-none"
+            onClick={goToToday}
+            className="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200"
           >
             Today
           </button>
@@ -197,85 +267,113 @@ export default function ShiftsPage() {
 
       {isLoading && <p className="text-sm text-slate-500">Loading shifts…</p>}
 
-      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="overflow-x-auto">
-          <div className="min-w-[44rem] space-y-3 p-4">
-            <div className="grid grid-cols-7 gap-2 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
-              {weekdayLabels.map((label) => (
-                <span key={label} className="text-center">
-                  {label}
-                </span>
-              ))}
-            </div>
-            <div className="grid grid-cols-7 gap-2">
-              {calendarDays.map((day) => {
-                const dateKey = format(day, 'yyyy-MM-dd');
-                const dayShifts = shiftsByDay.get(dateKey) ?? [];
-                const inCurrentMonth = isSameMonth(day, currentMonth);
-                const isCurrentDay = isSameDay(day, new Date());
+      <div className="grid min-h-[70vh] grid-rows-[minmax(0,1fr)_minmax(0,1fr)] gap-4 sm:flex sm:flex-col">
+        <div className="overflow-x-auto sm:overflow-visible">
+          <div className="h-full rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex h-full min-w-[44rem] flex-col px-2 sm:min-w-0 sm:px-0">
+              <div className="grid grid-cols-7 gap-2 px-2 pb-2 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                {weekdayLabels.map((label) => (
+                  <span key={label} className="text-center">
+                    {label}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-1 grid flex-1 min-h-0 grid-cols-7 gap-2 overflow-y-auto pb-2 sm:mt-2">
+                {calendarDays.map((day) => {
+                  const dateKey = format(day, 'yyyy-MM-dd');
+                  const dayShifts = shiftsByDay.get(dateKey) ?? [];
+                  const inCurrentMonth = isSameMonth(day, currentMonth);
+                  const isCurrentDay = isSameDay(day, now);
+                  const isSelected = isSameDay(day, selectedDate);
+                  const hasUpcomingShift = dayShifts.some((shift) => {
+                    const startDate = new Date(shift.startISO);
+                    const endDate = shift.endISO ? new Date(shift.endISO) : null;
+                    return endDate ? endDate >= now : startDate >= now;
+                  });
 
-                const dayNumberClasses = [
-                  'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition',
-                  isCurrentDay
-                    ? 'bg-primary text-primary-foreground shadow'
-                    : inCurrentMonth
-                      ? 'text-slate-700 dark:text-slate-100'
-                      : 'text-slate-400 dark:text-slate-600'
-                ].join(' ');
+                  const dayNumberClasses = [
+                    'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition',
+                    isSelected || isCurrentDay
+                      ? 'bg-primary text-primary-foreground shadow'
+                      : inCurrentMonth
+                        ? 'text-slate-700 dark:text-slate-100'
+                        : 'text-slate-400 dark:text-slate-600',
+                    hasUpcomingShift && !isSelected && !isCurrentDay
+                      ? 'bg-emerald-100 text-emerald-800 ring-2 ring-emerald-300 ring-offset-2 dark:bg-emerald-500/20 dark:text-emerald-100 dark:ring-emerald-400/70 dark:ring-offset-slate-900'
+                      : null
+                  ]
+                    .filter(Boolean)
+                    .join(' ');
 
-                return (
-                  <div
-                    key={dateKey}
-                    className={`flex min-h-[9rem] flex-col rounded-2xl border p-2 ${
-                      inCurrentMonth
-                        ? 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950'
-                        : 'border-transparent bg-slate-50 text-slate-400 dark:bg-slate-900/40 dark:text-slate-600'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className={dayNumberClasses}>{format(day, 'd')}</span>
-                    </div>
-                    <div className="mt-3 flex flex-col gap-2">
-                      {dayShifts.map((shift) => {
-                        const startDate = new Date(shift.startISO);
-                        const endDate = shift.endISO ? new Date(shift.endISO) : null;
-                        const upcoming = endDate ? endDate >= now : startDate >= now;
-                        const totalHours = ((shift.baseMinutes + shift.penaltyMinutes) / 60).toFixed(2);
-                        const shiftClasses = upcoming
-                          ? 'border-emerald-200 bg-emerald-100/80 text-emerald-900 dark:border-emerald-500/40 dark:bg-emerald-500/20 dark:text-emerald-100'
-                          : 'border-slate-200 bg-slate-100/80 text-slate-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200';
-
-                        return (
-                          <article
+                  return (
+                    <div
+                      key={dateKey}
+                      className={`flex min-h-[9rem] flex-col rounded-2xl border p-2 ${
+                        inCurrentMonth
+                          ? 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950'
+                          : 'border-transparent bg-slate-50 text-slate-400 dark:bg-slate-900/40 dark:text-slate-600'
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleDaySelect(day)}
+                        className="flex w-full items-start justify-between text-left"
+                        aria-pressed={isSelected}
+                        aria-label={format(day, 'PPPP')}
+                      >
+                        <span className={dayNumberClasses}>{format(day, 'd')}</span>
+                      </button>
+                      <div className="mt-3 hidden flex-col gap-2 sm:flex">
+                        {dayShifts.map((shift) => (
+                          <ShiftSummaryCard
                             key={shift.id}
-                            className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-3 py-2 text-xs shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/40 ${shiftClasses}`}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => setEditingShift(shift)}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter' || event.key === ' ') {
-                                event.preventDefault();
-                                setEditingShift(shift);
-                              }
-                            }}
-                            aria-label={`Shift starting ${timeFormatter.format(startDate)}${
-                              endDate ? ` and ending ${timeFormatter.format(endDate)}` : ''
-                            }`}
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex flex-col">
-                                <span className="text-sm font-semibold">{timeFormatter.format(startDate)}</span>
-                                <span className="text-[0.65rem] opacity-80">{totalHours}h</span>
-                              </div>
-                            </div>
-                          </article>
-                        );
-                      })}
+                            shift={shift}
+                            now={now}
+                            timeFormatter={timeFormatter}
+                            onSelect={setEditingShift}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:hidden">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Selected day
+              </span>
+              <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">{format(selectedDate, 'PPP')}</span>
+            </div>
+            <button
+              type="button"
+              onClick={goToToday}
+              className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200"
+            >
+              Jump to today
+            </button>
+          </div>
+          <div className="mt-4 flex flex-col gap-2">
+            {selectedDayShifts.length > 0 ? (
+              selectedDayShifts.map((shift) => (
+                <ShiftSummaryCard
+                  key={shift.id}
+                  shift={shift}
+                  now={now}
+                  timeFormatter={timeFormatter}
+                  onSelect={setEditingShift}
+                />
+              ))
+            ) : (
+              <p className="rounded-xl border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                No shifts scheduled for this day.
+              </p>
+            )}
           </div>
         </div>
       </div>
