@@ -5,6 +5,7 @@ import SummaryPage from './routes/SummaryPage';
 import ShiftsPage from './routes/ShiftsPage';
 import SettingsPage from './routes/SettingsPage';
 import { useSettings } from './state/SettingsContext';
+import NotificationManager from './state/NotificationManager';
 
 function NavigationLink({ to, label }: { to: string; label: string }) {
   return (
@@ -33,6 +34,7 @@ function Layout() {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-50">
+      <NotificationManager />
       <header className="sticky top-0 z-10 border-b border-slate-200/60 bg-white/80 backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/80">
         <div className="mx-auto flex max-w-4xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-1">
