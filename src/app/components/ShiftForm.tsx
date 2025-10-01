@@ -112,12 +112,12 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
         />
       </div>
       {error && <p className="text-sm text-red-500">{error}</p>}
-      <div className="flex items-center justify-end gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200"
+            className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200 sm:w-auto"
           >
             Cancel
           </button>
@@ -125,7 +125,7 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 disabled:opacity-60"
+          className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 disabled:opacity-60 sm:w-auto"
         >
           {isSubmitting ? 'Saving…' : submitLabel ?? 'Save shift'}
         </button>

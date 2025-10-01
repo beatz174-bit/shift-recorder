@@ -146,15 +146,15 @@ export default function ShiftsPage() {
 
   return (
     <section className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-1">
           <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-50">Shifts calendar</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Review past work and plan upcoming shifts in a monthly view.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+          <div className="flex w-full items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900 sm:w-auto">
             <button
               type="button"
               onClick={() => setCurrentMonth((month) => startOfMonth(addMonths(month, -1)))}
@@ -163,7 +163,9 @@ export default function ShiftsPage() {
             >
               <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
             </button>
-            <span className="min-w-[8rem] text-center text-sm font-semibold text-slate-700 dark:text-slate-200">{monthLabel}</span>
+            <span className="min-w-[8rem] flex-1 text-center text-sm font-semibold text-slate-700 dark:text-slate-200">
+              {monthLabel}
+            </span>
             <button
               type="button"
               onClick={() => setCurrentMonth((month) => startOfMonth(addMonths(month, 1)))}
@@ -176,7 +178,7 @@ export default function ShiftsPage() {
           <button
             type="button"
             onClick={() => setCurrentMonth(startOfMonth(new Date()))}
-            className="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200"
+            className="flex-1 rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200 sm:flex-none"
           >
             Today
           </button>
@@ -185,7 +187,7 @@ export default function ShiftsPage() {
             onClick={() => {
               setIsCreateModalOpen(true);
             }}
-            className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 sm:flex-none"
           >
             <PlusIcon className="h-5 w-5" aria-hidden="true" />
             Add shift
@@ -195,82 +197,86 @@ export default function ShiftsPage() {
 
       {isLoading && <p className="text-sm text-slate-500">Loading shifts…</p>}
 
-      <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="grid grid-cols-7 gap-2 px-2 pb-2 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
-          {weekdayLabels.map((label) => (
-            <span key={label} className="text-center">
-              {label}
-            </span>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-2">
-          {calendarDays.map((day) => {
-            const dateKey = format(day, 'yyyy-MM-dd');
-            const dayShifts = shiftsByDay.get(dateKey) ?? [];
-            const inCurrentMonth = isSameMonth(day, currentMonth);
-            const isCurrentDay = isSameDay(day, new Date());
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-x-auto">
+          <div className="min-w-[44rem] space-y-3 p-4">
+            <div className="grid grid-cols-7 gap-2 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+              {weekdayLabels.map((label) => (
+                <span key={label} className="text-center">
+                  {label}
+                </span>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-2">
+              {calendarDays.map((day) => {
+                const dateKey = format(day, 'yyyy-MM-dd');
+                const dayShifts = shiftsByDay.get(dateKey) ?? [];
+                const inCurrentMonth = isSameMonth(day, currentMonth);
+                const isCurrentDay = isSameDay(day, new Date());
 
-            const dayNumberClasses = [
-              'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition',
-              isCurrentDay
-                ? 'bg-primary text-primary-foreground shadow'
-                : inCurrentMonth
-                  ? 'text-slate-700 dark:text-slate-100'
-                  : 'text-slate-400 dark:text-slate-600'
-            ].join(' ');
+                const dayNumberClasses = [
+                  'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition',
+                  isCurrentDay
+                    ? 'bg-primary text-primary-foreground shadow'
+                    : inCurrentMonth
+                      ? 'text-slate-700 dark:text-slate-100'
+                      : 'text-slate-400 dark:text-slate-600'
+                ].join(' ');
 
-            return (
-              <div
-                key={dateKey}
-                className={`flex min-h-[9rem] flex-col rounded-2xl border p-2 ${
-                  inCurrentMonth
-                    ? 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950'
-                    : 'border-transparent bg-slate-50 text-slate-400 dark:bg-slate-900/40 dark:text-slate-600'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className={dayNumberClasses}>{format(day, 'd')}</span>
-                </div>
-                <div className="mt-3 flex flex-col gap-2">
-                  {dayShifts.map((shift) => {
-                    const startDate = new Date(shift.startISO);
-                    const endDate = shift.endISO ? new Date(shift.endISO) : null;
-                    const upcoming = endDate ? endDate >= now : startDate >= now;
-                    const totalHours = ((shift.baseMinutes + shift.penaltyMinutes) / 60).toFixed(2);
-                    const shiftClasses = upcoming
-                      ? 'border-emerald-200 bg-emerald-100/80 text-emerald-900 dark:border-emerald-500/40 dark:bg-emerald-500/20 dark:text-emerald-100'
-                      : 'border-slate-200 bg-slate-100/80 text-slate-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200';
+                return (
+                  <div
+                    key={dateKey}
+                    className={`flex min-h-[9rem] flex-col rounded-2xl border p-2 ${
+                      inCurrentMonth
+                        ? 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950'
+                        : 'border-transparent bg-slate-50 text-slate-400 dark:bg-slate-900/40 dark:text-slate-600'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={dayNumberClasses}>{format(day, 'd')}</span>
+                    </div>
+                    <div className="mt-3 flex flex-col gap-2">
+                      {dayShifts.map((shift) => {
+                        const startDate = new Date(shift.startISO);
+                        const endDate = shift.endISO ? new Date(shift.endISO) : null;
+                        const upcoming = endDate ? endDate >= now : startDate >= now;
+                        const totalHours = ((shift.baseMinutes + shift.penaltyMinutes) / 60).toFixed(2);
+                        const shiftClasses = upcoming
+                          ? 'border-emerald-200 bg-emerald-100/80 text-emerald-900 dark:border-emerald-500/40 dark:bg-emerald-500/20 dark:text-emerald-100'
+                          : 'border-slate-200 bg-slate-100/80 text-slate-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200';
 
-                    return (
-                      <article
-                        key={shift.id}
-                        className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-3 py-2 text-xs shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/40 ${shiftClasses}`}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setEditingShift(shift)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            setEditingShift(shift);
-                          }
-                        }}
-                        aria-label={`Shift starting ${timeFormatter.format(startDate)}${
-                          endDate ? ` and ending ${timeFormatter.format(endDate)}` : ''
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-semibold">{timeFormatter.format(startDate)}</span>
-                            <span className="text-[0.65rem] opacity-80">{totalHours}h</span>
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
+                        return (
+                          <article
+                            key={shift.id}
+                            className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-3 py-2 text-xs shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/40 ${shiftClasses}`}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setEditingShift(shift)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                setEditingShift(shift);
+                              }
+                            }}
+                            aria-label={`Shift starting ${timeFormatter.format(startDate)}${
+                              endDate ? ` and ending ${timeFormatter.format(endDate)}` : ''
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-semibold">{timeFormatter.format(startDate)}</span>
+                                <span className="text-[0.65rem] opacity-80">{totalHours}h</span>
+                              </div>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -341,16 +347,16 @@ export default function ShiftsPage() {
               <button
                 type="button"
                 onClick={() => deleteMutation.mutate(editingShift)}
-                className="flex items-center justify-center gap-2 rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-500/40 dark:text-red-200 dark:hover:bg-red-500/10"
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-500/40 dark:text-red-200 dark:hover:bg-red-500/10 sm:w-auto"
                 disabled={deleteMutation.isPending || updateMutation.isPending}
               >
                 <TrashIcon className="h-4 w-4" aria-hidden="true" /> Delete shift
               </button>
-              <div className="flex items-center justify-end gap-3">
+              <div className="flex flex-col-reverse items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
                 <button
                   type="button"
                   onClick={() => setEditingShift(null)}
-                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200"
+                  className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200 sm:w-auto"
                   disabled={deleteMutation.isPending || updateMutation.isPending}
                 >
                   Close
@@ -377,7 +383,7 @@ export default function ShiftsPage() {
                       }
                     }}
                     disabled={updateMutation.isPending || deleteMutation.isPending}
-                    className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 disabled:opacity-60"
+                    className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 disabled:opacity-60 sm:w-auto"
                   >
                     {updateMutation.isPending ? 'Saving…' : 'Save changes'}
                   </button>
