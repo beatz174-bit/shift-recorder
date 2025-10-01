@@ -1,14 +1,23 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { registerSW } from 'virtual:pwa-register';
 import App from './App';
 import './styles/index.css';
 import { SettingsProvider } from './state/SettingsContext';
-import { registerSW } from 'virtual:pwa-register';
 
 const queryClient = new QueryClient();
 
-registerSW({ immediate: true });
+if (import.meta.env.PROD) {
+  const updateSW = registerSW({
+    immediate: true,
+    onNeedRefresh() {
+      updateSW(true).then(() => {
+        window.location.reload();
+      });
+    },
+  }) as (reloadPage?: boolean) => Promise<void>;
+}
 
 const container = document.getElementById('root');
 if (!container) {
