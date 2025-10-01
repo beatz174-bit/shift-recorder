@@ -51,7 +51,8 @@ export default function SummaryPage() {
       new Intl.NumberFormat(undefined, {
         style: 'currency',
         currency,
-        maximumFractionDigits: 2
+        maximumFractionDigits: 2,
+        currencyDisplay: 'narrowSymbol'
       }),
     [currency]
   );
@@ -64,16 +65,16 @@ export default function SummaryPage() {
       <WeekNavigator range={range} onPrev={goPrev} onNext={goNext} />
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-midnight-800 dark:bg-midnight-900 sm:p-5">
-          <p className="text-[11px] uppercase tracking-wide text-neutral-500 sm:text-xs">Base hours</p>
-          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50 sm:text-3xl">{(totals.baseMinutes / 60).toFixed(2)}</p>
+          <p className="text-[10px] uppercase tracking-wide text-neutral-500 sm:text-xs">Base hours</p>
+          <p className="text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50 sm:text-3xl">{(totals.baseMinutes / 60).toFixed(2)}</p>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-midnight-800 dark:bg-midnight-900 sm:p-5">
-          <p className="text-[11px] uppercase tracking-wide text-neutral-500 sm:text-xs">Penalty hours</p>
-          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50 sm:text-3xl">{(totals.penaltyMinutes / 60).toFixed(2)}</p>
+          <p className="text-[10px] uppercase tracking-wide text-neutral-500 sm:text-xs">Penalty hours</p>
+          <p className="text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50 sm:text-3xl">{(totals.penaltyMinutes / 60).toFixed(2)}</p>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-midnight-800 dark:bg-midnight-900 sm:p-5">
-          <p className="text-[11px] uppercase tracking-wide text-neutral-500 sm:text-xs">Total pay</p>
-          <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-50 sm:text-3xl">
+          <p className="text-[10px] uppercase tracking-wide text-neutral-500 sm:text-xs">Total pay</p>
+          <p className="text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50 sm:text-3xl">
             {currencyFormatter.format(totalPay)}
           </p>
         </div>
