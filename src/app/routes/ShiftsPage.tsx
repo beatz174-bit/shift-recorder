@@ -278,7 +278,7 @@ export default function ShiftsPage() {
                   </span>
                 ))}
               </div>
-              <div className="mt-1 grid flex-1 min-h-0 grid-cols-7 gap-2 overflow-y-auto pb-2 sm:mt-2">
+              <div className="mt-1 grid flex-1 min-h-0 grid-cols-7 gap-2 overflow-visible pb-2 sm:mt-2 sm:overflow-y-auto">
                 {calendarDays.map((day) => {
                   const dateKey = format(day, 'yyyy-MM-dd');
                   const dayShifts = shiftsByDay.get(dateKey) ?? [];
