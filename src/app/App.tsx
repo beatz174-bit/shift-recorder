@@ -57,7 +57,7 @@ function Layout() {
               onClick={() => setBackupModalOpen(true)}
               className="px-4 py-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
             >
-              Backup
+              Backup/Restore
             </button>
             <button
               type="button"
