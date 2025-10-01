@@ -12,13 +12,12 @@ import {
   startOfMonth,
   startOfWeek
 } from 'date-fns';
-import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, ChevronRightIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Modal from '../components/Modal';
 import type { ShiftFormValues } from '../components/ShiftForm';
 import { deleteShift, getAllShifts, updateShift } from '../db/repo';
 import type { Shift, WeekStart } from '../db/schema';
 import { useSettings } from '../state/SettingsContext';
-import { useShiftCreation } from '../state/ShiftCreationContext';
 import { useTimeFormatter } from '../state/useTimeFormatter';
 import { toISO, toLocalDateTimeInput } from '../utils/datetime';
 
@@ -72,7 +71,6 @@ export const CALENDAR_WEEK_START: WeekStart = 1;
 export default function ShiftsPage() {
   const queryClient = useQueryClient();
   const { settings } = useSettings();
-  const { openCreateModal } = useShiftCreation();
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
@@ -228,14 +226,6 @@ export default function ShiftsPage() {
           >
             Today
           </button>
-          <button
-            type="button"
-            onClick={openCreateModal}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-primary-emphasis sm:flex-none"
-          >
-            <PlusIcon className="h-5 w-5" aria-hidden="true" />
-            Add shift
-          </button>
         </div>
       </header>
 
@@ -357,7 +347,7 @@ export default function ShiftsPage() {
 
       {!isLoading && shifts.length === 0 && (
         <p className="text-sm text-neutral-500 dark:text-neutral-300">
-          Chrona hasn't logged any shifts yet. Tap “Add shift” to start building your timeline.
+          Chrona hasn't logged any shifts yet.
         </p>
       )}
 
