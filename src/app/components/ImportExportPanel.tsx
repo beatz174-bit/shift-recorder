@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'reac
 import { getAllShifts, importShifts, type ShiftImportResult } from '../db/repo';
 import { parseShiftsCsv, shiftsToCsv, type ShiftCsvParseError, type ShiftCsvImportRow } from '../logic/csv';
 import templateCsvUrl from '../assets/shift-import-template.csv?url';
-import Modal from './Modal';
 import { useSettings } from '../state/SettingsContext';
 
 const EXPORT_FILENAME = 'shift-export';
@@ -25,11 +24,6 @@ type ImportReviewState = {
     failed: number;
   };
   logUrl: string;
-};
-
-type ImportExportModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
 };
 
 const STATUS_COPY: Record<ImportRowStatus['status'], { label: string; className: string }> = {
@@ -80,7 +74,7 @@ function buildLogContent(rows: ImportRowStatus[], dataErrors: ShiftCsvParseError
   return [header, ...dataLines, ...errorLines].join('\n');
 }
 
-export default function ImportExportModal({ isOpen, onClose }: ImportExportModalProps) {
+export default function ImportExportPanel() {
   const { settings } = useSettings();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
@@ -100,17 +94,6 @@ export default function ImportExportModal({ isOpen, onClose }: ImportExportModal
     });
     setDataErrors([]);
   }, []);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setInfoMessage(null);
-      setErrorMessage(null);
-      resetReview();
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  }, [isOpen, resetReview]);
 
   useEffect(() => {
     return () => {
@@ -241,11 +224,19 @@ export default function ImportExportModal({ isOpen, onClose }: ImportExportModal
     }
   };
 
+  useEffect(() => {
+    return () => {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      resetReview();
+    };
+  }, [resetReview]);
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Import & Export Shifts">
-      <div className="flex flex-col gap-6">
-        {review ? (
-          <div className="space-y-5">
+    <div className="flex flex-col gap-6">
+      {review ? (
+        <div className="space-y-5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3 className="text-base font-semibold">Import results</h3>
@@ -409,7 +400,6 @@ export default function ImportExportModal({ isOpen, onClose }: ImportExportModal
             )}
           </>
         )}
-      </div>
-    </Modal>
+    </div>
   );
 }
