@@ -23,6 +23,7 @@ vi.mock('../../app/logic/publicHolidays', () => ({
 }));
 
 let updateSettingsSpy: ReturnType<typeof vi.fn>;
+let reloadSettingsSpy: ReturnType<typeof vi.fn>;
 let loadedSettings: Settings;
 let SettingsPageComponent: (typeof import('../../app/routes/SettingsPage'))['default'];
 
@@ -49,10 +50,12 @@ beforeEach(() => {
   };
 
   updateSettingsSpy = vi.fn().mockResolvedValue(undefined);
+  reloadSettingsSpy = vi.fn().mockResolvedValue(undefined);
 
   useSettingsMock.mockImplementation(() => ({
     settings: loadedSettings,
     updateSettings: updateSettingsSpy,
+    reloadSettings: reloadSettingsSpy,
     isLoading: false,
     error: null
   }));

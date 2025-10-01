@@ -8,6 +8,7 @@ import SettingsPage from './routes/SettingsPage';
 import { useSettings } from './state/SettingsContext';
 import NotificationManager from './state/NotificationManager';
 import ImportExportModal from './components/ImportExportModal';
+import BackupRestoreModal from './components/BackupRestoreModal';
 
 function NavigationLink({ to, label }: { to: string; label: string }) {
   return (
@@ -29,10 +30,11 @@ function NavigationLink({ to, label }: { to: string; label: string }) {
 function Layout() {
   const { settings } = useSettings();
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
+  const [isBackupModalOpen, setBackupModalOpen] = useState(false);
   useQuery({
     queryKey: ['settings'],
     queryFn: getSettings,
-    enabled: !settings
+    enabled: !settings,
   });
 
   return (
@@ -42,12 +44,21 @@ function Layout() {
         <div className="mx-auto flex max-w-4xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-1">
             <h1 className="text-xl font-semibold">Shift Recorder</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Offline-first time tracker</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Offline-first time tracker
+            </p>
           </div>
           <nav className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
             <NavigationLink to="/" label="Summary" />
             <NavigationLink to="/shifts" label="Shifts" />
             <NavigationLink to="/settings" label="Settings" />
+            <button
+              type="button"
+              onClick={() => setBackupModalOpen(true)}
+              className="px-4 py-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+            >
+              Backup
+            </button>
             <button
               type="button"
               onClick={() => setIsImportExportOpen(true)}
@@ -65,7 +76,14 @@ function Layout() {
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </main>
-      <ImportExportModal isOpen={isImportExportOpen} onClose={() => setIsImportExportOpen(false)} />
+      <ImportExportModal
+        isOpen={isImportExportOpen}
+        onClose={() => setIsImportExportOpen(false)}
+      />
+      <BackupRestoreModal
+        isOpen={isBackupModalOpen}
+        onClose={() => setBackupModalOpen(false)}
+      />
     </div>
   );
 }
