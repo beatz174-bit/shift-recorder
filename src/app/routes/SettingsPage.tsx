@@ -360,7 +360,6 @@ export default function SettingsPage() {
     <div className="mt-10 flex w-full flex-col items-center gap-2 pt-6 text-center">
       <button
         type="submit"
-        form="settings-form"
         className="w-full max-w-xs rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-midnight-900 disabled:cursor-not-allowed disabled:opacity-60"
         disabled={isSaving || !hasActiveForm}
       >
@@ -666,6 +665,7 @@ export default function SettingsPage() {
                   />
                 </div>
               </div>
+              {renderFormActions()}
             </form>
           ) : null}
 
@@ -731,8 +731,8 @@ export default function SettingsPage() {
           {isTestEnvironment && activeTab !== 'penalties' ? renderPenaltiesTab(true) : null}
           {isTestEnvironment && activeTab !== 'appearance' ? renderAppearanceTab(true) : null}
 
-          {activeTab === 'data' ? (
-            <div className="space-y-6">
+      {activeTab === 'data' ? (
+        <div className="space-y-6">
               <div className="flex flex-wrap gap-2 border-b border-neutral-200 pb-2 dark:border-midnight-700">
                 {DATA_TABS.map((tab) => {
                   const isActive = activeDataTab === tab.id;
