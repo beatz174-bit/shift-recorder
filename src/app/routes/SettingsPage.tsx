@@ -345,10 +345,11 @@ export default function SettingsPage() {
   };
 
   const renderFormActions = () => (
-    <div className="flex flex-col gap-2">
+    <div className="mt-10 flex w-full flex-col items-center gap-2 border-t border-neutral-200 pt-6 text-center dark:border-midnight-700">
       <button
         type="submit"
-        className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-midnight-900 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+        form="settings-form"
+        className="w-full max-w-xs rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-midnight-900 disabled:cursor-not-allowed disabled:opacity-60"
         disabled={isSaving}
       >
         {isSaving ? 'Saving…' : 'Save settings'}
@@ -404,7 +405,7 @@ export default function SettingsPage() {
         </aside>
         <div className="flex-1">
           {activeTab === 'general' ? (
-            <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+            <form id="settings-form" className="flex flex-col gap-5" onSubmit={handleSubmit}>
               <div className="grid gap-5">
                 <div className="grid gap-2">
                   <label className="text-xs font-semibold uppercase text-neutral-500">Base rate (per hour)</label>
@@ -460,12 +461,11 @@ export default function SettingsPage() {
                   />
                 </div>
               </div>
-              {renderFormActions()}
             </form>
           ) : null}
 
           {activeTab === 'notifications' ? (
-            <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+            <form id="settings-form" className="flex flex-col gap-5" onSubmit={handleSubmit}>
               <fieldset className="grid gap-3">
                 <legend className="text-xs font-semibold uppercase text-neutral-500">Shift reminders</legend>
                 <p className="text-xs text-neutral-500 dark:text-neutral-300">
@@ -516,12 +516,11 @@ export default function SettingsPage() {
                   </label>
                 </div>
               </fieldset>
-              {renderFormActions()}
             </form>
           ) : null}
 
           {activeTab === 'penalties' ? (
-            <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+            <form id="settings-form" className="flex flex-col gap-5" onSubmit={handleSubmit}>
               <fieldset className="grid gap-3">
                 <legend className="text-xs font-semibold uppercase text-neutral-500">Penalty hours (daily window)</legend>
                 <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-200">
@@ -651,12 +650,11 @@ export default function SettingsPage() {
                   </p>
                 ) : null}
               </fieldset>
-              {renderFormActions()}
             </form>
           ) : null}
 
           {activeTab === 'appearance' ? (
-            <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+            <form id="settings-form" className="flex flex-col gap-5" onSubmit={handleSubmit}>
               <fieldset className="grid gap-3">
                 <legend className="text-xs font-semibold uppercase text-neutral-500">Theme</legend>
                 <div className="grid gap-2">
@@ -697,7 +695,6 @@ export default function SettingsPage() {
                   Applies to shift start and end times shown in the app.
                 </p>
               </div>
-              {renderFormActions()}
             </form>
           ) : null}
 
@@ -747,6 +744,7 @@ export default function SettingsPage() {
           ) : null}
         </div>
       </div>
+      {activeTab !== 'data' ? renderFormActions() : null}
     </section>
   );
 }
