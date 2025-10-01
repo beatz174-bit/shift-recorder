@@ -24,7 +24,7 @@ def twaManifest = [
     applicationId: 'com.ddnsgeek.lan.shifts.twa',
     hostName: 'shifts.lan.ddnsgeek.com', // The domain being opened in the TWA.
     launchUrl: '/', // The start path for the TWA. Must be relative to the domain.
-    name: 'Chrona Shift Recorder', // The application name.
+    name: 'Chrona', // The application name.
     launcherName: 'Chrona', // The name shown on the Android Launcher.
     themeColor: '#0F172A', // The color used for the status bar.
     themeColorDark: '#000000', // The color used for the dark status bar.

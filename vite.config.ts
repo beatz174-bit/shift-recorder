@@ -13,9 +13,9 @@ export default defineConfig({
         skipWaiting: true,
       },
       manifest: {
-        name: 'Shift Recorder',
-        short_name: 'Shift Recorder',
-        description: 'Offline-first time tracking for shift workers.',
+        name: 'Chrona',
+        short_name: 'Chrona',
+        description: 'Chrona keeps shift-based professionals on schedule with offline-first tracking.',
         theme_color: '#0f172a',
         background_color: '#f8fafc',
         display: 'standalone',

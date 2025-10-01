@@ -79,13 +79,15 @@ export default function SummaryPage() {
         </div>
       </div>
       <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
-        <p>This week totals {(totalMinutes / 60).toFixed(2)} hours worked.</p>
+        <p>
+          Chrona has logged {(totalMinutes / 60).toFixed(2)} hours this week so far—keep an eye on the penalty windows to stay ahead.
+        </p>
       </div>
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Shifts</h2>
-        {isLoading && <p className="text-sm text-slate-500">Loading shifts…</p>}
+        {isLoading && <p className="text-sm text-slate-500">Chrona is syncing your shifts…</p>}
         {!isLoading && shifts.length === 0 && (
-          <p className="text-sm text-slate-500">No shifts logged for this week.</p>
+          <p className="text-sm text-slate-500">Chrona hasn't recorded any shifts for this week yet.</p>
         )}
         <div className="flex flex-col gap-4">
           {shifts.map((shift) => (

@@ -1,15 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Shift Recorder apple touch icon">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Chrona apple touch icon">
   <defs>
-    <linearGradient id="appleBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0ea5e9" />
-      <stop offset="100%" stop-color="#0f172a" />
+    <linearGradient id="chrona-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#111827" />
+      <stop offset="100%" stop-color="#1f2937" />
+    </linearGradient>
+    <linearGradient id="chrona-accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#6366f1" />
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#appleBg)" />
-  <g fill="none" stroke="#f8fafc" stroke-width="32" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="256" cy="256" r="160" opacity="0.35" />
-    <path d="M256 148v108l96 72" />
-  </g>
-  <circle cx="256" cy="256" r="26" fill="#f8fafc" />
-  <path d="M168 352c30 36 60 54 88 54s58-18 88-54" fill="none" stroke="#f8fafc" stroke-width="28" stroke-linecap="round" />
+  <rect width="512" height="512" rx="110" fill="url(#chrona-bg)" />
+  <path
+    d="M360 148a148 148 0 1 0 0 216"
+    fill="none"
+    stroke="#e2e8f0"
+    stroke-width="58"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.9"
+  />
+  <path
+    d="M360 148a148 148 0 0 0 0 216"
+    fill="none"
+    stroke="url(#chrona-accent)"
+    stroke-width="34"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.9"
+  />
+  <circle cx="256" cy="256" r="32" fill="#0ea5e9" />
+  <path
+    d="M256 184v92l78 42"
+    fill="none"
+    stroke="url(#chrona-accent)"
+    stroke-width="28"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <circle cx="256" cy="256" r="18" fill="#f8fafc" />
 </svg>

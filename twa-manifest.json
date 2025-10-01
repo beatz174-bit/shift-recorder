@@ -1,7 +1,7 @@
 {
   "packageId": "com.ddnsgeek.lan.shifts.twa",
   "host": "shifts.lan.ddnsgeek.com",
-  "name": "Chrona Shift Recorder",
+  "name": "Chrona",
   "launcherName": "Chrona",
   "display": "standalone",
   "themeColor": "#0F172A",

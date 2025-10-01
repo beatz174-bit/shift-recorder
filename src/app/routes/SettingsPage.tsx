@@ -221,16 +221,19 @@ export default function SettingsPage() {
   }, [holidayRegions, publicHolidaySubdivision]);
 
   if (isLoading) {
-    return <p className="text-sm text-slate-500">Loading settings…</p>;
+    return <p className="text-sm text-slate-500">Chrona is loading your preferences…</p>;
   }
 
   if (error) {
-    return <p className="text-sm text-red-500">Failed to load settings: {error.message}</p>;
+    return <p className="text-sm text-red-500">Chrona couldn't load your preferences: {error.message}</p>;
   }
 
   return (
     <section className="max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-50">Settings</h2>
+      <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">Chrona preferences</h2>
+      <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+        Tune pay rates, notifications, and penalty windows so Chrona mirrors the way you work.
+      </p>
       <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/60">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Data management</h3>
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
