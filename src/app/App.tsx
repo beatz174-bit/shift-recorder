@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom';
 import { getSettings } from './db/repo';
 import SummaryPage from './routes/SummaryPage';
@@ -6,6 +7,7 @@ import ShiftsPage from './routes/ShiftsPage';
 import SettingsPage from './routes/SettingsPage';
 import { useSettings } from './state/SettingsContext';
 import NotificationManager from './state/NotificationManager';
+import ImportExportModal from './components/ImportExportModal';
 
 function NavigationLink({ to, label }: { to: string; label: string }) {
   return (
@@ -26,6 +28,7 @@ function NavigationLink({ to, label }: { to: string; label: string }) {
 
 function Layout() {
   const { settings } = useSettings();
+  const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   useQuery({
     queryKey: ['settings'],
     queryFn: getSettings,
@@ -45,6 +48,13 @@ function Layout() {
             <NavigationLink to="/" label="Summary" />
             <NavigationLink to="/shifts" label="Shifts" />
             <NavigationLink to="/settings" label="Settings" />
+            <button
+              type="button"
+              onClick={() => setIsImportExportOpen(true)}
+              className="px-4 py-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+            >
+              Import/Export
+            </button>
           </nav>
         </div>
       </header>
@@ -55,6 +65,7 @@ function Layout() {
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </main>
+      <ImportExportModal isOpen={isImportExportOpen} onClose={() => setIsImportExportOpen(false)} />
     </div>
   );
 }

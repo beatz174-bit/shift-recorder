@@ -14,6 +14,8 @@ import {
 import { computePayForShift } from '../logic/payRules';
 import { getWeekKey } from '../logic/week';
 import { buildNotificationSchedule } from '../logic/notifications';
+import { findShiftConflict } from '../logic/importConflicts';
+import type { ShiftCsvImportEntry } from '../logic/csv';
 
 async function rebuildNotificationSchedules(settings: Settings, now: Date): Promise<void> {
   const nowISO = now.toISOString();
@@ -132,6 +134,94 @@ export async function deleteShift(id: string): Promise<void> {
     await removeShift(id);
     const settings = await ensureSettings();
     await rebuildNotificationSchedules(settings, new Date());
+  });
+}
+
+export type ShiftImportResult = {
+  line: number;
+  startISO: string;
+  endISO: string;
+  note?: string;
+  status: 'success' | 'duplicate' | 'overlap';
+  message?: string;
+};
+
+export async function importShifts(entries: ShiftCsvImportEntry[], settings: Settings): Promise<ShiftImportResult[]> {
+  if (entries.length === 0) {
+    return [];
+  }
+
+  return db.transaction('rw', db.shifts, db.notificationSchedules, async () => {
+    const now = new Date();
+    const existingShifts = await db.shifts.toArray();
+    const comparisonShifts = existingShifts.map((shift) => ({
+      startISO: shift.startISO,
+      endISO: shift.endISO
+    }));
+    const results: ShiftImportResult[] = [];
+    const importedShifts: Shift[] = [];
+
+    for (const entry of entries) {
+      const conflict = findShiftConflict(
+        { startISO: entry.startISO, endISO: entry.endISO },
+        comparisonShifts
+      );
+
+      if (conflict.type === 'duplicate') {
+        results.push({
+          line: entry.line,
+          startISO: entry.startISO,
+          endISO: entry.endISO,
+          note: entry.note,
+          status: 'duplicate',
+          message: 'Duplicate of an existing shift'
+        });
+        continue;
+      }
+
+      if (conflict.type === 'overlap') {
+        results.push({
+          line: entry.line,
+          startISO: entry.startISO,
+          endISO: entry.endISO,
+          note: entry.note,
+          status: 'overlap',
+          message: 'Overlaps with an existing shift'
+        });
+        continue;
+      }
+
+      const shift = await upsertShift(
+        {
+          startISO: entry.startISO,
+          endISO: entry.endISO,
+          note: entry.note
+        },
+        settings
+      );
+
+      importedShifts.push(shift);
+      comparisonShifts.push({ startISO: shift.startISO, endISO: shift.endISO });
+
+      if (!shift.endISO) {
+        // Imported shifts always have an end, but guard just in case.
+        continue;
+      }
+
+      results.push({
+        line: entry.line,
+        startISO: shift.startISO,
+        endISO: shift.endISO,
+        note: shift.note ?? undefined,
+        status: 'success'
+      });
+    }
+
+    if (importedShifts.length > 0) {
+      await rebuildNotificationSchedules(settings, now);
+    }
+
+    return results;
   });
 }
 
