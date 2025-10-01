@@ -35,6 +35,7 @@ export default function BackupRestorePanel() {
   const [isRestoring, setIsRestoring] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [settingsOnly, setSettingsOnly] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const supported = useMemo(isBackupSupported, []);
 
@@ -65,7 +66,9 @@ export default function BackupRestorePanel() {
     setInfoMessage(null);
     try {
       const now = new Date();
-      const { blob, logs: exportLogs } = await exportBackupArchive(now);
+      const { blob, logs: exportLogs } = await exportBackupArchive(now, {
+        settingsOnly,
+      });
       appendLogs(exportLogs);
       const timestamp = format(now, 'yyyyMMdd-HHmmss');
       const filename = `${BACKUP_FILENAME_PREFIX}-${timestamp}.tar.gz`;
@@ -77,7 +80,11 @@ export default function BackupRestorePanel() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        setInfoMessage(`Backup saved as ${filename}.`);
+        setInfoMessage(
+          settingsOnly
+            ? `Settings-only backup saved as ${filename}.`
+            : `Backup saved as ${filename}.`
+        );
       } finally {
         URL.revokeObjectURL(url);
       }
@@ -172,6 +179,21 @@ export default function BackupRestorePanel() {
           notification schedules. Keep the app open until the download
           finishes.
         </p>
+        <label className="flex items-start gap-3 text-sm text-neutral-700 dark:text-neutral-200">
+          <input
+            type="checkbox"
+            className="mt-1 h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary dark:border-midnight-600"
+            checked={settingsOnly}
+            onChange={(event) => setSettingsOnly(event.target.checked)}
+          />
+          <span>
+            <span className="font-medium">Backup settings only</span>
+            <span className="block text-xs font-normal text-neutral-500 dark:text-neutral-400">
+              When enabled, the archive excludes shifts but keeps your settings and
+              notification schedules.
+            </span>
+          </span>
+        </label>
         <button
           type="button"
           onClick={handleExport}

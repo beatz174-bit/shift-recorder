@@ -173,12 +173,21 @@ export type BackupExportResult = {
   meta: BackupMeta;
 };
 
+type ExportBackupOptions = {
+  settingsOnly?: boolean;
+};
+
 export async function exportBackupArchive(
-  now = new Date()
+  now = new Date(),
+  options: ExportBackupOptions = {}
 ): Promise<BackupExportResult> {
+  const { settingsOnly = false } = options;
   const logs: string[] = [];
   const startISO = now.toISOString();
   logs.push(`Export started at ${startISO}`);
+  if (settingsOnly) {
+    logs.push('Settings-only backup selected.');
+  }
 
   const { settings, shifts, notificationSchedules } = await db.transaction(
     'r',
@@ -190,8 +199,15 @@ export async function exportBackupArchive(
       const sanitizedSettings = applySettingsDefaults(
         storedSettings ?? undefined
       );
-      const allShifts = await db.shifts.toArray();
       const allNotifications = await db.notificationSchedules.toArray();
+      if (settingsOnly) {
+        return {
+          settings: sanitizedSettings,
+          shifts: [] as Shift[],
+          notificationSchedules: allNotifications,
+        };
+      }
+      const allShifts = await db.shifts.toArray();
       return {
         settings: sanitizedSettings,
         shifts: createSortedShifts(allShifts),
@@ -329,11 +345,17 @@ export async function restoreBackupArchive(
   );
 
   const shiftIds = new Set(shifts.map((shift) => shift.id));
-  for (const schedule of notificationSchedules) {
-    if (!shiftIds.has(schedule.shiftId)) {
-      throw new Error(
-        `Notification schedule references unknown shift ${schedule.shiftId}`
-      );
+  if (shiftIds.size === 0 && notificationSchedules.length > 0) {
+    logs.push(
+      'Skipping notification schedule shift validation because no shifts were included in the backup.'
+    );
+  } else {
+    for (const schedule of notificationSchedules) {
+      if (!shiftIds.has(schedule.shiftId)) {
+        throw new Error(
+          `Notification schedule references unknown shift ${schedule.shiftId}`
+        );
+      }
     }
   }
 
@@ -353,11 +375,18 @@ export async function restoreBackupArchive(
       if (notificationSchedules.length > 0) {
         await db.notificationSchedules.bulkPut(notificationSchedules);
       }
-      await rebuildNotificationSchedules(settings, now);
+      if (shifts.length > 0) {
+        await rebuildNotificationSchedules(settings, now);
+      }
     }
   );
 
   logs.push('Database replaced with backup contents.');
+  if (shifts.length === 0 && notificationSchedules.length > 0) {
+    logs.push(
+      'Skipped notification schedule rebuild because no shifts were restored.'
+    );
+  }
   logs.push(`Restore finished at ${now.toISOString()}`);
 
   return { settings, logs };
