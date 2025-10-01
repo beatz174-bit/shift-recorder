@@ -1,21 +1,9 @@
 import { ArrowDownTrayIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ChangeEvent
-} from 'react';
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { getAllShifts, importShifts, type ShiftImportResult } from '../db/repo';
-import {
-  getShiftImportTemplateCsv,
-  parseShiftsCsv,
-  shiftsToCsv,
-  type ShiftCsvParseError,
-  type ShiftCsvImportRow
-} from '../logic/csv';
+import { parseShiftsCsv, shiftsToCsv, type ShiftCsvParseError, type ShiftCsvImportRow } from '../logic/csv';
+import templateCsvUrl from '../assets/shift-import-template.csv?url';
 import Modal from './Modal';
 import { useSettings } from '../state/SettingsContext';
 
@@ -101,16 +89,7 @@ export default function ImportExportModal({ isOpen, onClose }: ImportExportModal
   const [review, setReview] = useState<ImportReviewState | null>(null);
   const [dataErrors, setDataErrors] = useState<ShiftCsvParseError[]>([]);
 
-  const templateHref = useMemo(() => {
-    const blob = new Blob([getShiftImportTemplateCsv()], { type: 'text/csv;charset=utf-8' });
-    return URL.createObjectURL(blob);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      URL.revokeObjectURL(templateHref);
-    };
-  }, [templateHref]);
+  const templateHref = templateCsvUrl;
 
   const resetReview = useCallback(() => {
     setReview((previous) => {

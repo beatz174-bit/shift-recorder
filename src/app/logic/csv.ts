@@ -1,4 +1,5 @@
 import { addDays, format, formatISO, isValid, parse } from 'date-fns';
+import templateCsvContent from '../assets/shift-import-template.csv?raw';
 import type { Shift } from '../db/schema';
 
 export type ShiftCsvParseError = {
@@ -215,6 +216,5 @@ export function parseShiftsCsv(content: string): {
 }
 
 export function getShiftImportTemplateCsv(): string {
-  const exampleRow = ['2024-01-01', '09:00', '17:00', 'New Year shift'];
-  return [HEADER.join(','), exampleRow.join(',')].join('\n');
+  return templateCsvContent;
 }
