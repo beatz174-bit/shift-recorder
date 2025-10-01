@@ -376,17 +376,17 @@ export default function SettingsPage() {
             Tune pay rates, notifications, and penalty windows so Chrona mirrors the way you work.
           </p>
           <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-100/70 p-2 dark:border-midnight-800 dark:bg-midnight-900/60">
-            <div className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
+            <div className="grid grid-cols-1 gap-2 pb-2 sm:grid-cols-2 lg:flex lg:flex-col lg:gap-2 lg:pb-0">
               {SETTINGS_TABS.map((tab) => {
                 const isActive = activeTab === tab.id;
                 const buttonClasses = [
-                  'min-w-[160px] rounded-lg px-3 py-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-midnight-900 lg:min-w-0',
+                  'w-full rounded-lg px-3 py-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-midnight-900',
                   isActive ? 'bg-white shadow-sm ring-1 ring-primary/60 dark:bg-midnight-950' : 'hover:bg-white/70 dark:hover:bg-midnight-800/80'
                 ].join(' ');
                 const labelClasses = isActive
                   ? 'block text-sm font-semibold text-neutral-900 dark:text-neutral-50'
                   : 'block text-sm font-semibold text-neutral-700 dark:text-neutral-200';
-                const descriptionClasses = 'mt-1 block text-xs text-neutral-500 dark:text-neutral-400';
+                const descriptionClasses = 'mt-1 hidden text-xs text-neutral-500 dark:text-neutral-400 lg:block';
                 return (
                   <button
                     key={tab.id}
