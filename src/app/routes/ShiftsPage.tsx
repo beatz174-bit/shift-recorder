@@ -270,7 +270,7 @@ export default function ShiftsPage() {
       <div className="grid min-h-[70vh] grid-rows-[minmax(0,1fr)_minmax(0,1fr)] gap-4 sm:flex sm:flex-col">
         <div className="overflow-x-auto sm:overflow-visible">
           <div className="h-full rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex h-full min-w-[44rem] flex-col px-2 sm:min-w-0 sm:px-0">
+            <div className="flex h-full min-w-0 flex-col px-2 sm:min-w-[44rem] sm:px-0">
               <div className="grid grid-cols-7 gap-2 px-2 pb-2 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 {weekdayLabels.map((label) => (
                   <span key={label} className="text-center">
@@ -278,7 +278,7 @@ export default function ShiftsPage() {
                   </span>
                 ))}
               </div>
-              <div className="mt-1 grid flex-1 min-h-0 grid-cols-7 gap-2 overflow-y-auto pb-2 sm:mt-2">
+              <div className="mt-1 grid flex-1 min-h-0 grid-cols-7 gap-1 pb-2 sm:mt-2 sm:gap-2 sm:overflow-y-auto">
                 {calendarDays.map((day) => {
                   const dateKey = format(day, 'yyyy-MM-dd');
                   const dayShifts = shiftsByDay.get(dateKey) ?? [];
@@ -308,7 +308,7 @@ export default function ShiftsPage() {
                   return (
                     <div
                       key={dateKey}
-                      className={`flex min-h-[9rem] flex-col rounded-2xl border p-2 ${
+                      className={`flex min-h-[3rem] flex-col rounded-2xl border p-2 sm:min-h-[9rem] ${
                         inCurrentMonth
                           ? 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950'
                           : 'border-transparent bg-slate-50 text-slate-400 dark:bg-slate-900/40 dark:text-slate-600'
