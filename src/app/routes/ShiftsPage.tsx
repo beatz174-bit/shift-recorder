@@ -12,7 +12,12 @@ import {
   startOfMonth,
   startOfWeek
 } from 'date-fns';
-import { ChevronLeftIcon, ChevronRightIcon, TrashIcon } from '@heroicons/react/24/outline';
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  PencilSquareIcon,
+  TrashIcon
+} from '@heroicons/react/24/outline';
 import Modal from '../components/Modal';
 import ShiftForm, { type ShiftFormValues } from '../components/ShiftForm';
 import { deleteShift, getAllShifts, updateShift } from '../db/repo';
@@ -70,6 +75,7 @@ export const CALENDAR_WEEK_START: WeekStart = 1;
 export default function ShiftsPage() {
   const queryClient = useQueryClient();
   const { settings } = useSettings();
+  const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
@@ -125,8 +131,9 @@ export default function ShiftsPage() {
       if (!settings) throw new Error('Settings not loaded');
       return updateShift(shift, { startISO: values.start, endISO: values.end, note: values.note }, settings);
     },
-    onSuccess: async () => {
+    onSuccess: async (updatedShift) => {
       setEditingShift(null);
+      setSelectedShift(updatedShift);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['shifts'] }),
         queryClient.invalidateQueries({ queryKey: ['summary'] })
@@ -138,6 +145,7 @@ export default function ShiftsPage() {
     mutationFn: async (shift: Shift) => deleteShift(shift.id),
     onSuccess: async () => {
       setEditingShift(null);
+      setSelectedShift(null);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['shifts'] }),
         queryClient.invalidateQueries({ queryKey: ['summary'] }),
@@ -276,7 +284,10 @@ export default function ShiftsPage() {
                             shift={shift}
                             now={now}
                             timeFormatter={timeFormatter}
-                            onSelect={setEditingShift}
+                            onSelect={(shift) => {
+                              setSelectedShift(shift);
+                              setEditingShift(null);
+                            }}
                           />
                         ))}
                       </div>
@@ -312,7 +323,10 @@ export default function ShiftsPage() {
                   shift={shift}
                   now={now}
                   timeFormatter={timeFormatter}
-                  onSelect={setEditingShift}
+                  onSelect={(shift) => {
+                    setSelectedShift(shift);
+                    setEditingShift(null);
+                  }}
                 />
               ))
             ) : (
@@ -330,38 +344,42 @@ export default function ShiftsPage() {
         </p>
       )}
 
-      <Modal isOpen={Boolean(editingShift)} onClose={() => setEditingShift(null)} title="Shift details">
-        {editingShift && (
+      <Modal
+        isOpen={Boolean(selectedShift)}
+        onClose={() => setSelectedShift(null)}
+        title="Shift details"
+      >
+        {selectedShift && (
           <div className="flex flex-col gap-6">
-            <ShiftForm
-              key={editingShift.id}
-              initialShift={editingShift}
-              submitLabel="Save changes"
-              onCancel={() => setEditingShift(null)}
-              onSubmit={async (values) => {
-                if (!editingShift) {
-                  return;
-                }
-                await updateMutation.mutateAsync({ shift: editingShift, values });
-              }}
-            />
-
-            <div className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
-              <span className="font-medium text-neutral-700 dark:text-neutral-100">Summary</span>
-              <span>{dateTimeFormatter.format(new Date(editingShift.startISO))}</span>
-              {editingShift.endISO && (
-                <span>Ends {dateTimeFormatter.format(new Date(editingShift.endISO))}</span>
-              )}
-              <span>
-                Base: {(editingShift.baseMinutes / 60).toFixed(2)}h · Penalty: {(editingShift.penaltyMinutes / 60).toFixed(2)}h
-              </span>
-              <span>Total pay: {currencyFormatter.format(editingShift.totalPay)}</span>
+            <div className="flex items-start justify-between">
+              <div className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+                <span className="font-medium text-neutral-700 dark:text-neutral-100">Summary</span>
+                <span>{dateTimeFormatter.format(new Date(selectedShift.startISO))}</span>
+                {selectedShift.endISO && (
+                  <span>Ends {dateTimeFormatter.format(new Date(selectedShift.endISO))}</span>
+                )}
+                <span>
+                  Base: {(selectedShift.baseMinutes / 60).toFixed(2)}h · Penalty: {(selectedShift.penaltyMinutes / 60).toFixed(2)}h
+                </span>
+                <span>Total pay: {currencyFormatter.format(selectedShift.totalPay)}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingShift(selectedShift);
+                  setSelectedShift(null);
+                }}
+                className="rounded-full border border-neutral-200 p-2 text-neutral-500 transition hover:border-primary hover:text-primary-emphasis dark:border-midnight-700 dark:text-neutral-300 dark:hover:border-primary dark:hover:text-primary-foreground"
+                aria-label="Edit shift"
+              >
+                <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
             </div>
 
             <div className="flex flex-col gap-3 border-t border-neutral-200 pt-4 dark:border-midnight-800 sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="button"
-                onClick={() => deleteMutation.mutate(editingShift)}
+                onClick={() => deleteMutation.mutate(selectedShift)}
                 className="flex w-full items-center justify-center gap-2 rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-500/40 dark:text-red-200 dark:hover:bg-red-500/10 sm:w-auto"
                 disabled={deleteMutation.isPending || updateMutation.isPending}
               >
@@ -369,6 +387,37 @@ export default function ShiftsPage() {
               </button>
             </div>
           </div>
+        )}
+      </Modal>
+
+      <Modal
+        isOpen={Boolean(editingShift)}
+        onClose={() => {
+          if (editingShift) {
+            setSelectedShift(editingShift);
+          }
+          setEditingShift(null);
+        }}
+        title="Edit shift"
+      >
+        {editingShift && (
+          <ShiftForm
+            key={editingShift.id}
+            initialShift={editingShift}
+            submitLabel="Save changes"
+            onCancel={() => {
+              if (editingShift) {
+                setSelectedShift(editingShift);
+              }
+              setEditingShift(null);
+            }}
+            onSubmit={async (values) => {
+              if (!editingShift) {
+                return;
+              }
+              await updateMutation.mutateAsync({ shift: editingShift, values });
+            }}
+          />
         )}
       </Modal>
     </section>
