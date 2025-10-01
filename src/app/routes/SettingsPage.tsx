@@ -69,6 +69,13 @@ const SETTINGS_TABS = [
 
 type SettingsTabId = (typeof SETTINGS_TABS)[number]['id'];
 
+const DATA_TABS = [
+  { id: 'import', label: 'Import & export' },
+  { id: 'backup', label: 'Backup & restore' }
+] as const;
+
+type DataTabId = (typeof DATA_TABS)[number]['id'];
+
 function minutesToTime(minutes: number): string {
   const safeMinutes = Number.isFinite(minutes) ? Math.max(0, Math.min(minutes, 24 * 60)) : 0;
   const hours = Math.floor(safeMinutes / 60)
@@ -124,6 +131,7 @@ export function timeToMinutes(value: string): number {
 export default function SettingsPage() {
   const { settings, updateSettings, isLoading, error } = useSettings();
   const [activeTab, setActiveTab] = useState<SettingsTabId>('general');
+  const [activeDataTab, setActiveDataTab] = useState<DataTabId>('import');
   const [baseRate, setBaseRate] = useState(() => settings?.baseRate ?? 25);
   const [penaltyRate, setPenaltyRate] = useState(() => settings?.penaltyRate ?? 35);
   const [weekStartsOn, setWeekStartsOn] = useState<WeekStart>(() => settings?.weekStartsOn ?? 1);
@@ -463,7 +471,7 @@ export default function SettingsPage() {
                 <p className="text-xs text-neutral-500 dark:text-neutral-300">
                   Configure how far in advance the app reminds you about upcoming shifts.
                 </p>
-                <div className="grid gap-3 sm:grid-cols-3">
+                <div className="grid gap-4">
                   <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
                     <span className="text-xs font-semibold uppercase text-neutral-500">Long-range (minutes)</span>
                     <input
@@ -694,21 +702,47 @@ export default function SettingsPage() {
           ) : null}
 
           {activeTab === 'data' ? (
-            <div className="space-y-8">
-              <section className="space-y-3">
-                <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-50">Import & export shifts</h3>
-                <p className="text-sm text-neutral-600 dark:text-neutral-300">
-                  Download a CSV of your shifts or import new ones using the Chrona template.
-                </p>
-                <ImportExportPanel />
-              </section>
-              <section className="space-y-3">
-                <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-50">Backup & restore</h3>
-                <p className="text-sm text-neutral-600 dark:text-neutral-300">
-                  Create a full Chrona backup or restore from a saved archive to migrate devices.
-                </p>
-                <BackupRestorePanel />
-              </section>
+            <div className="space-y-6">
+              <div className="flex flex-wrap gap-2 border-b border-neutral-200 pb-2 dark:border-midnight-700">
+                {DATA_TABS.map((tab) => {
+                  const isActive = activeDataTab === tab.id;
+                  const buttonClasses = [
+                    'rounded-full px-4 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-midnight-900',
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-midnight-800 dark:text-neutral-200 dark:hover:bg-midnight-700'
+                  ].join(' ');
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setActiveDataTab(tab.id)}
+                      className={buttonClasses}
+                      aria-current={isActive ? 'page' : undefined}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {activeDataTab === 'import' ? (
+                <section className="space-y-3">
+                  <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-50">Import & export shifts</h3>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                    Download a CSV of your shifts or import new ones using the Chrona template.
+                  </p>
+                  <ImportExportPanel />
+                </section>
+              ) : null}
+              {activeDataTab === 'backup' ? (
+                <section className="space-y-3">
+                  <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-50">Backup & restore</h3>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                    Create a full Chrona backup or restore from a saved archive to migrate devices.
+                  </p>
+                  <BackupRestorePanel />
+                </section>
+              ) : null}
             </div>
           ) : null}
         </div>
