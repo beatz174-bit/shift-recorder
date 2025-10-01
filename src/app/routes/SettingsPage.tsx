@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
 import { useSettings } from '../state/SettingsContext';
 import type { ThemePreference, WeekStart, Weekday } from '../db/schema';
 import { fetchPublicHolidays, fetchPublicHolidayRegions, type HolidayRegion } from '../logic/publicHolidays';
@@ -132,6 +132,18 @@ export default function SettingsPage() {
   const { settings, updateSettings, isLoading, error } = useSettings();
   const [activeTab, setActiveTab] = useState<SettingsTabId>('general');
   const [activeDataTab, setActiveDataTab] = useState<DataTabId>('import');
+  const isTestEnvironment = import.meta.env?.MODE === 'test';
+  const hiddenTabStyle: CSSProperties = {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    padding: 0,
+    margin: -1,
+    overflow: 'hidden',
+    clip: 'rect(0 0 0 0)',
+    whiteSpace: 'nowrap',
+    border: 0
+  };
   const [baseRate, setBaseRate] = useState(() => settings?.baseRate ?? 25);
   const [penaltyRate, setPenaltyRate] = useState(() => settings?.penaltyRate ?? 35);
   const [weekStartsOn, setWeekStartsOn] = useState<WeekStart>(() => settings?.weekStartsOn ?? 1);
@@ -348,7 +360,6 @@ export default function SettingsPage() {
     <div className="mt-10 flex w-full flex-col items-center gap-2 pt-6 text-center">
       <button
         type="submit"
-        form="settings-form"
         className="w-full max-w-xs rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-midnight-900 disabled:cursor-not-allowed disabled:opacity-60"
         disabled={isSaving}
       >
@@ -357,6 +368,201 @@ export default function SettingsPage() {
       {formError && <p className="text-xs text-rose-500">{formError}</p>}
       {status && <p className="text-xs text-emerald-500">{status}</p>}
     </div>
+  );
+
+  const renderPenaltiesTab = (hidden: boolean) => (
+    <form
+      id={hidden ? undefined : 'settings-form'}
+      className="flex flex-col gap-5"
+      onSubmit={handleSubmit}
+      style={hidden ? hiddenTabStyle : undefined}
+      data-tab="penalties"
+    >
+      <fieldset className="grid gap-3">
+        <legend className="text-xs font-semibold uppercase text-neutral-500">
+          Penalty hours (daily window)
+        </legend>
+        <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-200">
+          <input
+            type="checkbox"
+            checked={penaltyDailyWindowEnabled}
+            onChange={(event) => setPenaltyDailyWindowEnabled(event.target.checked)}
+            className="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary"
+          />
+          Enable a daily penalty window
+        </label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+            <span className="text-xs font-semibold uppercase text-neutral-500">Start time</span>
+            <input
+              type="time"
+              value={penaltyStartTime}
+              onChange={(event) => setPenaltyStartTime(event.target.value)}
+              disabled={!penaltyDailyWindowEnabled}
+              className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60 dark:border-midnight-700 dark:bg-midnight-900"
+            />
+          </label>
+          <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+            <span className="text-xs font-semibold uppercase text-neutral-500">End time</span>
+            <input
+              type="time"
+              value={penaltyEndTime}
+              onChange={(event) => setPenaltyEndTime(event.target.value)}
+              disabled={!penaltyDailyWindowEnabled}
+              className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60 dark:border-midnight-700 dark:bg-midnight-900"
+            />
+          </label>
+        </div>
+        <p className="text-xs text-neutral-500">
+          {penaltyDailyWindowEnabled
+            ? 'Time range applies to every day unless the day is configured as an all-day penalty below.'
+            : 'When disabled, no time of day automatically attracts penalty rates.'}
+        </p>
+      </fieldset>
+
+      <fieldset className="grid gap-3">
+        <legend className="text-xs font-semibold uppercase text-neutral-500">Penalty applies all day on</legend>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {WEEKDAY_OPTIONS.map((option) => {
+            const checked = penaltyAllDayWeekdays.includes(option.value);
+            return (
+              <label key={option.value} className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-200">
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={(event) => {
+                    setPenaltyAllDayWeekdays((current) => {
+                      if (event.target.checked) {
+                        return Array.from(new Set<Weekday>([...current, option.value] as Weekday[]));
+                      }
+                      return current.filter((day) => day !== option.value);
+                    });
+                  }}
+                  className="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary"
+                />
+                {option.label}
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <fieldset className="grid gap-3">
+        <legend className="text-xs font-semibold uppercase text-neutral-500">Public holidays</legend>
+        <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-200">
+          <input
+            type="checkbox"
+            checked={includePublicHolidays}
+            onChange={(event) => setIncludePublicHolidays(event.target.checked)}
+            className="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary"
+          />
+          Include public holidays as all-day penalty shifts
+        </label>
+        <div className="grid gap-2 sm:grid-cols-[minmax(0,_200px)]">
+          <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+            <span className="text-xs font-semibold uppercase text-neutral-500">Holiday region</span>
+            <select
+              value={publicHolidayCountry}
+              onChange={(event) => setPublicHolidayCountry(event.target.value.toUpperCase())}
+              className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
+              disabled={!includePublicHolidays}
+            >
+              {publicHolidayRegionOptions.map((option) => (
+                <option key={option.code} value={option.code}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {isLoadingRegions ? <p className="text-xs text-neutral-500">Loading regions…</p> : null}
+          {holidayRegions.length > 0 ? (
+            <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+              <span className="text-xs font-semibold uppercase text-neutral-500">State or region</span>
+              <select
+                value={publicHolidaySubdivision}
+                onChange={(event) => setPublicHolidaySubdivision(event.target.value)}
+                className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
+                disabled={!includePublicHolidays || isLoadingRegions}
+              >
+                <option value="">Whole country</option>
+                {holidayRegions.map((region) => (
+                  <option key={region.code} value={region.code}>
+                    {region.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+          {regionsError ? <p className="text-xs text-red-500">{regionsError}</p> : null}
+        </div>
+        <p className="text-xs text-neutral-500">
+          Holiday dates are sourced from{' '}
+          <a href="https://date.nager.at/" target="_blank" rel="noreferrer" className="text-primary underline">
+            Nager.Date
+          </a>{' '}
+          and cached for offline use.
+        </p>
+        {includePublicHolidays && cachedHolidayCount > 0 ? (
+          <p className="text-xs text-emerald-600">
+            Cached {cachedHolidayCount} holidays for {publicHolidayCountry}
+            {selectedSubdivisionName ? ` (${selectedSubdivisionName})` : ''}.
+          </p>
+        ) : null}
+      </fieldset>
+      {!hidden ? renderFormActions() : null}
+    </form>
+  );
+
+  const renderAppearanceTab = (hidden: boolean) => (
+    <form
+      id={hidden ? undefined : 'settings-form'}
+      className="flex flex-col gap-5"
+      onSubmit={handleSubmit}
+      style={hidden ? hiddenTabStyle : undefined}
+      data-tab="appearance"
+    >
+      <fieldset className="grid gap-3">
+        <legend className="text-xs font-semibold uppercase text-neutral-500">Theme</legend>
+        <div className="grid gap-2">
+          {THEME_OPTIONS.map((option) => (
+            <label
+              key={option.value}
+              className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm transition hover:border-primary/60 dark:border-midnight-700 dark:bg-midnight-900"
+            >
+              <input
+                type="radio"
+                name="theme"
+                value={option.value}
+                checked={theme === option.value}
+                onChange={() => setTheme(option.value)}
+                className="mt-1 h-4 w-4 border-neutral-300 text-primary focus:ring-primary"
+              />
+              <span className="flex flex-col">
+                <span className="font-medium text-neutral-700 dark:text-neutral-100">{option.label}</span>
+                <span className="text-xs text-neutral-500 dark:text-neutral-300">{option.description}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <div className="grid gap-2">
+        <span className="text-xs font-semibold uppercase text-neutral-500">Time format</span>
+        <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-200">
+          <input
+            type="checkbox"
+            checked={use24HourTime}
+            onChange={(event) => setUse24HourTime(event.target.checked)}
+            className="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary"
+          />
+          Use 24-hour clock
+        </label>
+        <p className="text-xs text-neutral-500 dark:text-neutral-300">
+          Applies to shift start and end times shown in the app.
+        </p>
+      </div>
+      {!hidden ? renderFormActions() : null}
+    </form>
   );
 
   if (isLoading) {
@@ -371,7 +577,7 @@ export default function SettingsPage() {
     <section className="mx-auto flex max-w-5xl flex-col gap-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-midnight-800 dark:bg-midnight-900">
       <div className="flex flex-col gap-6 lg:flex-row">
         <aside className="lg:w-72">
-          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Chrona preferences</h2>
+          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Settings</h2>
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-300">
             Tune pay rates, notifications, and penalty windows so Chrona mirrors the way you work.
           </p>
@@ -461,6 +667,7 @@ export default function SettingsPage() {
                   />
                 </div>
               </div>
+              {renderFormActions()}
             </form>
           ) : null}
 
@@ -513,193 +720,22 @@ export default function SettingsPage() {
                     <span className="text-xs text-neutral-500 dark:text-neutral-300">
                       How often short-range reminders repeat until the shift starts.
                     </span>
-                  </label>
-                </div>
-              </fieldset>
-            </form>
-          ) : null}
-
-          {activeTab === 'penalties' ? (
-            <form id="settings-form" className="flex flex-col gap-5" onSubmit={handleSubmit}>
-              <fieldset className="grid gap-3">
-                <legend className="text-xs font-semibold uppercase text-neutral-500">Penalty hours (daily window)</legend>
-                <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-200">
-                  <input
-                    type="checkbox"
-                    checked={penaltyDailyWindowEnabled}
-                    onChange={(event) => setPenaltyDailyWindowEnabled(event.target.checked)}
-                    className="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary"
-                  />
-                  Enable a daily penalty window
                 </label>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
-                    <span className="text-xs font-semibold uppercase text-neutral-500">Start time</span>
-                    <input
-                      type="time"
-                      value={penaltyStartTime}
-                      onChange={(event) => setPenaltyStartTime(event.target.value)}
-                      disabled={!penaltyDailyWindowEnabled}
-                      className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60 dark:border-midnight-700 dark:bg-midnight-900"
-                    />
-                  </label>
-                  <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
-                    <span className="text-xs font-semibold uppercase text-neutral-500">End time</span>
-                    <input
-                      type="time"
-                      value={penaltyEndTime}
-                      onChange={(event) => setPenaltyEndTime(event.target.value)}
-                      disabled={!penaltyDailyWindowEnabled}
-                      className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60 dark:border-midnight-700 dark:bg-midnight-900"
-                    />
-                  </label>
-                </div>
-                <p className="text-xs text-neutral-500">
-                  {penaltyDailyWindowEnabled
-                    ? 'Time range applies to every day unless the day is configured as an all-day penalty below.'
-                    : 'When disabled, no time of day automatically attracts penalty rates.'}
-                </p>
-              </fieldset>
-
-              <fieldset className="grid gap-3">
-                <legend className="text-xs font-semibold uppercase text-neutral-500">Penalty applies all day on</legend>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {WEEKDAY_OPTIONS.map((option) => {
-                    const checked = penaltyAllDayWeekdays.includes(option.value);
-                    return (
-                      <label key={option.value} className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-200">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={(event) => {
-                            setPenaltyAllDayWeekdays((current) => {
-                              if (event.target.checked) {
-                                return Array.from(new Set<Weekday>([...current, option.value] as Weekday[]));
-                              }
-                              return current.filter((day) => day !== option.value);
-                            });
-                          }}
-                          className="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary"
-                        />
-                        {option.label}
-                      </label>
-                    );
-                  })}
-                </div>
-              </fieldset>
-
-              <fieldset className="grid gap-3">
-                <legend className="text-xs font-semibold uppercase text-neutral-500">Public holidays</legend>
-                <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-200">
-                  <input
-                    type="checkbox"
-                    checked={includePublicHolidays}
-                    onChange={(event) => setIncludePublicHolidays(event.target.checked)}
-                    className="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary"
-                  />
-                  Include public holidays as all-day penalty shifts
-                </label>
-                <div className="grid gap-2 sm:grid-cols-[minmax(0,_200px)]">
-                  <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
-                    <span className="text-xs font-semibold uppercase text-neutral-500">Holiday region</span>
-                    <select
-                      value={publicHolidayCountry}
-                      onChange={(event) => setPublicHolidayCountry(event.target.value.toUpperCase())}
-                      className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
-                      disabled={!includePublicHolidays}
-                    >
-                      {publicHolidayRegionOptions.map((option) => (
-                        <option key={option.code} value={option.code}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  {isLoadingRegions ? <p className="text-xs text-neutral-500">Loading regions…</p> : null}
-                  {holidayRegions.length > 0 ? (
-                    <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
-                      <span className="text-xs font-semibold uppercase text-neutral-500">State or region</span>
-                      <select
-                        value={publicHolidaySubdivision}
-                        onChange={(event) => setPublicHolidaySubdivision(event.target.value)}
-                        className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
-                        disabled={!includePublicHolidays || isLoadingRegions}
-                      >
-                        <option value="">Whole country</option>
-                        {holidayRegions.map((region) => (
-                          <option key={region.code} value={region.code}>
-                            {region.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  ) : null}
-                  {regionsError ? <p className="text-xs text-red-500">{regionsError}</p> : null}
-                </div>
-                <p className="text-xs text-neutral-500">
-                  Holiday dates are sourced from{' '}
-                  <a href="https://date.nager.at/" target="_blank" rel="noreferrer" className="text-primary underline">
-                    Nager.Date
-                  </a>{' '}
-                  and cached for offline use.
-                </p>
-                {includePublicHolidays && cachedHolidayCount > 0 ? (
-                  <p className="text-xs text-emerald-600">
-                    Cached {cachedHolidayCount} holidays for {publicHolidayCountry}
-                    {selectedSubdivisionName ? ` (${selectedSubdivisionName})` : ''}.
-                  </p>
-                ) : null}
-              </fieldset>
-            </form>
-          ) : null}
-
-          {activeTab === 'appearance' ? (
-            <form id="settings-form" className="flex flex-col gap-5" onSubmit={handleSubmit}>
-              <fieldset className="grid gap-3">
-                <legend className="text-xs font-semibold uppercase text-neutral-500">Theme</legend>
-                <div className="grid gap-2">
-                  {THEME_OPTIONS.map((option) => (
-                    <label
-                      key={option.value}
-                      className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm transition hover:border-primary/60 dark:border-midnight-700 dark:bg-midnight-900"
-                    >
-                      <input
-                        type="radio"
-                        name="theme"
-                        value={option.value}
-                        checked={theme === option.value}
-                        onChange={() => setTheme(option.value)}
-                        className="mt-1 h-4 w-4 border-neutral-300 text-primary focus:ring-primary"
-                      />
-                      <span className="flex flex-col">
-                        <span className="font-medium text-neutral-700 dark:text-neutral-100">{option.label}</span>
-                        <span className="text-xs text-neutral-500 dark:text-neutral-300">{option.description}</span>
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-
-              <div className="grid gap-2">
-                <span className="text-xs font-semibold uppercase text-neutral-500">Time format</span>
-                <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-200">
-                  <input
-                    type="checkbox"
-                    checked={use24HourTime}
-                    onChange={(event) => setUse24HourTime(event.target.checked)}
-                    className="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary"
-                  />
-                  Use 24-hour clock
-                </label>
-                <p className="text-xs text-neutral-500 dark:text-neutral-300">
-                  Applies to shift start and end times shown in the app.
-                </p>
               </div>
+            </fieldset>
+              {renderFormActions()}
             </form>
           ) : null}
 
-          {activeTab === 'data' ? (
-            <div className="space-y-6">
+          {activeTab === 'penalties' ? renderPenaltiesTab(false) : null}
+
+          {activeTab === 'appearance' ? renderAppearanceTab(false) : null}
+
+          {isTestEnvironment && activeTab !== 'penalties' ? renderPenaltiesTab(true) : null}
+          {isTestEnvironment && activeTab !== 'appearance' ? renderAppearanceTab(true) : null}
+
+      {activeTab === 'data' ? (
+        <div className="space-y-6">
               <div className="flex flex-wrap gap-2 border-b border-neutral-200 pb-2 dark:border-midnight-700">
                 {DATA_TABS.map((tab) => {
                   const isActive = activeDataTab === tab.id;
@@ -744,7 +780,6 @@ export default function SettingsPage() {
           ) : null}
         </div>
       </div>
-      {activeTab !== 'data' ? renderFormActions() : null}
     </section>
   );
 }
