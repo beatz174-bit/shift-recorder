@@ -26,20 +26,20 @@ export default function ShiftCard({ shift, currency, onEdit, onDelete }: ShiftCa
 
   return (
     <article className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-midnight-800 dark:bg-midnight-900">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-neutral-700 dark:text-neutral-100">
             {dateFormatter.format(startDate)}
           </p>
-          <p className="text-xs text-neutral-500 dark:text-neutral-300">
+          <p className="text-[11px] text-neutral-500 dark:text-neutral-300 sm:text-xs">
             {timeFormatter.format(startDate)} — {endDate ? timeFormatter.format(endDate) : 'In progress'}
           </p>
         </div>
-        <p className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 sm:text-right">
+        <p className="text-base font-semibold text-neutral-900 dark:text-neutral-50 sm:text-right sm:text-lg">
           {currencyFormatter.format(shift.totalPay)}
         </p>
       </header>
-      <dl className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
+      <dl className="grid grid-cols-3 gap-2 text-[11px] sm:text-xs">
         <div>
           <dt className="text-neutral-500 dark:text-neutral-300">Base</dt>
           <dd className="font-medium text-neutral-700 dark:text-neutral-100">{(shift.baseMinutes / 60).toFixed(2)}h</dd>
