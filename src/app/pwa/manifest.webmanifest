@@ -1,11 +1,11 @@
 {
-  "name": "Shift Recorder",
-  "short_name": "Shift Recorder",
+  "name": "Chrona",
+  "short_name": "Chrona",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#0f172a",
-  "description": "Offline-first time tracking for shift workers.",
+  "description": "Chrona keeps shift-based professionals on schedule with offline-first tracking.",
   "icons": [
     {
       "src": "/pwa-icon.svg",

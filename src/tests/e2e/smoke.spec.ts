@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const APP_TITLE = /Shift Recorder/i;
+const APP_TITLE = /Chrona/i;
 
 test.describe('pwa smoke test', () => {
   test('app loads', async ({ page }) => {
