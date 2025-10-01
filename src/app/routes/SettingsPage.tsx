@@ -808,100 +808,16 @@ export default function SettingsPage() {
                   />
                 </div>
               </div>
-              {renderFormActions(true)}
             </form>
           ) : null}
 
           {activeTab === 'notifications' ? (
-            <form id="settings-form" className="flex flex-col gap-5" onSubmit={handleSubmit}>
+            <form
+              id="settings-form"
+              className="flex flex-col gap-5"
+              onSubmit={handleSubmit}
+            >
               <fieldset className="grid gap-3">
-                <legend className="text-xs font-semibold uppercase text-neutral-500">Shift reminders</legend>
-                <p className="text-xs text-neutral-500 dark:text-neutral-300">
-                  Configure how far in advance the app reminds you about upcoming shifts.
-                </p>
-                <div className="grid gap-4">
-                  <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
-                    <span className="text-xs font-semibold uppercase text-neutral-500">Long-range (minutes)</span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={baseRate}
-                      onChange={(event) =>
-                        setBaseRate(Number(event.target.value))
-                      }
-                      className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <label className="text-xs font-semibold uppercase text-neutral-500">
-                      Penalty rate (per hour)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={penaltyRate}
-                      onChange={(event) =>
-                        setPenaltyRate(Number(event.target.value))
-                      }
-                      className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <label
-                      className="text-xs font-semibold uppercase text-neutral-500"
-                      htmlFor="week-starts-on"
-                    >
-                      Pay week starts on
-                    </label>
-                    <p
-                      id="week-starts-on-help"
-                      className="text-xs text-neutral-500 dark:text-neutral-300"
-                    >
-                      Only affects summary and payslip alignment.
-                    </p>
-                    <select
-                      id="week-starts-on"
-                      aria-describedby="week-starts-on-help"
-                      value={weekStartsOn}
-                      onChange={(event) =>
-                        setWeekStartsOn(Number(event.target.value) as WeekStart)
-                      }
-                      className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
-                    >
-                      {WEEK_START_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="grid gap-2">
-                    <label className="text-xs font-semibold uppercase text-neutral-500">
-                      Currency
-                    </label>
-                    <input
-                      type="text"
-                      value={currency}
-                      onChange={(event) =>
-                        setCurrency(event.target.value.toUpperCase())
-                      }
-                      className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm uppercase shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
-                      maxLength={3}
-                    />
-                  </div>
-                </div>
-              </form>
-            ) : null}
-
-            {activeTab === 'notifications' ? (
-              <form
-                id="settings-form"
-                className="flex flex-col gap-5"
-                onSubmit={handleSubmit}
-              >
-                <fieldset className="grid gap-3">
                   <legend className="text-xs font-semibold uppercase text-neutral-500">
                     Shift reminders
                   </legend>
@@ -1034,7 +950,6 @@ export default function SettingsPage() {
             ) : null}
           </div>
         </div>
-      </div>
       {renderFormActions(activeTab !== 'data')}
     </section>
   );
