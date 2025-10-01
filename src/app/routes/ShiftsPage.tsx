@@ -217,12 +217,6 @@ export default function ShiftsPage() {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-50">Shifts calendar</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Review past work and plan upcoming shifts in a monthly view.
-          </p>
-        </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
           <div className="flex w-full items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900 sm:w-auto">
             <button
@@ -265,7 +259,7 @@ export default function ShiftsPage() {
         </div>
       </header>
 
-      {isLoading && <p className="text-sm text-slate-500">Loading shifts…</p>}
+      {isLoading && <p className="text-sm text-slate-500">Chrona is preparing your calendar…</p>}
 
       <div className="grid min-h-[70vh] grid-rows-[minmax(0,1fr)_minmax(0,1fr)] gap-4 sm:flex sm:flex-col">
         <div className="overflow-x-auto sm:overflow-visible">
@@ -383,7 +377,7 @@ export default function ShiftsPage() {
 
       {!isLoading && shifts.length === 0 && (
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          No shifts logged yet. Use the “Add shift” button to start tracking your work.
+          Chrona hasn't logged any shifts yet. Tap “Add shift” to start building your timeline.
         </p>
       )}
 

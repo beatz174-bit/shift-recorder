@@ -42,9 +42,9 @@ function Layout() {
       <header className="sticky top-0 z-10 border-b border-slate-200/60 bg-white/80 backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/80">
         <div className="mx-auto flex max-w-4xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-1">
-            <h1 className="text-xl font-semibold">Shift Recorder</h1>
+            <h1 className="text-xl font-semibold">Chrona</h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Offline-first time tracker
+              Precision shift tracking for people who live by the clock
             </p>
           </div>
           <nav className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">

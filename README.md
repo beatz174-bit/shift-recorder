@@ -1,6 +1,6 @@
-# Shift Recorder
+# Chrona
 
-Shift Recorder is an offline-first Progressive Web App for tracking shifts, splitting base vs penalty hours, and calculating pay without a backend. The project uses React, Vite, Dexie (IndexedDB), and Tailwind CSS.
+Chrona is an offline-first companion for hourly professionals that captures every shift, highlights penalty windows, and keeps pay insights at your fingertips. The project uses React, Vite, Dexie (IndexedDB), and Tailwind CSS.
 
 ## Getting started
 
