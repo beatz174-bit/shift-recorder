@@ -14,7 +14,6 @@
       <stop offset="100%" stop-color="#2ec5ff" />
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="#10131d" />
   <circle cx="256" cy="234" r="190" fill="url(#chrona-pwa-glow)" />
   <circle cx="256" cy="256" r="188" fill="#10131d" />
   <path
