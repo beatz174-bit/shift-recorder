@@ -236,11 +236,7 @@ export default function ShiftsPage() {
                   const inCurrentMonth = isSameMonth(day, currentMonth);
                   const isCurrentDay = isSameDay(day, now);
                   const isSelected = isSameDay(day, selectedDate);
-                  const hasUpcomingShift = dayShifts.some((shift) => {
-                    const startDate = new Date(shift.startISO);
-                    const endDate = shift.endISO ? new Date(shift.endISO) : null;
-                    return endDate ? endDate >= now : startDate >= now;
-                  });
+                  const hasShifts = dayShifts.length > 0;
 
                   const dayNumberClasses = [
                     'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition',
@@ -252,8 +248,8 @@ export default function ShiftsPage() {
                     isSelected
                       ? 'ring-2 ring-emerald-300 ring-offset-2 ring-offset-white dark:ring-emerald-400/70 dark:ring-offset-midnight-950 sm:ring-0 sm:ring-offset-0'
                       : null,
-                    hasUpcomingShift && !isSelected && !isCurrentDay
-                      ? 'sm:bg-emerald-100 sm:text-emerald-800 sm:ring-2 sm:ring-emerald-300 sm:ring-offset-2 sm:ring-offset-white sm:dark:bg-emerald-500/20 sm:dark:text-emerald-100 sm:dark:ring-emerald-400/70 sm:dark:ring-offset-midnight-900'
+                    hasShifts && !isSelected && !isCurrentDay
+                      ? 'ring-2 ring-emerald-300 ring-offset-2 ring-offset-white text-emerald-700 dark:ring-emerald-400/70 dark:ring-offset-midnight-950 dark:text-emerald-200 sm:bg-emerald-100 sm:text-emerald-800 sm:dark:bg-emerald-500/20 sm:dark:text-emerald-100 sm:dark:ring-offset-midnight-900'
                       : null
                   ]
                     .filter(Boolean)
