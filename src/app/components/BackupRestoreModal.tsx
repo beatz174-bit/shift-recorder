@@ -183,10 +183,10 @@ export default function BackupRestoreModal({
         )}
 
         <section className="space-y-3">
-          <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">
+          <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-50">
             Download backup
           </h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-neutral-600 dark:text-neutral-300">
             Generates a tar.gz archive containing settings, shifts, and
             notification schedules. Keep the app open until the download
             finishes.
@@ -202,7 +202,7 @@ export default function BackupRestoreModal({
         </section>
 
         <section className="space-y-3">
-          <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">
+          <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-50">
             Restore from backup
           </h3>
           <form className="space-y-3" onSubmit={handleRestore}>
@@ -218,13 +218,13 @@ export default function BackupRestoreModal({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isRestoring || !supported}
-                className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-midnight-700 dark:text-neutral-200 dark:hover:bg-midnight-800"
               >
                 {selectedFile ? 'Choose another file' : 'Select backup file'}
               </button>
               {selectedFile && (
                 <span
-                  className="truncate text-xs text-slate-500 dark:text-slate-400"
+                  className="truncate text-xs text-neutral-500 dark:text-neutral-300"
                   title={selectedFile.name}
                 >
                   {selectedFile.name}
@@ -262,10 +262,10 @@ export default function BackupRestoreModal({
         )}
 
         <section className="space-y-3">
-          <h3 className="text-base font-semibold text-slate-900 dark:text-slate-50">
+          <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-50">
             Logs
           </h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-neutral-600 dark:text-neutral-300">
             Recent backup activity is captured below. Download the log for
             long-term storage or troubleshooting.
           </p>
@@ -273,13 +273,13 @@ export default function BackupRestoreModal({
             readOnly
             value={logs.join('\n')}
             placeholder="No log entries yet."
-            className="h-40 w-full resize-none rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+            className="h-40 w-full resize-none rounded-lg border border-neutral-200 bg-neutral-100 p-3 font-mono text-xs text-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900 dark:text-neutral-200"
           />
           <button
             type="button"
             onClick={handleDownloadLog}
             disabled={logs.length === 0}
-            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-midnight-700 dark:text-neutral-200 dark:hover:bg-midnight-800"
           >
             Download log
           </button>

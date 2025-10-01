@@ -221,7 +221,7 @@ export default function SettingsPage() {
   }, [holidayRegions, publicHolidaySubdivision]);
 
   if (isLoading) {
-    return <p className="text-sm text-slate-500">Chrona is loading your preferences…</p>;
+    return <p className="text-sm text-neutral-500">Chrona is loading your preferences…</p>;
   }
 
   if (error) {
@@ -229,29 +229,28 @@ export default function SettingsPage() {
   }
 
   return (
-    <section className="max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <h1 className="sr-only">Settings</h1>
-      <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">Chrona preferences</h2>
-      <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+    <section className="max-w-xl rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-midnight-800 dark:bg-midnight-900">
+      <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">Chrona preferences</h2>
+      <p className="mb-4 text-sm text-neutral-500 dark:text-neutral-300">
         Tune pay rates, notifications, and penalty windows so Chrona mirrors the way you work.
       </p>
-      <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/60">
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Data management</h3>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+      <div className="mb-6 rounded-xl border border-neutral-200 bg-neutral-100/60 p-4 dark:border-midnight-800 dark:bg-midnight-900/60">
+        <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">Data management</h3>
+        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-300">
           Backup or export your data, or restore and import from a saved file.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => setIsImportExportOpen(true)}
-            className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus-visible:ring-offset-slate-900"
+            className="inline-flex items-center rounded-full border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-midnight-700 dark:text-neutral-100 dark:hover:bg-midnight-800 dark:focus-visible:ring-offset-midnight-900"
           >
             Import / Export
           </button>
           <button
             type="button"
             onClick={() => setIsBackupModalOpen(true)}
-            className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus-visible:ring-offset-slate-900"
+            className="inline-flex items-center rounded-full border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-midnight-700 dark:text-neutral-100 dark:hover:bg-midnight-800 dark:focus-visible:ring-offset-midnight-900"
           >
             Backup / Restore
           </button>
@@ -342,35 +341,35 @@ export default function SettingsPage() {
         }}
       >
         <div className="grid gap-2">
-          <label className="text-xs font-semibold uppercase text-slate-500">Base rate (per hour)</label>
+          <label className="text-xs font-semibold uppercase text-neutral-500">Base rate (per hour)</label>
           <input
             type="number"
             min="0"
             step="0.01"
             value={baseRate}
             onChange={(event) => setBaseRate(Number(event.target.value))}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+            className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
           />
         </div>
         <div className="grid gap-2">
-          <label className="text-xs font-semibold uppercase text-slate-500">Penalty rate (per hour)</label>
+          <label className="text-xs font-semibold uppercase text-neutral-500">Penalty rate (per hour)</label>
           <input
             type="number"
             min="0"
             step="0.01"
             value={penaltyRate}
             onChange={(event) => setPenaltyRate(Number(event.target.value))}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+            className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
           />
         </div>
         <div className="grid gap-2">
           <label
-            className="text-xs font-semibold uppercase text-slate-500"
+            className="text-xs font-semibold uppercase text-neutral-500"
             htmlFor="week-starts-on"
           >
             Pay week starts on
           </label>
-          <p id="week-starts-on-help" className="text-xs text-slate-500 dark:text-slate-400">
+          <p id="week-starts-on-help" className="text-xs text-neutral-500 dark:text-neutral-300">
             Only affects summary and payslip alignment.
           </p>
           <select
@@ -378,7 +377,7 @@ export default function SettingsPage() {
             aria-describedby="week-starts-on-help"
             value={weekStartsOn}
             onChange={(event) => setWeekStartsOn(Number(event.target.value) as WeekStart)}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+            className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
           >
             {WEEK_START_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -388,87 +387,87 @@ export default function SettingsPage() {
           </select>
         </div>
         <div className="grid gap-2">
-          <label className="text-xs font-semibold uppercase text-slate-500">Currency</label>
+          <label className="text-xs font-semibold uppercase text-neutral-500">Currency</label>
           <input
             type="text"
             value={currency}
             onChange={(event) => setCurrency(event.target.value.toUpperCase())}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm uppercase shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+            className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm uppercase shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
             maxLength={3}
           />
         </div>
         <div className="grid gap-2">
-          <span className="text-xs font-semibold uppercase text-slate-500">Time format</span>
-          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-200">
+          <span className="text-xs font-semibold uppercase text-neutral-500">Time format</span>
+          <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-200">
             <input
               type="checkbox"
               checked={use24HourTime}
               onChange={(event) => setUse24HourTime(event.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+              className="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary"
             />
             Use 24-hour clock
           </label>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-neutral-500 dark:text-neutral-300">
             Applies to shift start and end times shown in the app.
           </p>
         </div>
         <fieldset className="grid gap-3">
-          <legend className="text-xs font-semibold uppercase text-slate-500">Shift reminders</legend>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <legend className="text-xs font-semibold uppercase text-neutral-500">Shift reminders</legend>
+          <p className="text-xs text-neutral-500 dark:text-neutral-300">
             Configure how far in advance the app reminds you about upcoming shifts.
           </p>
           <div className="grid gap-3 sm:grid-cols-3">
-            <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-200">
-              <span className="text-xs font-semibold uppercase text-slate-500">Long-range (minutes)</span>
+            <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+              <span className="text-xs font-semibold uppercase text-neutral-500">Long-range (minutes)</span>
               <input
                 type="number"
                 min={0}
                 max={7 * 24 * 60}
                 value={notificationLongLead}
                 onChange={(event) => setNotificationLongLead(Number(event.target.value))}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+                className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
               />
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-neutral-500 dark:text-neutral-300">
                 Send a one-off reminder this many minutes before the shift.
               </span>
             </label>
-            <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-200">
-              <span className="text-xs font-semibold uppercase text-slate-500">Short-range (minutes)</span>
+            <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+              <span className="text-xs font-semibold uppercase text-neutral-500">Short-range (minutes)</span>
               <input
                 type="number"
                 min={0}
                 max={24 * 60}
                 value={notificationShortLead}
                 onChange={(event) => setNotificationShortLead(Number(event.target.value))}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+                className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
               />
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-neutral-500 dark:text-neutral-300">
                 Start persistent reminders once the shift is this close.
               </span>
             </label>
-            <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-200">
-              <span className="text-xs font-semibold uppercase text-slate-500">Repeat every (minutes)</span>
+            <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+              <span className="text-xs font-semibold uppercase text-neutral-500">Repeat every (minutes)</span>
               <input
                 type="number"
                 min={5}
                 max={24 * 60}
                 value={notificationRepeat}
                 onChange={(event) => setNotificationRepeat(Number(event.target.value))}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+                className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
               />
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-neutral-500 dark:text-neutral-300">
                 How often short-range reminders repeat until the shift starts.
               </span>
             </label>
           </div>
         </fieldset>
         <fieldset className="grid gap-3">
-          <legend className="text-xs font-semibold uppercase text-slate-500">Appearance</legend>
+          <legend className="text-xs font-semibold uppercase text-neutral-500">Appearance</legend>
           <div className="grid gap-2">
             {THEME_OPTIONS.map((option) => (
               <label
                 key={option.value}
-                className="flex items-start gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm transition hover:border-primary/60 dark:border-slate-700 dark:bg-slate-900"
+                className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm transition hover:border-primary/60 dark:border-midnight-700 dark:bg-midnight-900"
               >
                 <input
                   type="radio"
@@ -476,62 +475,62 @@ export default function SettingsPage() {
                   value={option.value}
                   checked={theme === option.value}
                   onChange={() => setTheme(option.value)}
-                  className="mt-1 h-4 w-4 border-slate-300 text-primary focus:ring-primary"
+                  className="mt-1 h-4 w-4 border-neutral-300 text-primary focus:ring-primary"
                 />
                 <span className="flex flex-col">
-                  <span className="font-medium text-slate-700 dark:text-slate-100">{option.label}</span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">{option.description}</span>
+                  <span className="font-medium text-neutral-700 dark:text-neutral-100">{option.label}</span>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-300">{option.description}</span>
                 </span>
               </label>
             ))}
           </div>
         </fieldset>
         <fieldset className="grid gap-3">
-          <legend className="text-xs font-semibold uppercase text-slate-500">Penalty hours (daily window)</legend>
-          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-200">
+          <legend className="text-xs font-semibold uppercase text-neutral-500">Penalty hours (daily window)</legend>
+          <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-200">
             <input
               type="checkbox"
               checked={penaltyDailyWindowEnabled}
               onChange={(event) => setPenaltyDailyWindowEnabled(event.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+              className="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary"
             />
             Enable a daily penalty window
           </label>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-200">
-              <span className="text-xs font-semibold uppercase text-slate-500">Start time</span>
+            <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+              <span className="text-xs font-semibold uppercase text-neutral-500">Start time</span>
               <input
                 type="time"
                 value={penaltyStartTime}
                 onChange={(event) => setPenaltyStartTime(event.target.value)}
                 disabled={!penaltyDailyWindowEnabled}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900"
+                className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60 dark:border-midnight-700 dark:bg-midnight-900"
               />
             </label>
-            <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-200">
-              <span className="text-xs font-semibold uppercase text-slate-500">End time</span>
+            <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+              <span className="text-xs font-semibold uppercase text-neutral-500">End time</span>
               <input
                 type="time"
                 value={penaltyEndTime}
                 onChange={(event) => setPenaltyEndTime(event.target.value)}
                 disabled={!penaltyDailyWindowEnabled}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900"
+                className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-60 dark:border-midnight-700 dark:bg-midnight-900"
               />
             </label>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-neutral-500">
             {penaltyDailyWindowEnabled
               ? 'Time range applies to every day unless the day is configured as an all-day penalty below.'
               : 'When disabled, no time of day automatically attracts penalty rates.'}
           </p>
         </fieldset>
         <fieldset className="grid gap-3">
-          <legend className="text-xs font-semibold uppercase text-slate-500">Penalty applies all day on</legend>
+          <legend className="text-xs font-semibold uppercase text-neutral-500">Penalty applies all day on</legend>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {WEEKDAY_OPTIONS.map((option) => {
               const checked = penaltyAllDayWeekdays.includes(option.value);
               return (
-                <label key={option.value} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-200">
+                <label key={option.value} className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-200">
                   <input
                     type="checkbox"
                     checked={checked}
@@ -543,7 +542,7 @@ export default function SettingsPage() {
                         return current.filter((day) => day !== option.value);
                       });
                     }}
-                    className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                    className="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary"
                   />
                   {option.label}
                 </label>
@@ -552,23 +551,23 @@ export default function SettingsPage() {
           </div>
         </fieldset>
         <fieldset className="grid gap-3">
-          <legend className="text-xs font-semibold uppercase text-slate-500">Public holidays</legend>
-          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-200">
+          <legend className="text-xs font-semibold uppercase text-neutral-500">Public holidays</legend>
+          <label className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-200">
             <input
               type="checkbox"
               checked={includePublicHolidays}
               onChange={(event) => setIncludePublicHolidays(event.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+              className="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary"
             />
             Include public holidays as all-day penalty shifts
           </label>
           <div className="grid gap-2 sm:grid-cols-[minmax(0,_200px)]">
-            <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-200">
-              <span className="text-xs font-semibold uppercase text-slate-500">Holiday region</span>
+            <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+              <span className="text-xs font-semibold uppercase text-neutral-500">Holiday region</span>
               <select
                 value={publicHolidayCountry}
                 onChange={(event) => setPublicHolidayCountry(event.target.value.toUpperCase())}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+                className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
                 disabled={!includePublicHolidays}
               >
                 {publicHolidayRegionOptions.map((option) => (
@@ -579,15 +578,15 @@ export default function SettingsPage() {
               </select>
             </label>
             {isLoadingRegions ? (
-              <p className="text-xs text-slate-500">Loading regions…</p>
+              <p className="text-xs text-neutral-500">Loading regions…</p>
             ) : null}
             {holidayRegions.length > 0 ? (
-              <label className="grid gap-1 text-sm text-slate-600 dark:text-slate-200">
-                <span className="text-xs font-semibold uppercase text-slate-500">State or region</span>
+              <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+                <span className="text-xs font-semibold uppercase text-neutral-500">State or region</span>
                 <select
                   value={publicHolidaySubdivision}
                   onChange={(event) => setPublicHolidaySubdivision(event.target.value)}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+                  className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
                   disabled={!includePublicHolidays || isLoadingRegions}
                 >
                   <option value="">Whole country</option>
@@ -601,7 +600,7 @@ export default function SettingsPage() {
             ) : null}
             {regionsError ? <p className="text-xs text-red-500">{regionsError}</p> : null}
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-neutral-500">
             Holiday dates are sourced from{' '}
             <a
               href="https://date.nager.at/"
@@ -622,7 +621,7 @@ export default function SettingsPage() {
         </fieldset>
         <button
           type="submit"
-          className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-midnight-900 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           disabled={isSaving}
         >
           {isSaving ? 'Saving…' : 'Save settings'}
