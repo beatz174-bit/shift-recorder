@@ -33,6 +33,14 @@ The development server runs at http://localhost:5173.
 
 Unit tests focus on pay rules and schedule logic. Add Playwright tests under `src/tests/e2e` as the UI evolves.
 
+## Backup & restore
+
+- Open the **Backup** button in the header to launch the modal while the app is running.
+- The **Download backup** action produces a `tar.gz` archive containing `meta.json`, `settings.json`, `shifts.json`, and `notifications.json`. Keep the window open until the download completes.
+- Restoring requires selecting a `.tar.gz` archive from the modal. The file is validated before a Dexie transaction replaces existing tables and rebuilds notification schedules.
+- Every export or restore logs human-readable messages. Review them inside the modal and use **Download log** to save a plain-text copy for troubleshooting.
+- Backup compression relies on `@gera2ld/tarjs` for TAR packing/unpacking and `fflate` for gzip support.
+
 ## PWA notes
 
 The app uses `vite-plugin-pwa` for service worker generation. Assets in `public/` supply install icons. Run `npm run build` to generate the service worker and manifest.
@@ -46,4 +54,3 @@ The project follows the guidance from `AGENTS.md`. Core directories include:
 - `src/app/routes` – page-level React components
 - `src/app/components` – reusable UI components
 - `src/tests/logic` – Vitest suites for domain logic
-

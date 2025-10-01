@@ -7,10 +7,15 @@ export type SettingsContextValue = {
   settings: Settings | null;
   isLoading: boolean;
   error: Error | null;
-  updateSettings: (update: Partial<Omit<Settings, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<void>;
+  updateSettings: (
+    update: Partial<Omit<Settings, 'id' | 'createdAt' | 'updatedAt'>>
+  ) => Promise<void>;
+  reloadSettings: () => Promise<void>;
 };
 
-const SettingsContext = createContext<SettingsContextValue | undefined>(undefined);
+const SettingsContext = createContext<SettingsContextValue | undefined>(
+  undefined
+);
 
 export function SettingsProvider({ children }: PropsWithChildren) {
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -46,7 +51,10 @@ export function SettingsProvider({ children }: PropsWithChildren) {
       return;
     }
 
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    if (
+      typeof window === 'undefined' ||
+      typeof window.matchMedia !== 'function'
+    ) {
       return;
     }
 
@@ -54,7 +62,8 @@ export function SettingsProvider({ children }: PropsWithChildren) {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const theme = settings.theme;
 
-    const resolveTheme = () => (theme === 'system' ? (media.matches ? 'dark' : 'light') : theme);
+    const resolveTheme = () =>
+      theme === 'system' ? (media.matches ? 'dark' : 'light') : theme;
 
     const applyTheme = () => {
       const resolvedTheme = resolveTheme();
@@ -86,12 +95,25 @@ export function SettingsProvider({ children }: PropsWithChildren) {
         if (!settings) return;
         const next = await saveSettings(update as Partial<Settings>);
         setSettings(next);
-      }
+      },
+      reloadSettings: async () => {
+        try {
+          const next = await getSettings();
+          setSettings(next);
+          setError(null);
+        } catch (err) {
+          setError(err as Error);
+        }
+      },
     }),
     [settings, isLoading, error]
   );
 
-  return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
+  return (
+    <SettingsContext.Provider value={value}>
+      {children}
+    </SettingsContext.Provider>
+  );
 }
 
 export function useSettings() {
