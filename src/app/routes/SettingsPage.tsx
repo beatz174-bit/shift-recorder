@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSettings } from '../state/SettingsContext';
 import type { ThemePreference, WeekStart, Weekday } from '../db/schema';
 import { fetchPublicHolidays, fetchPublicHolidayRegions, type HolidayRegion } from '../logic/publicHolidays';
+import ImportExportModal from '../components/ImportExportModal';
+import BackupRestoreModal from '../components/BackupRestoreModal';
 
 const WEEK_START_OPTIONS: Array<{ value: WeekStart; label: string }> = [
   { value: 0, label: 'Sunday' },
@@ -123,6 +125,8 @@ export default function SettingsPage() {
   const [status, setStatus] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isImportExportOpen, setIsImportExportOpen] = useState(false);
+  const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
 
   useEffect(() => {
     if (settings) {
@@ -227,6 +231,28 @@ export default function SettingsPage() {
   return (
     <section className="max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-50">Settings</h2>
+      <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/60">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Data management</h3>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          Backup or export your data, or restore and import from a saved file.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setIsImportExportOpen(true)}
+            className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus-visible:ring-offset-slate-900"
+          >
+            Import / Export
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsBackupModalOpen(true)}
+            className="inline-flex items-center rounded-full border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus-visible:ring-offset-slate-900"
+          >
+            Backup / Restore
+          </button>
+        </div>
+      </div>
       <form
         className="flex flex-col gap-5"
         onSubmit={async (event) => {
@@ -600,6 +626,8 @@ export default function SettingsPage() {
         {formError && <p className="text-xs text-red-500">{formError}</p>}
         {status && <p className="text-xs text-emerald-500">{status}</p>}
       </form>
+      <ImportExportModal isOpen={isImportExportOpen} onClose={() => setIsImportExportOpen(false)} />
+      <BackupRestoreModal isOpen={isBackupModalOpen} onClose={() => setIsBackupModalOpen(false)} />
     </section>
   );
 }
