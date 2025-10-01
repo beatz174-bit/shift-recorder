@@ -345,7 +345,7 @@ export default function SettingsPage() {
   };
 
   const renderFormActions = () => (
-    <div className="mt-10 flex w-full flex-col items-center gap-2 border-t border-neutral-200 pt-6 text-center dark:border-midnight-700">
+    <div className="mt-10 flex w-full flex-col items-center gap-2 pt-6 text-center">
       <button
         type="submit"
         form="settings-form"
