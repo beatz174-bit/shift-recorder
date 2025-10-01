@@ -213,7 +213,7 @@ export default function ShiftsPage() {
           <button
             type="button"
             onClick={goToToday}
-            className="rounded-full border border-neutral-200 px-3 py-1 text-sm font-medium text-neutral-600 transition hover:border-primary hover:text-primary-emphasis dark:border-midnight-700 dark:text-neutral-200"
+            className="hidden rounded-full border border-neutral-200 px-3 py-1 text-sm font-medium text-neutral-600 transition hover:border-primary hover:text-primary-emphasis dark:border-midnight-700 dark:text-neutral-200 sm:inline-flex"
           >
             Today
           </button>
