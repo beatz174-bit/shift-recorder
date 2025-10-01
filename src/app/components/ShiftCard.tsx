@@ -26,8 +26,8 @@ export default function ShiftCard({ shift, currency, onEdit, onDelete }: ShiftCa
 
   return (
     <article className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-midnight-800 dark:bg-midnight-900">
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+      <header className="flex flex-wrap items-start justify-between gap-y-2 gap-x-3">
+        <div className="min-w-0">
           <p className="text-sm font-semibold text-neutral-700 dark:text-neutral-100">
             {dateFormatter.format(startDate)}
           </p>
@@ -35,7 +35,7 @@ export default function ShiftCard({ shift, currency, onEdit, onDelete }: ShiftCa
             {timeFormatter.format(startDate)} — {endDate ? timeFormatter.format(endDate) : 'In progress'}
           </p>
         </div>
-        <p className="text-base font-semibold text-neutral-900 dark:text-neutral-50 sm:text-right sm:text-lg">
+        <p className="ml-auto text-right text-base font-semibold text-neutral-900 dark:text-neutral-50 sm:text-lg">
           {currencyFormatter.format(shift.totalPay)}
         </p>
       </header>
