@@ -1,26 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Chrona apple touch icon">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Chrona logo">
   <defs>
-    <radialGradient id="chrona-apple-glow" cx="50%" cy="40%" r="60%">
+    <radialGradient id="chrona-glow" cx="50%" cy="40%" r="60%">
       <stop offset="0%" stop-color="#9a4efb" stop-opacity="0.95" />
       <stop offset="45%" stop-color="#5a6ffb" stop-opacity="0.88" />
-      <stop offset="100%" stop-color="#1b1f2f" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#1b1f2f" stop-opacity="0.05" />
     </radialGradient>
-    <linearGradient id="chrona-apple-ring" x1="25%" y1="15%" x2="80%" y2="85%">
+    <linearGradient id="chrona-ring" x1="25%" y1="15%" x2="80%" y2="85%">
+      <stop offset="0%" stop-color="#9a4efb" />
+      <stop offset="50%" stop-color="#6f68ff" />
+      <stop offset="100%" stop-color="#2ec5ff" />
+    </linearGradient>
+    <linearGradient id="chrona-hand" x1="30%" y1="25%" x2="75%" y2="85%">
       <stop offset="0%" stop-color="#9a4efb" />
       <stop offset="100%" stop-color="#2ec5ff" />
     </linearGradient>
-    <linearGradient id="chrona-apple-hand" x1="30%" y1="20%" x2="78%" y2="90%">
-      <stop offset="0%" stop-color="#9a4efb" />
-      <stop offset="100%" stop-color="#2ec5ff" />
-    </linearGradient>
+    <filter id="chrona-soft-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="32" result="blur" />
+    </filter>
   </defs>
-  <rect width="512" height="512" rx="120" fill="#10131d" />
-  <circle cx="256" cy="234" r="190" fill="url(#chrona-apple-glow)" />
+  <rect width="512" height="512" rx="128" fill="#10131d" />
+  <g filter="url(#chrona-soft-glow)">
+    <circle cx="256" cy="232" r="192" fill="url(#chrona-glow)" />
+  </g>
   <circle cx="256" cy="256" r="188" fill="#10131d" />
   <path
     d="M256 104a152 152 0 1 0 107.6 44.6"
     fill="none"
-    stroke="url(#chrona-apple-ring)"
+    stroke="url(#chrona-ring)"
     stroke-width="56"
     stroke-linecap="round"
   />
@@ -34,6 +40,6 @@
   />
   <path
     d="M256 152c-11 0-20 9-20 20v92l-57.7-32.3a16 16 0 0 0-15.6 27.8l91.6 51.3a20 20 0 0 0 29.7-17.4V172c0-11-9-20-20-20z"
-    fill="url(#chrona-apple-hand)"
+    fill="url(#chrona-hand)"
   />
 </svg>
