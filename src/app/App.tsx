@@ -42,7 +42,7 @@ function Layout() {
     <div className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-midnight-950 dark:text-neutral-100">
       <NotificationManager />
       <header className="sticky top-0 z-10 border-b border-neutral-200/60 bg-white/80 backdrop-blur dark:border-midnight-700/60 dark:bg-midnight-900/80">
-        <div className="mx-auto flex max-w-4xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-3">
           <div className="flex items-start gap-3">
             <img
               src="/chrona-logo.svg"
@@ -51,14 +51,14 @@ function Layout() {
               width="48"
               height="48"
             />
-            <div className="flex flex-col gap-1">
+            <div className="flex min-w-0 flex-col gap-1">
               <h1 className="text-xl font-semibold">Chrona</h1>
-              <p className="text-xs text-neutral-500 dark:text-neutral-300">
+              <p className="hidden text-xs text-neutral-500 dark:text-neutral-300 sm:block">
                 Precision shift tracking for people who live by the clock
               </p>
             </div>
           </div>
-          <nav className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
+          <nav className="ml-auto flex flex-nowrap items-center gap-2">
             <NavigationLink to="/" label="Summary">
               <span className="sr-only">Summary</span>
               <ChartPieIcon className="h-5 w-5" aria-hidden />
