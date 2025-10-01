@@ -63,31 +63,31 @@ export default function SummaryPage() {
     <section className="flex flex-col gap-6">
       <WeekNavigator range={range} onPrev={goPrev} onNext={goNext} />
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-xs uppercase text-slate-500">Base hours</p>
-          <p className="text-3xl font-semibold text-slate-900 dark:text-slate-50">{(totals.baseMinutes / 60).toFixed(2)}</p>
+        <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-midnight-800 dark:bg-midnight-900">
+          <p className="text-xs uppercase text-neutral-500">Base hours</p>
+          <p className="text-3xl font-semibold text-neutral-900 dark:text-neutral-50">{(totals.baseMinutes / 60).toFixed(2)}</p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-xs uppercase text-slate-500">Penalty hours</p>
-          <p className="text-3xl font-semibold text-slate-900 dark:text-slate-50">{(totals.penaltyMinutes / 60).toFixed(2)}</p>
+        <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-midnight-800 dark:bg-midnight-900">
+          <p className="text-xs uppercase text-neutral-500">Penalty hours</p>
+          <p className="text-3xl font-semibold text-neutral-900 dark:text-neutral-50">{(totals.penaltyMinutes / 60).toFixed(2)}</p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-xs uppercase text-slate-500">Total pay</p>
-          <p className="text-3xl font-semibold text-slate-900 dark:text-slate-50">
+        <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-midnight-800 dark:bg-midnight-900">
+          <p className="text-xs uppercase text-neutral-500">Total pay</p>
+          <p className="text-3xl font-semibold text-neutral-900 dark:text-neutral-50">
             {currencyFormatter.format(totalPay)}
           </p>
         </div>
       </div>
-      <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
+      <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-100 p-4 text-sm text-neutral-600 dark:border-midnight-700 dark:bg-midnight-900/50 dark:text-neutral-200">
         <p>
           Chrona has logged {(totalMinutes / 60).toFixed(2)} hours this week so far—keep an eye on the penalty windows to stay ahead.
         </p>
       </div>
       <div className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Shifts</h2>
-        {isLoading && <p className="text-sm text-slate-500">Chrona is syncing your shifts…</p>}
+        <h2 className="text-lg font-semibold text-neutral-800 dark:text-neutral-100">Shifts</h2>
+        {isLoading && <p className="text-sm text-neutral-500">Chrona is syncing your shifts…</p>}
         {!isLoading && shifts.length === 0 && (
-          <p className="text-sm text-slate-500">Chrona hasn't recorded any shifts for this week yet.</p>
+          <p className="text-sm text-neutral-500">Chrona hasn't recorded any shifts for this week yet.</p>
         )}
         <div className="flex flex-col gap-4">
           {shifts.map((shift) => (

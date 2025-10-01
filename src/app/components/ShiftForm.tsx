@@ -70,44 +70,44 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
       }}
     >
       <div className="grid gap-2">
-        <label className="text-xs font-semibold uppercase text-slate-500">Date</label>
+        <label className="text-xs font-semibold uppercase text-neutral-500">Date</label>
         <input
           type="date"
           value={date}
           onChange={(event) => setDate(event.target.value)}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+          className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
           required
         />
       </div>
       <div className="grid gap-2">
-        <label className="text-xs font-semibold uppercase text-slate-500">Start time</label>
+        <label className="text-xs font-semibold uppercase text-neutral-500">Start time</label>
         <input
           type="time"
           value={startTime}
           onChange={(event) => setStartTime(event.target.value)}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+          className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
           required
         />
       </div>
       <div className="grid gap-2">
-        <label className="text-xs font-semibold uppercase text-slate-500">Finish time</label>
+        <label className="text-xs font-semibold uppercase text-neutral-500">Finish time</label>
         <input
           type="time"
           value={endTime}
           onChange={(event) => setEndTime(event.target.value)}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+          className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
           required
         />
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-neutral-500 dark:text-neutral-300">
           Finish times earlier than the start are saved on the following day.
         </p>
       </div>
       <div className="grid gap-2">
-        <label className="text-xs font-semibold uppercase text-slate-500">Note</label>
+        <label className="text-xs font-semibold uppercase text-neutral-500">Note</label>
         <textarea
           value={note}
           onChange={(event) => setNote(event.target.value)}
-          className="h-20 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+          className="h-20 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
           placeholder="Optional notes"
         />
       </div>
@@ -117,7 +117,7 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
           <button
             type="button"
             onClick={onCancel}
-            className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200 sm:w-auto"
+            className="w-full rounded-full border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 transition hover:border-primary hover:text-primary-emphasis dark:border-midnight-700 dark:text-neutral-200 sm:w-auto"
           >
             Cancel
           </button>
@@ -125,7 +125,7 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 disabled:opacity-60 sm:w-auto"
+          className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-primary-emphasis disabled:opacity-60 sm:w-auto"
         >
           {isSubmitting ? 'Saving…' : submitLabel ?? 'Save shift'}
         </button>

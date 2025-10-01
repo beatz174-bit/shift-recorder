@@ -43,7 +43,7 @@ function ShiftSummaryCard({
   const totalHours = ((shift.baseMinutes + shift.penaltyMinutes) / 60).toFixed(2);
   const shiftClasses = upcoming
     ? 'border-emerald-200 bg-emerald-100/80 text-emerald-900 dark:border-emerald-500/40 dark:bg-emerald-500/20 dark:text-emerald-100'
-    : 'border-slate-200 bg-slate-100/80 text-slate-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200';
+    : 'border-neutral-200 bg-neutral-100/80 text-neutral-700 dark:border-midnight-700 dark:bg-midnight-800/70 dark:text-neutral-200';
 
   return (
     <article
@@ -218,22 +218,22 @@ export default function ShiftsPage() {
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
-          <div className="flex w-full items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900 sm:w-auto">
+          <div className="flex w-full items-center gap-1 rounded-full border border-neutral-200 bg-white p-1 dark:border-midnight-700 dark:bg-midnight-900 sm:w-auto">
             <button
               type="button"
               onClick={() => goToMonth(-1)}
-              className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+              className="rounded-full p-2 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800 dark:text-neutral-300 dark:hover:bg-midnight-800 dark:hover:text-neutral-50"
               aria-label="Previous month"
             >
               <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
             </button>
-            <span className="min-w-[8rem] flex-1 text-center text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <span className="min-w-[8rem] flex-1 text-center text-sm font-semibold text-neutral-700 dark:text-neutral-200">
               {monthLabel}
             </span>
             <button
               type="button"
               onClick={() => goToMonth(1)}
-              className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+              className="rounded-full p-2 text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800 dark:text-neutral-300 dark:hover:bg-midnight-800 dark:hover:text-neutral-50"
               aria-label="Next month"
             >
               <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
@@ -242,7 +242,7 @@ export default function ShiftsPage() {
           <button
             type="button"
             onClick={goToToday}
-            className="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200"
+            className="rounded-full border border-neutral-200 px-3 py-1 text-sm font-medium text-neutral-600 transition hover:border-primary hover:text-primary-emphasis dark:border-midnight-700 dark:text-neutral-200"
           >
             Today
           </button>
@@ -251,7 +251,7 @@ export default function ShiftsPage() {
             onClick={() => {
               setIsCreateModalOpen(true);
             }}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 sm:flex-none"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-primary-emphasis sm:flex-none"
           >
             <PlusIcon className="h-5 w-5" aria-hidden="true" />
             Add shift
@@ -259,13 +259,13 @@ export default function ShiftsPage() {
         </div>
       </header>
 
-      {isLoading && <p className="text-sm text-slate-500">Chrona is preparing your calendar…</p>}
+      {isLoading && <p className="text-sm text-neutral-500">Chrona is preparing your calendar…</p>}
 
       <div className="grid min-h-[70vh] grid-rows-[minmax(0,1fr)_minmax(0,1fr)] gap-4 sm:flex sm:flex-col">
         <div className="overflow-x-auto sm:overflow-visible">
-          <div className="h-full rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="h-full rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-midnight-800 dark:bg-midnight-900">
             <div className="flex h-full min-w-0 flex-col px-2 sm:min-w-[44rem] sm:px-0">
-              <div className="grid grid-cols-7 gap-2 px-2 pb-2 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+              <div className="grid grid-cols-7 gap-2 px-2 pb-2 text-xs font-medium uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
                 {weekdayLabels.map((label) => (
                   <span key={label} className="text-center">
                     {label}
@@ -290,13 +290,13 @@ export default function ShiftsPage() {
                     isSelected || isCurrentDay
                       ? 'bg-primary text-primary-foreground shadow'
                       : inCurrentMonth
-                        ? 'text-slate-700 dark:text-slate-100'
-                        : 'text-slate-400 dark:text-slate-600',
+                        ? 'text-neutral-700 dark:text-neutral-100'
+                        : 'text-neutral-400 dark:text-neutral-500',
                     isSelected
-                      ? 'ring-2 ring-emerald-300 ring-offset-2 ring-offset-white dark:ring-emerald-400/70 dark:ring-offset-slate-950 sm:ring-0 sm:ring-offset-0'
+                      ? 'ring-2 ring-emerald-300 ring-offset-2 ring-offset-white dark:ring-emerald-400/70 dark:ring-offset-midnight-950 sm:ring-0 sm:ring-offset-0'
                       : null,
                     hasUpcomingShift && !isSelected && !isCurrentDay
-                      ? 'sm:bg-emerald-100 sm:text-emerald-800 sm:ring-2 sm:ring-emerald-300 sm:ring-offset-2 sm:ring-offset-white sm:dark:bg-emerald-500/20 sm:dark:text-emerald-100 sm:dark:ring-emerald-400/70 sm:dark:ring-offset-slate-900'
+                      ? 'sm:bg-emerald-100 sm:text-emerald-800 sm:ring-2 sm:ring-emerald-300 sm:ring-offset-2 sm:ring-offset-white sm:dark:bg-emerald-500/20 sm:dark:text-emerald-100 sm:dark:ring-emerald-400/70 sm:dark:ring-offset-midnight-900'
                       : null
                   ]
                     .filter(Boolean)
@@ -307,8 +307,8 @@ export default function ShiftsPage() {
                       key={dateKey}
                       className={`flex min-h-[3rem] flex-col rounded-2xl border p-2 sm:min-h-[9rem] ${
                         inCurrentMonth
-                          ? 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950'
-                          : 'border-transparent bg-slate-50 text-slate-400 dark:bg-slate-900/40 dark:text-slate-600'
+                          ? 'border-neutral-200 bg-white dark:border-midnight-800 dark:bg-midnight-950'
+                          : 'border-transparent bg-neutral-100 text-neutral-400 dark:bg-midnight-900/40 dark:text-neutral-500'
                       }`}
                     >
                       <button
@@ -339,18 +339,18 @@ export default function ShiftsPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:hidden">
+        <div className="rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-midnight-800 dark:bg-midnight-900 sm:hidden">
           <div className="flex items-center justify-between gap-3">
             <div className="flex flex-col">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-300">
                 Selected day
               </span>
-              <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">{format(selectedDate, 'PPP')}</span>
+              <span className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">{format(selectedDate, 'PPP')}</span>
             </div>
             <button
               type="button"
               onClick={goToToday}
-              className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200"
+              className="rounded-full border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600 transition hover:border-primary hover:text-primary-emphasis dark:border-midnight-700 dark:text-neutral-200"
             >
               Jump to today
             </button>
@@ -367,7 +367,7 @@ export default function ShiftsPage() {
                 />
               ))
             ) : (
-              <p className="rounded-xl border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+              <p className="rounded-xl border border-dashed border-neutral-300 px-4 py-6 text-center text-sm text-neutral-500 dark:border-midnight-700 dark:text-neutral-300">
                 No shifts scheduled for this day.
               </p>
             )}
@@ -376,7 +376,7 @@ export default function ShiftsPage() {
       </div>
 
       {!isLoading && shifts.length === 0 && (
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-neutral-500 dark:text-neutral-300">
           Chrona hasn't logged any shifts yet. Tap “Add shift” to start building your timeline.
         </p>
       )}
@@ -401,7 +401,7 @@ export default function ShiftsPage() {
           <div className="flex flex-col gap-6">
             <div className="grid gap-3">
               <div className="grid gap-2">
-                <label className="text-xs font-semibold uppercase text-slate-500">Start</label>
+                <label className="text-xs font-semibold uppercase text-neutral-500">Start</label>
                 <input
                   type="datetime-local"
                   value={editedTimes.start}
@@ -409,11 +409,11 @@ export default function ShiftsPage() {
                     setEditedTimes((times) => ({ ...times, start: event.target.value }));
                     setDetailError(null);
                   }}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+                  className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
                 />
               </div>
               <div className="grid gap-2">
-                <label className="text-xs font-semibold uppercase text-slate-500">End</label>
+                <label className="text-xs font-semibold uppercase text-neutral-500">End</label>
                 <input
                   type="datetime-local"
                   value={editedTimes.end}
@@ -421,24 +421,24 @@ export default function ShiftsPage() {
                     setEditedTimes((times) => ({ ...times, end: event.target.value }));
                     setDetailError(null);
                   }}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-slate-700 dark:bg-slate-900"
+                  className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
                 />
               </div>
-              <div className="grid gap-1 text-sm text-slate-600 dark:text-slate-300">
-                <span className="font-medium text-slate-700 dark:text-slate-100">Summary</span>
+              <div className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+                <span className="font-medium text-neutral-700 dark:text-neutral-100">Summary</span>
                 <span>{format(new Date(editingShift.startISO), 'PPpp')}</span>
                 {editingShift.endISO && <span>Ends {format(new Date(editingShift.endISO), 'PPpp')}</span>}
                 <span>
                   Base: {(editingShift.baseMinutes / 60).toFixed(2)}h · Penalty: {(editingShift.penaltyMinutes / 60).toFixed(2)}h
                 </span>
                 <span>Total pay: {currencyFormatter.format(editingShift.totalPay)}</span>
-                {editingShift.note && <span className="text-slate-500 dark:text-slate-400">Note: {editingShift.note}</span>}
+                {editingShift.note && <span className="text-neutral-500 dark:text-neutral-300">Note: {editingShift.note}</span>}
               </div>
             </div>
 
             {detailError && <p className="text-sm text-red-500">{detailError}</p>}
 
-            <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 border-t border-neutral-200 pt-4 dark:border-midnight-800 sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="button"
                 onClick={() => deleteMutation.mutate(editingShift)}
@@ -451,7 +451,7 @@ export default function ShiftsPage() {
                 <button
                   type="button"
                   onClick={() => setEditingShift(null)}
-                  className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200 sm:w-auto"
+                  className="w-full rounded-full border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 transition hover:border-primary hover:text-primary-emphasis dark:border-midnight-700 dark:text-neutral-200 sm:w-auto"
                   disabled={deleteMutation.isPending || updateMutation.isPending}
                 >
                   Close
@@ -478,7 +478,7 @@ export default function ShiftsPage() {
                       }
                     }}
                     disabled={updateMutation.isPending || deleteMutation.isPending}
-                    className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 disabled:opacity-60 sm:w-auto"
+                    className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-primary-emphasis disabled:opacity-60 sm:w-auto"
                   >
                     {updateMutation.isPending ? 'Saving…' : 'Save changes'}
                   </button>

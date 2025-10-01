@@ -249,7 +249,7 @@ export default function ImportExportModal({ isOpen, onClose }: ImportExportModal
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3 className="text-base font-semibold">Import results</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-sm text-neutral-500 dark:text-neutral-300">
                   Imported {review.summary.success} of {review.summary.total} row{review.summary.total === 1 ? '' : 's'}.
                 </p>
               </div>
@@ -257,7 +257,7 @@ export default function ImportExportModal({ isOpen, onClose }: ImportExportModal
                 <button
                   type="button"
                   onClick={triggerFilePicker}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-500"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:border-neutral-400 hover:text-neutral-900 dark:border-midnight-700 dark:text-neutral-200 dark:hover:border-midnight-500"
                   disabled={isProcessing || !settings}
                 >
                   <ArrowUpTrayIcon className="h-4 w-4" aria-hidden="true" />
@@ -274,28 +274,28 @@ export default function ImportExportModal({ isOpen, onClose }: ImportExportModal
               </div>
             </div>
 
-            <div className="grid gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-900/40 sm:grid-cols-4">
+            <div className="grid gap-3 rounded-2xl bg-neutral-100 p-4 dark:bg-midnight-900/40 sm:grid-cols-4">
               <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Imported</span>
+                <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-300">Imported</span>
                 <span className="text-lg font-semibold">{review.summary.success}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Duplicates</span>
+                <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-300">Duplicates</span>
                 <span className="text-lg font-semibold">{review.summary.duplicate}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Overlapping</span>
+                <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-300">Overlapping</span>
                 <span className="text-lg font-semibold">{review.summary.overlap}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Failed</span>
+                <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-300">Failed</span>
                 <span className="text-lg font-semibold">{review.summary.failed}</span>
               </div>
             </div>
 
-            <div className="max-h-72 overflow-auto rounded-2xl border border-slate-200 dark:border-slate-800">
-              <table className="min-w-full divide-y divide-slate-200 text-left text-sm dark:divide-slate-800">
-                <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-900/40 dark:text-slate-400">
+            <div className="max-h-72 overflow-auto rounded-2xl border border-neutral-200 dark:border-midnight-800">
+              <table className="min-w-full divide-y divide-neutral-200 text-left text-sm dark:divide-midnight-800">
+                <thead className="bg-neutral-100 text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:bg-midnight-900/40 dark:text-neutral-300">
                   <tr>
                     <th className="px-4 py-3">Line</th>
                     <th className="px-4 py-3">Date</th>
@@ -306,22 +306,22 @@ export default function ImportExportModal({ isOpen, onClose }: ImportExportModal
                     <th className="px-4 py-3">Details</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                <tbody className="divide-y divide-neutral-200 dark:divide-midnight-800">
                   {review.rows.map((row) => {
                     const status = STATUS_COPY[row.status];
                     return (
                       <tr key={row.line} className="align-top">
-                        <td className="px-4 py-3 font-mono text-xs text-slate-500 dark:text-slate-400">{row.line}</td>
+                        <td className="px-4 py-3 font-mono text-xs text-neutral-500 dark:text-neutral-300">{row.line}</td>
                         <td className="px-4 py-3">{row.date}</td>
                         <td className="px-4 py-3">{row.start}</td>
                         <td className="px-4 py-3">{row.finish}</td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{row.note || '—'}</td>
+                        <td className="px-4 py-3 text-neutral-600 dark:text-neutral-200">{row.note || '—'}</td>
                         <td className="px-4 py-3">
                           <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${status.className}`}>
                             {status.label}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                        <td className="px-4 py-3 text-neutral-600 dark:text-neutral-200">
                           {row.message ?? '—'}
                         </td>
                       </tr>
@@ -359,7 +359,7 @@ export default function ImportExportModal({ isOpen, onClose }: ImportExportModal
               <button
                 type="button"
                 onClick={triggerFilePicker}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-500"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:border-neutral-400 hover:text-neutral-900 dark:border-midnight-700 dark:text-neutral-200 dark:hover:border-midnight-500"
                 disabled={isProcessing || !settings}
                 title={!settings ? 'Settings are still loading' : undefined}
               >
@@ -375,8 +375,8 @@ export default function ImportExportModal({ isOpen, onClose }: ImportExportModal
               />
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-300">
-              <h3 className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-100">CSV format</h3>
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-100 p-4 text-sm text-neutral-600 dark:border-midnight-800 dark:bg-midnight-900/50 dark:text-neutral-200">
+              <h3 className="mb-2 text-sm font-semibold text-neutral-700 dark:text-neutral-100">CSV format</h3>
               <ul className="list-disc space-y-1 pl-5">
                 <li>Use header columns: <code>date,start,finish,notes</code>.</li>
                 <li>Date must be in <code>YYYY-MM-DD</code> format.</li>

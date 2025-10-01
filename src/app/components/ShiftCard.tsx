@@ -25,32 +25,32 @@ export default function ShiftCard({ shift, currency, onEdit, onDelete }: ShiftCa
   });
 
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
+    <article className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-midnight-800 dark:bg-midnight-900">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-100">
+          <p className="text-sm font-semibold text-neutral-700 dark:text-neutral-100">
             {dateFormatter.format(startDate)}
           </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-neutral-500 dark:text-neutral-300">
             {timeFormatter.format(startDate)} — {endDate ? timeFormatter.format(endDate) : 'In progress'}
           </p>
         </div>
-        <p className="text-lg font-semibold text-slate-900 dark:text-slate-50 sm:text-right">
+        <p className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 sm:text-right">
           {currencyFormatter.format(shift.totalPay)}
         </p>
       </header>
       <dl className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
         <div>
-          <dt className="text-slate-500 dark:text-slate-400">Base</dt>
-          <dd className="font-medium text-slate-700 dark:text-slate-100">{(shift.baseMinutes / 60).toFixed(2)}h</dd>
+          <dt className="text-neutral-500 dark:text-neutral-300">Base</dt>
+          <dd className="font-medium text-neutral-700 dark:text-neutral-100">{(shift.baseMinutes / 60).toFixed(2)}h</dd>
         </div>
         <div>
-          <dt className="text-slate-500 dark:text-slate-400">Penalty</dt>
-          <dd className="font-medium text-slate-700 dark:text-slate-100">{(shift.penaltyMinutes / 60).toFixed(2)}h</dd>
+          <dt className="text-neutral-500 dark:text-neutral-300">Penalty</dt>
+          <dd className="font-medium text-neutral-700 dark:text-neutral-100">{(shift.penaltyMinutes / 60).toFixed(2)}h</dd>
         </div>
         <div>
-          <dt className="text-slate-500 dark:text-slate-400">Total</dt>
-          <dd className="font-medium text-slate-700 dark:text-slate-100">
+          <dt className="text-neutral-500 dark:text-neutral-300">Total</dt>
+          <dd className="font-medium text-neutral-700 dark:text-neutral-100">
             {((shift.baseMinutes + shift.penaltyMinutes) / 60).toFixed(2)}h
           </dd>
         </div>
@@ -61,7 +61,7 @@ export default function ShiftCard({ shift, currency, onEdit, onDelete }: ShiftCa
             <button
               type="button"
               onClick={() => onEdit(shift)}
-              className="w-full rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200 dark:hover:border-primary dark:hover:text-primary-foreground sm:w-auto"
+              className="w-full rounded-full border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600 transition hover:border-primary hover:text-primary-emphasis dark:border-midnight-700 dark:text-neutral-200 dark:hover:border-primary dark:hover:text-primary-foreground sm:w-auto"
             >
               Edit
             </button>
