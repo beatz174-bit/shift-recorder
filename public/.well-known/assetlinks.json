@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.ddnsgeek.lan.shifts.twa",
+      "sha256_cert_fingerprints": [
+        "D3:C3:BA:90:FB:91:E8:6A:56:D7:C2:B4:5E:FB:F0:87:6A:49:BF:C9:CF:93:6E:2D:37:1F:83:28:93:40:F4:7B"
+      ]
+    }
+  }
+]

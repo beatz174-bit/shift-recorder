@@ -216,15 +216,15 @@ export default function ShiftsPage() {
 
   return (
     <section className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-1">
           <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-50">Shifts calendar</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Review past work and plan upcoming shifts in a monthly view.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+          <div className="flex w-full items-center gap-1 rounded-full border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900 sm:w-auto">
             <button
               type="button"
               onClick={() => goToMonth(-1)}
@@ -233,7 +233,9 @@ export default function ShiftsPage() {
             >
               <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
             </button>
-            <span className="min-w-[8rem] text-center text-sm font-semibold text-slate-700 dark:text-slate-200">{monthLabel}</span>
+            <span className="min-w-[8rem] flex-1 text-center text-sm font-semibold text-slate-700 dark:text-slate-200">
+              {monthLabel}
+            </span>
             <button
               type="button"
               onClick={() => goToMonth(1)}
@@ -255,7 +257,7 @@ export default function ShiftsPage() {
             onClick={() => {
               setIsCreateModalOpen(true);
             }}
-            className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 sm:flex-none"
           >
             <PlusIcon className="h-5 w-5" aria-hidden="true" />
             Add shift
@@ -443,16 +445,16 @@ export default function ShiftsPage() {
               <button
                 type="button"
                 onClick={() => deleteMutation.mutate(editingShift)}
-                className="flex items-center justify-center gap-2 rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-500/40 dark:text-red-200 dark:hover:bg-red-500/10"
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-500/40 dark:text-red-200 dark:hover:bg-red-500/10 sm:w-auto"
                 disabled={deleteMutation.isPending || updateMutation.isPending}
               >
                 <TrashIcon className="h-4 w-4" aria-hidden="true" /> Delete shift
               </button>
-              <div className="flex items-center justify-end gap-3">
+              <div className="flex flex-col-reverse items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
                 <button
                   type="button"
                   onClick={() => setEditingShift(null)}
-                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200"
+                  className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-200 sm:w-auto"
                   disabled={deleteMutation.isPending || updateMutation.isPending}
                 >
                   Close
@@ -479,7 +481,7 @@ export default function ShiftsPage() {
                       }
                     }}
                     disabled={updateMutation.isPending || deleteMutation.isPending}
-                    className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 disabled:opacity-60"
+                    className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 disabled:opacity-60 sm:w-auto"
                   >
                     {updateMutation.isPending ? 'Saving…' : 'Save changes'}
                   </button>

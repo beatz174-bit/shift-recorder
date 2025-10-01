@@ -523,7 +523,7 @@ export default function SettingsPage() {
         </fieldset>
         <button
           type="submit"
-          className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           disabled={isSaving}
         >
           {isSaving ? 'Saving…' : 'Save settings'}
