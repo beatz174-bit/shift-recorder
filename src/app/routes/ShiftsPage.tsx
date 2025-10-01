@@ -79,6 +79,7 @@ export default function ShiftsPage() {
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const { data: shifts = [], isLoading } = useQuery({
     queryKey: ['shifts', 'all'],
     queryFn: getAllShifts,
@@ -160,6 +161,7 @@ export default function ShiftsPage() {
   const monthLabel = format(currentMonth, 'MMMM yyyy');
 
   const handleDaySelect = (day: Date) => {
+    setHasUserInteracted(true);
     const selected = new Date(day);
     setSelectedDate(selected);
     if (!isSameMonth(selected, currentMonth)) {
@@ -168,6 +170,7 @@ export default function ShiftsPage() {
   };
 
   const goToMonth = (offset: number) => {
+    setHasUserInteracted(true);
     setCurrentMonth((month) => {
       const next = startOfMonth(addMonths(month, offset));
       setSelectedDate((date) => (isSameMonth(date, next) ? date : new Date(next)));
@@ -176,6 +179,7 @@ export default function ShiftsPage() {
   };
 
   const goToToday = () => {
+    setHasUserInteracted(true);
     const todayDate = new Date();
     setCurrentMonth(startOfMonth(todayDate));
     setSelectedDate(todayDate);
@@ -238,17 +242,21 @@ export default function ShiftsPage() {
                   const isSelected = isSameDay(day, selectedDate);
                   const hasShifts = dayShifts.length > 0;
 
+                  const shouldHighlightSelection =
+                    isSelected && (hasUserInteracted || hasShifts || isCurrentDay);
+                  const shouldHighlightToday = !shouldHighlightSelection && isCurrentDay && hasShifts;
+
                   const dayNumberClasses = [
                     'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition',
-                    isSelected || isCurrentDay
+                    shouldHighlightSelection || shouldHighlightToday
                       ? 'bg-primary text-primary-foreground shadow'
                       : inCurrentMonth
                         ? 'text-neutral-700 dark:text-neutral-100'
                         : 'text-neutral-400 dark:text-neutral-500',
-                    isSelected
+                    shouldHighlightSelection
                       ? 'ring-2 ring-emerald-300 ring-offset-2 ring-offset-white dark:ring-emerald-400/70 dark:ring-offset-midnight-950 sm:ring-0 sm:ring-offset-0'
                       : null,
-                    hasShifts && !isSelected && !isCurrentDay
+                    hasShifts && !shouldHighlightSelection && !isCurrentDay
                       ? 'ring-2 ring-emerald-300 ring-offset-2 ring-offset-white text-emerald-700 dark:ring-emerald-400/70 dark:ring-offset-midnight-950 dark:text-emerald-200 sm:bg-emerald-100 sm:text-emerald-800 sm:dark:bg-emerald-500/20 sm:dark:text-emerald-100 sm:dark:ring-offset-midnight-900'
                       : null
                   ]
