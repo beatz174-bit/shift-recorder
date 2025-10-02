@@ -319,7 +319,6 @@ test.describe('Chrona PWA UI', () => {
     await page.getByRole('button', { name: 'Data & backup', exact: true }).click();
     const backupTabReturn = page.getByRole('button', { name: 'Backup & restore', exact: true });
     await expect(backupTabReturn).toBeVisible();
-
     await backupTabReturn.click();
     const settingsOnlyCheckbox = page.getByRole('checkbox', { name: 'Backup settings only' });
     if (!(await settingsOnlyCheckbox.isChecked())) {
