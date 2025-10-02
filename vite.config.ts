@@ -1,6 +1,12 @@
 import { configDefaults, defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+const projectRootDir = fileURLToPath(new URL('.', import.meta.url));
+const resolveFromRoot = (relativePath: string) =>
+  path.resolve(projectRootDir, relativePath);
 
 export default defineConfig({
   plugins: [
@@ -45,9 +51,9 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@app': '/src/app',
-      '@tax-engine': '/packages/tax-engine/src',
-      '@tax-engine/core': '/packages/tax-engine/src/core/index.ts'
+      '@app': resolveFromRoot('src/app'),
+      '@tax-engine': resolveFromRoot('packages/tax-engine/src'),
+      '@tax-engine/core': resolveFromRoot('packages/tax-engine/src/core/index.ts')
     }
   },
   test: {
