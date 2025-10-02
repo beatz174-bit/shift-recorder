@@ -17,7 +17,8 @@
     "paths": {
       "@app/*": ["src/app/*"],
       "@tax-engine": ["packages/tax-engine/src/core/index.ts"],
-      "@tax-engine/*": ["packages/tax-engine/src/*"]
+      "@tax-engine/*": ["packages/tax-engine/src/*"],
+      "@tax-engine/core": ["packages/tax-engine/src/core/index.ts"]
     }
   },
   "include": ["src", "packages"],

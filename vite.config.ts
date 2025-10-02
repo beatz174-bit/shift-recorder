@@ -46,7 +46,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@app': '/src/app',
-      '@tax-engine': '/packages/tax-engine/src'
+      '@tax-engine': '/packages/tax-engine/src',
+      '@tax-engine/core': '/packages/tax-engine/src/core/index.ts'
     }
   },
   test: {
