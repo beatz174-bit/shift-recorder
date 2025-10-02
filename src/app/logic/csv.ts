@@ -34,12 +34,12 @@ function padNumber(value: number): string {
   return value.toString().padStart(2, '0');
 }
 
-function formatUtcDate(date: Date): string {
-  return `${date.getUTCFullYear()}-${padNumber(date.getUTCMonth() + 1)}-${padNumber(date.getUTCDate())}`;
+function formatLocalDate(date: Date): string {
+  return `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}-${padNumber(date.getDate())}`;
 }
 
-function formatUtcTime(date: Date): string {
-  return `${padNumber(date.getUTCHours())}:${padNumber(date.getUTCMinutes())}`;
+function formatLocalTime(date: Date): string {
+  return `${padNumber(date.getHours())}:${padNumber(date.getMinutes())}`;
 }
 
 function escapeCsvValue(value: string): string {
@@ -130,9 +130,9 @@ export function shiftsToCsv(shifts: Shift[]): string {
     const startDate = new Date(shift.startISO);
     const endDate = shift.endISO ? new Date(shift.endISO) : null;
     const hasValidStart = isDateValid(startDate);
-    const startDatePart = hasValidStart ? formatUtcDate(startDate) : '';
-    const startTimePart = hasValidStart ? formatUtcTime(startDate) : '';
-    const endTimePart = isDateValid(endDate) ? formatUtcTime(endDate) : '';
+    const startDatePart = hasValidStart ? formatLocalDate(startDate) : '';
+    const startTimePart = hasValidStart ? formatLocalTime(startDate) : '';
+    const endTimePart = isDateValid(endDate) ? formatLocalTime(endDate) : '';
     const cells = [
       startDatePart,
       startTimePart,
@@ -235,14 +235,26 @@ export function parseShiftsCsv(content: string): {
     }
 
     const startDate = new Date(
-      Date.UTC(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate(), startTime.hours, startTime.minutes, 0, 0)
+      parsedDate.getFullYear(),
+      parsedDate.getMonth(),
+      parsedDate.getDate(),
+      startTime.hours,
+      startTime.minutes,
+      0,
+      0
     );
 
     const endDate = new Date(
-      Date.UTC(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate(), finishTime.hours, finishTime.minutes, 0, 0)
+      parsedDate.getFullYear(),
+      parsedDate.getMonth(),
+      parsedDate.getDate(),
+      finishTime.hours,
+      finishTime.minutes,
+      0,
+      0
     );
     if (endDate <= startDate) {
-      endDate.setUTCDate(endDate.getUTCDate() + 1);
+      endDate.setDate(endDate.getDate() + 1);
     }
 
     const startISO = startDate.toISOString().replace(/\.\d{3}Z$/, 'Z');
