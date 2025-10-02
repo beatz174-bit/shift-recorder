@@ -10,9 +10,6 @@ const resolveFromRoot = (relativePath: string) =>
 const toPosixPath = (p: string) => p.replace(/\\/g, '/');
 const taxEngineFsRoot = resolveFromRoot('packages/tax-engine/src');
 const taxEngineRoot = toPosixPath(taxEngineFsRoot);
-const taxEngineCoreEntry = toPosixPath(
-  path.join(taxEngineFsRoot, 'core/index.ts')
-);
 
 export default defineConfig({
   plugins: [
@@ -59,7 +56,7 @@ export default defineConfig({
     alias: [
       { find: '@app', replacement: resolveFromRoot('src/app') },
       { find: '@tax-engine', replacement: taxEngineRoot },
-      { find: '@tax-engine/core', replacement: taxEngineCoreEntry }
+      { find: /^@tax-engine\/(.+)$/, replacement: `${taxEngineRoot}/$1` }
     ]
   },
   test: {
