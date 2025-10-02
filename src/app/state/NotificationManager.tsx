@@ -1,7 +1,6 @@
-import { useEffect, useRef } from 'react';
-import { formatDistanceStrict } from 'date-fns';
-import { db, type NotificationSchedule, type Settings } from '../db/schema';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSettings } from './SettingsContext';
+import { NOTIFICATION_TRIGGER_MESSAGE, PERIODIC_SYNC_TAG } from '../notifications/constants';
 
 const CHECK_INTERVAL_MS = 60_000;
 
@@ -36,69 +35,113 @@ function buildNotificationDetails(
     title: 'Shift starting soon',
     body: `Shift at ${timeLabel} begins in ${remaining}. Tap when you’re ready to clock in.`,
     requireInteraction: true
+type PeriodicSyncRegistration = ServiceWorkerRegistration & {
+  periodicSync?: {
+    getTags(): Promise<string[]>;
+    register(tag: string, options: { minInterval: number }): Promise<void>;
   };
-}
-
-async function advanceSchedule(schedule: NotificationSchedule, triggeredAt: Date): Promise<void> {
-  const nowISO = triggeredAt.toISOString();
-  if (schedule.repeatIntervalMinutes && schedule.repeatIntervalMinutes > 0) {
-    const repeatMs = schedule.repeatIntervalMinutes * 60_000;
-    const limit = new Date(schedule.validUntilISO).getTime();
-    let nextTime = new Date(schedule.nextTriggerISO).getTime();
-
-    while (nextTime <= triggeredAt.getTime()) {
-      nextTime += repeatMs;
-    }
-
-    if (nextTime < limit) {
-      await db.notificationSchedules.put({
-        ...schedule,
-        nextTriggerISO: new Date(nextTime).toISOString(),
-        lastTriggeredISO: nowISO,
-        updatedAt: nowISO
-      });
-      return;
-    }
-  }
-
-  await db.notificationSchedules.delete(schedule.id);
-}
+};
 
 export default function NotificationManager() {
   const { settings } = useSettings();
   const hasRequestedPermission = useRef(false);
+  const [permissionState, setPermissionState] = useState<NotificationPermission>(() => {
+    if (typeof window === 'undefined' || typeof Notification === 'undefined') {
+      return 'default';
+    }
+    return Notification.permission;
+  });
 
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
-      return;
-    }
+  const minIntervalMinutes = useMemo(() => {
     if (!settings) {
-      return;
+      return 15;
     }
-    if (!('Notification' in window)) {
-      return;
+    const { notificationRepeatMinutes } = settings;
+    if (notificationRepeatMinutes && notificationRepeatMinutes >= 5) {
+      return notificationRepeatMinutes;
     }
-    if (hasRequestedPermission.current) {
-      return;
-    }
-    if (Notification.permission === 'default') {
-      hasRequestedPermission.current = true;
-      void Notification.requestPermission().catch(() => {
-        // Ignore permission request errors; user may have dismissed the prompt.
-      });
-      return;
-    }
-    hasRequestedPermission.current = true;
+    return 5;
   }, [settings]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') {
       return;
     }
+    if (!('permissions' in navigator)) {
+      return;
+    }
+
+    let permissionStatus: PermissionStatus | null = null;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const status = await navigator.permissions.query({
+          name: 'notifications' as PermissionName
+        });
+        if (cancelled) {
+          return;
+        }
+        permissionStatus = status;
+        const mapState = (state: PermissionState): NotificationPermission => {
+          if (state === 'prompt') {
+            return 'default';
+          }
+          return state as NotificationPermission;
+        };
+        setPermissionState(mapState(status.state));
+        status.onchange = () => {
+          setPermissionState(mapState(status.state));
+        };
+      } catch (error) {
+        console.warn('Unable to subscribe to notification permission changes', error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (permissionStatus) {
+        permissionStatus.onchange = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      return;
+    }
     if (!settings) {
       return;
     }
-    if (!('Notification' in window)) {
+    if (typeof Notification === 'undefined') {
+      return;
+    }
+    if (permissionState !== 'default') {
+      hasRequestedPermission.current = true;
+      return;
+    }
+    if (hasRequestedPermission.current) {
+      return;
+    }
+
+    hasRequestedPermission.current = true;
+    Notification.requestPermission()
+      .then((result) => {
+        setPermissionState(result);
+      })
+      .catch(() => {
+        setPermissionState(Notification.permission);
+      });
+  }, [settings, permissionState]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      return;
+    }
+    if (!settings) {
+      return;
+    }
+    if (typeof Notification === 'undefined' || permissionState !== 'granted') {
       return;
     }
     if (!('serviceWorker' in navigator)) {
@@ -106,48 +149,34 @@ export default function NotificationManager() {
     }
 
     let isProcessing = false;
+    let cancelled = false;
 
-    const processNotifications = async () => {
-      if (isProcessing) {
-        return;
-      }
-      if (Notification.permission !== 'granted') {
-        return;
-      }
-      isProcessing = true;
+    const registerBackgroundTasks = async () => {
       try {
-        const now = new Date();
-        const nowISO = now.toISOString();
-        const due = await db.notificationSchedules
-          .where('nextTriggerISO')
-          .belowOrEqual(nowISO)
-          .toArray();
-
-        if (due.length === 0) {
+        const registration = (await navigator.serviceWorker.ready) as PeriodicSyncRegistration;
+        if (cancelled) {
           return;
         }
 
-        const registration = await navigator.serviceWorker.ready;
-
-        for (const schedule of due) {
-          const details = buildNotificationDetails(schedule, settings, now);
+        const periodicSync = registration.periodicSync;
+        if (periodicSync) {
           try {
-            await registration.showNotification(details.title, {
-              body: details.body,
-              tag: schedule.id,
-              requireInteraction: details.requireInteraction,
-              data: {
-                shiftId: schedule.shiftId,
-                type: schedule.type
-              }
-            });
+            const tags = (await periodicSync.getTags?.()) ?? [];
+            if (!tags.includes(PERIODIC_SYNC_TAG)) {
+              await periodicSync.register(PERIODIC_SYNC_TAG, {
+                minInterval: minIntervalMinutes * 60_000
+              });
+            }
           } catch (error) {
-            console.error('Failed to show notification', error);
+            console.warn('Unable to register periodic background sync', error);
           }
-          await advanceSchedule(schedule, now);
         }
-      } finally {
-        isProcessing = false;
+
+        if (registration.active?.postMessage) {
+          registration.active.postMessage({ type: NOTIFICATION_TRIGGER_MESSAGE });
+        }
+      } catch (error) {
+        console.warn('Notification background task registration failed', error);
       }
     };
 
@@ -156,8 +185,12 @@ export default function NotificationManager() {
 
     return () => {
       window.clearInterval(intervalId);
+    void registerBackgroundTasks();
+
+    return () => {
+      cancelled = true;
     };
-  }, [settings]);
+  }, [settings, minIntervalMinutes, permissionState]);
 
   return null;
 }
