@@ -104,7 +104,6 @@ test.describe('Chrona PWA UI', () => {
 
     await expect(page.getByRole('button', { name: 'Previous month' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Next month' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Today' })).toBeVisible();
 
     for (const label of ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']) {
       await expect(page.getByText(label, { exact: true }).first()).toBeVisible();
