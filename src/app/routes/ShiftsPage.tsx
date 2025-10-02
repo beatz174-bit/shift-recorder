@@ -244,7 +244,8 @@ export default function ShiftsPage() {
 
                   const shouldHighlightSelection =
                     isSelected && (hasUserInteracted || hasShifts || isCurrentDay);
-                  const shouldHighlightToday = !shouldHighlightSelection && isCurrentDay && hasShifts;
+                  const shouldHighlightToday =
+                    !hasUserInteracted && !shouldHighlightSelection && isCurrentDay && hasShifts;
 
                   const dayNumberClasses = [
                     'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition',
