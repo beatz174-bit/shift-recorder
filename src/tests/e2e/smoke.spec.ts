@@ -3,6 +3,13 @@ import { test, expect } from '@playwright/test';
 const APP_TITLE = /Chrona/i;
 const HOLIDAY_API_PATTERN = 'https://date.nager.at/api/v3/*';
 
+const formatDateForInput = (date: Date) => {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 test.describe('Chrona PWA UI', () => {
   test.beforeEach(async ({ page, context }) => {
     const storagePage = await context.newPage();
@@ -122,7 +129,8 @@ test.describe('Chrona PWA UI', () => {
     await expect(page.getByText('Base rate (per hour)')).toBeVisible();
     await expect(page.getByText('Penalty rate (per hour)')).toBeVisible();
     await expect(page.getByLabel('Pay week starts on')).toBeVisible();
-    await expect(page.getByText('Currency')).toBeVisible();
+    const currencyLabel = page.locator('label').filter({ hasText: /^Currency$/ });
+    await expect(currencyLabel).toBeVisible();
 
     await page.getByRole('button', { name: 'Notifications', exact: true }).click();
     await expect(page.getByText('Shift reminders')).toBeVisible();
@@ -172,7 +180,8 @@ test.describe('Chrona PWA UI', () => {
     const timeInputs = createShiftDialog.locator('input[type="text"]');
     const noteInput = createShiftDialog.locator('textarea');
 
-    await dateInput.fill('2024-03-04');
+    const shiftDate = formatDateForInput(new Date());
+    await dateInput.fill(shiftDate);
     await timeInputs.first().fill('9:00 AM');
     await timeInputs.nth(1).fill('5:30 PM');
     await noteInput.fill('Project kickoff');
