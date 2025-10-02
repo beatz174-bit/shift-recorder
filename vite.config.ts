@@ -1,6 +1,18 @@
 import { configDefaults, defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+const projectRootDir = fileURLToPath(new URL('.', import.meta.url));
+const resolveFromRoot = (relativePath: string) =>
+  path.resolve(projectRootDir, relativePath);
+const toPosixPath = (p: string) => p.replace(/\\/g, '/');
+const taxEngineFsRoot = resolveFromRoot('packages/tax-engine/src');
+const taxEngineRoot = toPosixPath(taxEngineFsRoot);
+const taxEngineCoreEntry = toPosixPath(
+  path.join(taxEngineFsRoot, 'core/index.ts')
+);
 
 export default defineConfig({
   plugins: [
@@ -44,11 +56,11 @@ export default defineConfig({
     })
   ],
   resolve: {
-    alias: {
-      '@app': '/src/app',
-      '@tax-engine': '/packages/tax-engine/src',
-      '@tax-engine/core': '/packages/tax-engine/src/core/index.ts'
-    }
+    alias: [
+      { find: '@app', replacement: resolveFromRoot('src/app') },
+      { find: '@tax-engine', replacement: taxEngineRoot },
+      { find: '@tax-engine/core', replacement: taxEngineCoreEntry }
+    ]
   },
   test: {
     environment: 'happy-dom',
