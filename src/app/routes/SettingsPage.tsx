@@ -583,28 +583,38 @@ export default function SettingsPage() {
           {isLoadingRegions ? (
             <p className="text-xs text-neutral-500">Loading regions…</p>
           ) : null}
-          {holidayRegions.length > 0 ? (
-            <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
-              <span className="text-xs font-semibold uppercase text-neutral-500">
-                State or region
+          <label className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
+            <span className="text-xs font-semibold uppercase text-neutral-500">
+              State or region
+            </span>
+            <select
+              value={publicHolidaySubdivision}
+              onChange={(event) =>
+                setPublicHolidaySubdivision(event.target.value)
+              }
+              className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
+              disabled={
+                !includePublicHolidays ||
+                isLoadingRegions ||
+                holidayRegions.length === 0
+              }
+            >
+              <option value="">Whole country</option>
+              {holidayRegions.map((region) => (
+                <option key={region.code} value={region.code}>
+                  {region.name}
+                </option>
+              ))}
+            </select>
+            {includePublicHolidays &&
+            !isLoadingRegions &&
+            holidayRegions.length === 0 &&
+            !regionsError ? (
+              <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                No state or region options are available for this country.
               </span>
-              <select
-                value={publicHolidaySubdivision}
-                onChange={(event) =>
-                  setPublicHolidaySubdivision(event.target.value)
-                }
-                className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
-                disabled={!includePublicHolidays || isLoadingRegions}
-              >
-                <option value="">Whole country</option>
-                {holidayRegions.map((region) => (
-                  <option key={region.code} value={region.code}>
-                    {region.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
+            ) : null}
+          </label>
           {regionsError ? (
             <p className="text-xs text-red-500">{regionsError}</p>
           ) : null}
