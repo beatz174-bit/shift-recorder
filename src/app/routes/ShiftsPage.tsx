@@ -264,6 +264,9 @@ export default function ShiftsPage() {
                       : 'text-neutral-400 dark:text-neutral-500',
                     hasShifts
                       ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-100'
+                      : null,
+                    isCurrentDay
+                      ? 'sm:ring-2 sm:ring-purple-400 sm:ring-offset-2 sm:ring-offset-white dark:sm:ring-purple-500/70 dark:sm:ring-offset-midnight-950'
                       : null
                   ]
                     .filter(Boolean)
