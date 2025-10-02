@@ -24,6 +24,15 @@ function createShift(overrides: Partial<Shift> = {}): Shift {
   return { ...base, ...overrides };
 }
 
+const pad = (value: number) => value.toString().padStart(2, '0');
+
+const formatLocalDate = (date: Date) =>
+  `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+
+const formatLocalTime = (date: Date) => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+
+const toIsoWithoutMs = (date: Date) => date.toISOString().replace(/\.\d{3}Z$/, 'Z');
+
 describe('shiftsToCsv', () => {
   it('serializes shifts with escaped values', () => {
     const shifts: Shift[] = [
@@ -36,7 +45,11 @@ describe('shiftsToCsv', () => {
 
     const csv = shiftsToCsv(shifts);
 
-    expect(csv).toBe('date,start,finish,notes\n2024-01-02,07:15,15:45,"Includes, comma"');
+    const startDate = new Date('2024-01-02T07:15:00.000Z');
+    const endDate = new Date('2024-01-02T15:45:00.000Z');
+    const expected = `date,start,finish,notes\n${formatLocalDate(startDate)},${formatLocalTime(startDate)},${formatLocalTime(endDate)},"Includes, comma"`;
+
+    expect(csv).toBe(expected);
   });
 
   it('serializes consistently across timezone environments', () => {
@@ -46,13 +59,15 @@ describe('shiftsToCsv', () => {
       endISO: '2024-01-02T15:45:00.000Z'
     });
 
-    const expected = 'date,start,finish,notes\n2024-01-02,07:15,15:45,Timezone check';
     const originalTz = process.env.TZ;
     const timezones = ['UTC', 'America/New_York', 'Asia/Tokyo'];
 
     try {
       for (const timezone of timezones) {
         process.env.TZ = timezone;
+        const startDate = new Date('2024-01-02T07:15:00.000Z');
+        const endDate = new Date('2024-01-02T15:45:00.000Z');
+        const expected = `date,start,finish,notes\n${formatLocalDate(startDate)},${formatLocalTime(startDate)},${formatLocalTime(endDate)},Timezone check`;
         expect(shiftsToCsv([shift])).toBe(expected);
       }
     } finally {
@@ -75,14 +90,14 @@ describe('parseShiftsCsv', () => {
     expect(result.entries).toHaveLength(2);
     expect(result.entries[0]).toEqual({
       line: 2,
-      startISO: '2024-01-01T09:00:00Z',
-      endISO: '2024-01-01T17:00:00Z',
+      startISO: toIsoWithoutMs(new Date(2024, 0, 1, 9, 0, 0, 0)),
+      endISO: toIsoWithoutMs(new Date(2024, 0, 1, 17, 0, 0, 0)),
       note: 'Morning'
     });
     expect(result.entries[1]).toEqual({
       line: 3,
-      startISO: '2024-01-01T22:00:00Z',
-      endISO: '2024-01-02T06:00:00Z',
+      startISO: toIsoWithoutMs(new Date(2024, 0, 1, 22, 0, 0, 0)),
+      endISO: toIsoWithoutMs(new Date(2024, 0, 2, 6, 0, 0, 0)),
       note: 'Overnight'
     });
     expect(result.rows).toEqual([
@@ -99,8 +114,8 @@ describe('parseShiftsCsv', () => {
     expect(result.entries).toEqual([
       {
         line: 4,
-        startISO: '2024-01-03T09:00:00Z',
-        endISO: '2024-01-03T17:00:00Z',
+        startISO: toIsoWithoutMs(new Date(2024, 0, 3, 9, 0, 0, 0)),
+        endISO: toIsoWithoutMs(new Date(2024, 0, 3, 17, 0, 0, 0)),
         note: 'Valid row'
       }
     ]);
