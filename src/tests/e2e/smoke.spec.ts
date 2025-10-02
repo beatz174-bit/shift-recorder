@@ -142,7 +142,7 @@ test.describe('Chrona PWA UI', () => {
     await expect(page.getByText('Penalty hours (daily window)')).toBeVisible();
     await expect(page.getByText('Enable a daily penalty window')).toBeVisible();
     await expect(page.getByText('Penalty applies all day on')).toBeVisible();
-    await expect(page.getByText('Public holidays')).toBeVisible();
+    await expect(page.locator('legend', { hasText: 'Public holidays' })).toBeVisible();
     await expect(page.getByText('Holiday region')).toBeVisible();
     await expect(page.getByText('State or region')).toBeVisible();
     await expect(page.getByText('Holiday dates are sourced from')).toBeVisible();
@@ -263,7 +263,7 @@ test.describe('Chrona PWA UI', () => {
     });
 
     await expect(page.getByRole('heading', { name: 'Import results' })).toBeVisible();
-    await expect(page.getByText('Imported 1 of 1 rows.')).toBeVisible();
+    await expect(page.getByText('Imported 1 of 1 row.')).toBeVisible();
     await expect(page.getByText('Imported successfully')).toBeVisible();
 
     await page.getByRole('button', { name: 'Backup & restore' }).click();
