@@ -264,6 +264,18 @@ export default function ShiftsPage() {
                     .filter(Boolean)
                     .join(' ');
 
+                  const desktopDayNumberClasses = [
+                    'hidden h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition sm:flex',
+                    inCurrentMonth
+                      ? 'text-neutral-700 dark:text-neutral-100'
+                      : 'text-neutral-400 dark:text-neutral-500',
+                    hasShifts
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-100'
+                      : null
+                  ]
+                    .filter(Boolean)
+                    .join(' ');
+
                   return (
                     <div
                       key={dateKey}
@@ -276,12 +288,13 @@ export default function ShiftsPage() {
                       <button
                         type="button"
                         onClick={() => handleDaySelect(day)}
-                        className="flex w-full items-start justify-between text-left"
+                        className="flex w-full items-start justify-between text-left sm:hidden"
                         aria-pressed={isSelected}
                         aria-label={format(day, 'PPPP')}
                       >
                         <span className={dayNumberClasses}>{format(day, 'd')}</span>
                       </button>
+                      <span className={desktopDayNumberClasses}>{format(day, 'd')}</span>
                       <div className="mt-3 hidden flex-col gap-2 sm:flex">
                         {dayShifts.map((shift) => (
                           <ShiftSummaryCard
