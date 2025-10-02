@@ -4,9 +4,10 @@ const APP_TITLE = /Chrona/i;
 const HOLIDAY_API_PATTERN = 'https://date.nager.at/api/v3/*';
 
 test.describe('Chrona PWA UI', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('about:blank');
-    await page.evaluate(async () => {
+  test.beforeEach(async ({ page, context }) => {
+    const storagePage = await context.newPage();
+    await storagePage.goto('/');
+    await storagePage.evaluate(async () => {
       await new Promise<void>((resolve, reject) => {
         const request = indexedDB.deleteDatabase('shift-recorder');
         request.onsuccess = () => resolve();
@@ -16,6 +17,7 @@ test.describe('Chrona PWA UI', () => {
       localStorage.clear();
       sessionStorage.clear();
     });
+    await storagePage.close();
 
     await page.route(HOLIDAY_API_PATTERN, async (route) => {
       const url = route.request().url();
