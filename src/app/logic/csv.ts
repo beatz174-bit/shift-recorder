@@ -1,4 +1,4 @@
-import { format, isValid, parse } from 'date-fns';
+import { addDays, formatISO, isValid, parse } from 'date-fns';
 import templateCsvContent from '../assets/shift-import-template.csv?raw';
 import type { Shift } from '../db/schema';
 
@@ -113,11 +113,16 @@ export function shiftsToCsv(shifts: Shift[]): string {
   shifts.forEach((shift) => {
     const startDate = new Date(shift.startISO);
     const endDate = shift.endISO ? new Date(shift.endISO) : null;
+    const startIsoString = Number.isNaN(startDate.getTime()) ? null : startDate.toISOString();
+    const endIsoString = endDate && !Number.isNaN(endDate.getTime()) ? endDate.toISOString() : null;
+    const startDatePart = startIsoString ? startIsoString.slice(0, 10) : '';
+    const startTimePart = startIsoString ? startIsoString.slice(11, 16) : '';
+    const endTimePart = endIsoString ? endIsoString.slice(11, 16) : '';
     const cells = [
-      format(startDate, 'yyyy-MM-dd'),
-      format(startDate, 'HH:mm'),
-      endDate ? format(endDate, 'HH:mm') : '',
-      shift.note ?? ''
+      startDatePart,
+      startTimePart,
+      endTimePart,
+      shift.note?.trim() ?? ''
     ];
     lines.push(cells.map(encodeCsvCell).join(','));
   });
