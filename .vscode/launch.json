@@ -25,6 +25,22 @@
       }
     },
     {
+      "name": "Playwright Tests",
+      "type": "pwa-node",
+      "request": "launch",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "playwright",
+        "test"
+      ],
+      "env": {
+        "PWDEBUG": "0",
+        "TZ": "Australia/Brisbane"
+      },
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
       "name": "Playwright Tests (Debug)",
       "type": "pwa-node",
       "request": "launch",
