@@ -257,116 +257,115 @@ export default function ImportExportPanel() {
     <div className="flex flex-col gap-6">
       {review ? (
         <div className="space-y-5">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-3 sm:flex-1 sm:min-w-0">
               <div>
                 <h3 className="text-base font-semibold">Import results</h3>
                 <p className="text-sm text-neutral-500 dark:text-neutral-300">
                   Imported {review.summary.success} of {review.summary.total} row{review.summary.total === 1 ? '' : 's'}.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={triggerFilePicker}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:border-neutral-400 hover:text-neutral-900 dark:border-midnight-700 dark:text-neutral-200 dark:hover:border-midnight-500"
-                  disabled={isProcessing || !settings}
+              {review.summary.success > 0 && (
+                <div
+                  className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200 sm:max-w-xl"
+                  role="status"
+                  aria-live="polite"
                 >
-                  <ArrowUpTrayIcon className="h-4 w-4" aria-hidden="true" />
-                  Import another CSV
-                </button>
-                <a
-                  href={review.logUrl}
-                  download={IMPORT_LOG_FILENAME}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-primary/90"
-                >
-                  <ArrowDownTrayIcon className="h-4 w-4" aria-hidden="true" />
-                  Download log
-                </a>
-              </div>
+                  Imported successfully
+                  {review.summary.total > 1
+                    ? `: added ${review.summary.success} new shift${review.summary.success === 1 ? '' : 's'} from the CSV.`
+                    : '.'}
+                </div>
+              )}
             </div>
-
-            <div className="grid gap-3 rounded-2xl bg-neutral-100 p-4 dark:bg-midnight-900/40 sm:grid-cols-4">
-              <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-300">Imported</span>
-                <span className="text-lg font-semibold">{review.summary.success}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-300">Duplicates</span>
-                <span className="text-lg font-semibold">{review.summary.duplicate}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-300">Overlapping</span>
-                <span className="text-lg font-semibold">{review.summary.overlap}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-300">Failed</span>
-                <span className="text-lg font-semibold">{review.summary.failed}</span>
-              </div>
-            </div>
-
-            {review.summary.success > 0 && (
-              <div
-                className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200"
-                role="status"
-                aria-live="polite"
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={triggerFilePicker}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:border-neutral-400 hover:text-neutral-900 dark:border-midnight-700 dark:text-neutral-200 dark:hover:border-midnight-500"
+                disabled={isProcessing || !settings}
               >
-                Imported successfully
-                {review.summary.total > 1
-                  ? `: added ${review.summary.success} new shift${review.summary.success === 1 ? '' : 's'} from the CSV.`
-                  : '.'}
-              </div>
-            )}
-
-            <div className="max-h-72 overflow-auto rounded-2xl border border-neutral-200 dark:border-midnight-800">
-              <table className="min-w-full divide-y divide-neutral-200 text-left text-sm dark:divide-midnight-800">
-                <thead className="bg-neutral-100 text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:bg-midnight-900/40 dark:text-neutral-300">
-                  <tr>
-                    <th className="px-4 py-3">Line</th>
-                    <th className="px-4 py-3">Date</th>
-                    <th className="px-4 py-3">Start</th>
-                    <th className="px-4 py-3">Finish</th>
-                    <th className="px-4 py-3">Notes</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Details</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-200 dark:divide-midnight-800">
-                  {review.rows.map((row) => {
-                    const status = STATUS_COPY[row.status];
-                    return (
-                      <tr key={row.line} className="align-top">
-                        <td className="px-4 py-3 font-mono text-xs text-neutral-500 dark:text-neutral-300">{row.line}</td>
-                        <td className="px-4 py-3">{row.date}</td>
-                        <td className="px-4 py-3">{row.start}</td>
-                        <td className="px-4 py-3">{row.finish}</td>
-                        <td className="px-4 py-3 text-neutral-600 dark:text-neutral-200">{row.note || '—'}</td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${status.className}`}>
-                            {status.label}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-neutral-600 dark:text-neutral-200">
-                          {row.message ?? '—'}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                <ArrowUpTrayIcon className="h-4 w-4" aria-hidden="true" />
+                Import another CSV
+              </button>
+              <a
+                href={review.logUrl}
+                download={IMPORT_LOG_FILENAME}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-primary/90"
+              >
+                <ArrowDownTrayIcon className="h-4 w-4" aria-hidden="true" />
+                Download log
+              </a>
             </div>
+          </div>
 
-            {dataErrors.length > 0 && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/30 dark:text-amber-100">
-                <p className="font-semibold">Rows with issues</p>
-                <ul className="mt-2 space-y-1">
-                  {dataErrors.map((error) => (
-                    <li key={`${error.line}-${error.message}`}>
-                      Line {error.line}: {error.message}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+          <div className="grid gap-3 rounded-2xl bg-neutral-100 p-4 dark:bg-midnight-900/40 sm:grid-cols-4">
+            <div className="flex flex-col">
+              <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-300">Imported</span>
+              <span className="text-lg font-semibold">{review.summary.success}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-300">Duplicates</span>
+              <span className="text-lg font-semibold">{review.summary.duplicate}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-300">Overlapping</span>
+              <span className="text-lg font-semibold">{review.summary.overlap}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-300">Failed</span>
+              <span className="text-lg font-semibold">{review.summary.failed}</span>
+            </div>
+          </div>
+
+          <div className="max-h-72 overflow-auto rounded-2xl border border-neutral-200 dark:border-midnight-800">
+            <table className="min-w-full divide-y divide-neutral-200 text-left text-sm dark:divide-midnight-800">
+              <thead className="bg-neutral-100 text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:bg-midnight-900/40 dark:text-neutral-300">
+                <tr>
+                  <th className="px-4 py-3">Line</th>
+                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3">Start</th>
+                  <th className="px-4 py-3">Finish</th>
+                  <th className="px-4 py-3">Notes</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-200 dark:divide-midnight-800">
+                {review.rows.map((row) => {
+                  const status = STATUS_COPY[row.status];
+                  return (
+                    <tr key={row.line} className="align-top">
+                      <td className="px-4 py-3 font-mono text-xs text-neutral-500 dark:text-neutral-300">{row.line}</td>
+                      <td className="px-4 py-3">{row.date}</td>
+                      <td className="px-4 py-3">{row.start}</td>
+                      <td className="px-4 py-3">{row.finish}</td>
+                      <td className="px-4 py-3 text-neutral-600 dark:text-neutral-200">{row.note || '—'}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${status.className}`}>
+                          {status.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-neutral-600 dark:text-neutral-200">{row.message ?? '—'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {dataErrors.length > 0 && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/30 dark:text-amber-100">
+              <p className="font-semibold">Rows with issues</p>
+              <ul className="mt-2 space-y-1">
+                {dataErrors.map((error) => (
+                  <li key={`${error.line}-${error.message}`}>
+                    Line {error.line}: {error.message}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           </div>
         ) : (
           <>
