@@ -303,7 +303,7 @@ test.describe('Chrona PWA UI', () => {
       .first()
       .locator('..');
 
-    await expect(importResultsSection.getByText('Imported successfully')).toBeVisible();
+    await expect(importResultsSection.getByRole('status')).toContainText('Imported successfully');
     await expect(importedStat.locator('span').nth(1)).toHaveText('1');
     await expect(duplicateStat.locator('span').nth(1)).toHaveText('0');
     await expect(overlapStat.locator('span').nth(1)).toHaveText('0');
