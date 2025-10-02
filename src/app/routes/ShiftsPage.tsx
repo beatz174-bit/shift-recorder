@@ -25,7 +25,6 @@ import type { Shift, WeekStart } from '../db/schema';
 import { useSettings } from '../state/SettingsContext';
 import { useDateTimeFormatter, useTimeFormatter } from '../state/useTimeFormatter';
 import { formatMinutesDuration } from '../utils/format';
-import { useShiftWithholding } from '../features/shifts/useShiftWithholding';
 
 function ShiftSummaryCard({
   shift,
@@ -44,7 +43,6 @@ function ShiftSummaryCard({
   const endDate = shift.endISO ? new Date(shift.endISO) : null;
   const upcoming = endDate ? endDate >= now : startDate >= now;
   const totalDuration = formatMinutesDuration(shift.baseMinutes + shift.penaltyMinutes);
-  const withholding = useShiftWithholding(shift);
   const currencyFormatter = useMemo(
     () =>
       new Intl.NumberFormat(undefined, {
@@ -73,17 +71,9 @@ function ShiftSummaryCard({
         </div>
       </div>
       <div className="flex flex-col gap-1 text-[0.65rem] text-neutral-600 dark:text-neutral-300">
+        <span>Total pay: {currencyFormatter.format(shift.totalPay / 100)}</span>
         <span>
-          Tax withheld:{' '}
-          {withholding
-            ? currencyFormatter.format(withholding.totalWithheldCents / 100)
-            : '—'}
-        </span>
-        <span>
-          Take-home:{' '}
-          {withholding
-            ? currencyFormatter.format(withholding.takeHomeCents / 100)
-            : '—'}
+          Base {formatMinutesDuration(shift.baseMinutes)} · Penalty {formatMinutesDuration(shift.penaltyMinutes)}
         </span>
       </div>
     </button>
@@ -179,7 +169,6 @@ export default function ShiftsPage() {
   });
 
   const now = new Date();
-  const selectedWithholding = useShiftWithholding(selectedShift);
   const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
   const selectedDayShifts = shiftsByDay.get(selectedDateKey) ?? [];
   const monthLabel = format(currentMonth, 'MMMM yyyy');
@@ -402,34 +391,6 @@ export default function ShiftsPage() {
                   Base: {formatMinutesDuration(selectedShift.baseMinutes)} · Penalty: {formatMinutesDuration(selectedShift.penaltyMinutes)}
                 </span>
                 <span>Total pay: {currencyFormatter.format(selectedShift.totalPay / 100)}</span>
-                {selectedWithholding ? (
-                  <div className="mt-2 grid gap-1 text-xs text-neutral-500 dark:text-neutral-300">
-                    <span>
-                      Tax withheld: {currencyFormatter.format(selectedWithholding.totalWithheldCents / 100)} (
-                      {currencyFormatter.format(selectedWithholding.baseWithholdingCents / 100)}
-                      {selectedWithholding.stslCents > 0
-                        ? ` + STSL ${currencyFormatter.format(selectedWithholding.stslCents / 100)}`
-                        : ''}
-                      )
-                    </span>
-                    <span>
-                      Take-home pay: {currencyFormatter.format(selectedWithholding.takeHomeCents / 100)}
-                    </span>
-                    <span className="text-[10px] text-neutral-400 dark:text-neutral-500">
-                      Schedule 1 effective {selectedWithholding.breakdown.effectiveSchedules.schedule1EffectiveFrom}
-                      {selectedWithholding.breakdown.effectiveSchedules.schedule8EffectiveFrom
-                        ? ` · Schedule 8 effective ${selectedWithholding.breakdown.effectiveSchedules.schedule8EffectiveFrom}`
-                        : ''}
-                    </span>
-                  </div>
-                ) : null}
-                {selectedWithholding && selectedWithholding.breakdown.notes.length > 0 ? (
-                  <ul className="mt-2 list-disc space-y-1 pl-4 text-[10px] text-neutral-400 dark:text-neutral-500">
-                    {selectedWithholding.breakdown.notes.map((note) => (
-                      <li key={note}>{note}</li>
-                    ))}
-                  </ul>
-                ) : null}
               </div>
               <button
                 type="button"
