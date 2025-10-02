@@ -99,6 +99,7 @@ test.describe('Chrona PWA UI', () => {
   });
 
   test('shifts page calendar controls are visible', async ({ page }) => {
+    await page.setViewportSize({ width: 600, height: 900 });
     await page.getByRole('link', { name: 'Shifts' }).click();
     await expect(page).toHaveURL(/\/shifts$/);
 
@@ -144,6 +145,10 @@ test.describe('Chrona PWA UI', () => {
     await expect(page.getByText('Penalty applies all day on')).toBeVisible();
     await expect(page.locator('legend', { hasText: 'Public holidays' })).toBeVisible();
     await expect(page.getByText('Holiday region')).toBeVisible();
+    const includeHolidaysCheckbox = page.getByRole('checkbox', {
+      name: 'Include public holidays as all-day penalty shifts'
+    });
+    await includeHolidaysCheckbox.check();
     await expect(page.getByText('State or region')).toBeVisible();
     await expect(page.getByText('Holiday dates are sourced from')).toBeVisible();
 
@@ -285,7 +290,7 @@ test.describe('Chrona PWA UI', () => {
 
     const backupInput = page.locator('input[type="file"][accept=".tar.gz"]');
     await backupInput.setInputFiles(backupPath!);
-    await expect(page.getByText(/\.tar\.gz$/)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Choose another file' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Restore backup' }).click();
     await expect(page.getByText('Backup restored successfully.')).toBeVisible();
