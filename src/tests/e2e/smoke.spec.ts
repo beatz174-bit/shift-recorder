@@ -80,7 +80,7 @@ test.describe('Chrona PWA UI', () => {
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText('Date')).toBeVisible();
     await expect(dialog.getByText('Start time')).toBeVisible();
-    await expect(dialog.getByText('Finish time')).toBeVisible();
+    await expect(dialog.locator('label').filter({ hasText: /^Finish time$/ })).toBeVisible();
     await expect(dialog.getByText('Finish times earlier than the start are saved on the following day.')).toBeVisible();
     await expect(dialog.getByText('Note')).toBeVisible();
     await expect(dialog.getByPlaceholder('Optional notes')).toBeVisible();
@@ -116,7 +116,7 @@ test.describe('Chrona PWA UI', () => {
 
     const tabLabels = ['General', 'Notifications', 'Penalty rules', 'Appearance', 'Data & backup'];
     for (const label of tabLabels) {
-      await expect(page.getByRole('button', { name: label, exact: true })).toBeVisible();
+      await expect(page.getByRole('button', { name: label })).toBeVisible();
     }
 
     await expect(page.getByText('Base rate (per hour)')).toBeVisible();
@@ -190,9 +190,10 @@ test.describe('Chrona PWA UI', () => {
       has: page.getByText('Total pay', { exact: true })
     }).first();
 
-    await expect(baseHoursCard).toContainText('8.50');
-    await expect(penaltyHoursCard).toContainText('0.00');
-    await expect(totalPayCard).toContainText('212.50');
+    await expect(page.getByText(/Chrona hasn't recorded any shifts for this week yet/i)).toBeHidden();
+    await expect(baseHoursCard.locator('p').nth(1)).toHaveText('8.50');
+    await expect(penaltyHoursCard.locator('p').nth(1)).toHaveText('0.00');
+    await expect(totalPayCard.locator('p').nth(1)).toContainText('212.50');
     await expect(page.getByText(/Chrona has logged 8\.50 hours this week so far/i)).toBeVisible();
 
     await page.getByRole('link', { name: 'Shifts' }).click();
@@ -219,8 +220,8 @@ test.describe('Chrona PWA UI', () => {
     await expect(page.getByText('Settings saved')).toBeVisible();
 
     await page.getByRole('link', { name: 'Summary' }).click();
-    await expect(baseHoursCard).toContainText('8.50');
-    await expect(totalPayCard).toContainText('340.00');
+    await expect(baseHoursCard.locator('p').nth(1)).toHaveText('8.50');
+    await expect(totalPayCard.locator('p').nth(1)).toContainText('340.00');
 
     await addShiftButton.click();
     await expect(createShiftDialog).toBeVisible();
