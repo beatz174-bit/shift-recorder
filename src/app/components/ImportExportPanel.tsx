@@ -304,6 +304,19 @@ export default function ImportExportPanel() {
               </div>
             </div>
 
+            {review.summary.success > 0 && (
+              <div
+                className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200"
+                role="status"
+                aria-live="polite"
+              >
+                Imported successfully
+                {review.summary.total > 1
+                  ? `: added ${review.summary.success} new shift${review.summary.success === 1 ? '' : 's'} from the CSV.`
+                  : '.'}
+              </div>
+            )}
+
             <div className="max-h-72 overflow-auto rounded-2xl border border-neutral-200 dark:border-midnight-800">
               <table className="min-w-full divide-y divide-neutral-200 text-left text-sm dark:divide-midnight-800">
                 <thead className="bg-neutral-100 text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:bg-midnight-900/40 dark:text-neutral-300">
