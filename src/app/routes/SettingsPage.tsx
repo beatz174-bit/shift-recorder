@@ -721,6 +721,7 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 gap-2 pb-2 sm:grid-cols-2 lg:flex lg:flex-col lg:gap-2 lg:pb-0">
               {SETTINGS_TABS.map((tab) => {
                 const isActive = activeTab === tab.id;
+                const descriptionId = `settings-tab-${tab.id}-description`;
                 const buttonClasses = [
                   'w-full rounded-lg px-3 py-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:focus-visible:ring-offset-midnight-900',
                   isActive
@@ -739,9 +740,11 @@ export default function SettingsPage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={buttonClasses}
                     aria-current={isActive ? 'page' : undefined}
+                    aria-label={tab.label}
+                    aria-describedby={tab.description ? descriptionId : undefined}
                   >
                     <span className={labelClasses}>{tab.label}</span>
-                    <span className={descriptionClasses}>
+                    <span id={descriptionId} className={descriptionClasses}>
                       {tab.description}
                     </span>
                   </button>
