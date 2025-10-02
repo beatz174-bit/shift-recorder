@@ -1,6 +1,7 @@
 import { ArrowDownTrayIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { getAllShifts, importShifts, type ShiftImportResult } from '../db/repo';
 import {
   encodeCsvCell,
@@ -91,6 +92,7 @@ export default function ImportExportPanel() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [review, setReview] = useState<ImportReviewState | null>(null);
   const [dataErrors, setDataErrors] = useState<ShiftCsvParseError[]>([]);
+  const queryClient = useQueryClient();
 
   const templateHref = templateCsvUrl;
 
@@ -169,6 +171,15 @@ export default function ImportExportPanel() {
       }
 
       const importResults: ShiftImportResult[] = await importShifts(entries, settings);
+
+      const hadSuccessfulImport = importResults.some((result) => result.status === 'success');
+      if (hadSuccessfulImport) {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['shifts'] }),
+          queryClient.invalidateQueries({ queryKey: ['summary'] }),
+          queryClient.invalidateQueries({ queryKey: ['active-shift'] })
+        ]);
+      }
 
       const resultMap = new Map(importResults.map((result) => [result.line, result]));
       const errorMap = new Map(errors.filter((error) => error.line !== 1).map((error) => [error.line, error.message]));
