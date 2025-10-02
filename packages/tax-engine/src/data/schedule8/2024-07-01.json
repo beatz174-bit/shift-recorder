@@ -1,0 +1,32 @@
+{
+  "schedule": "NAT3539",
+  "effective_from": "2024-07-01",
+  "source_url": "https://www.ato.gov.au/",
+  "retrieved_at": "2025-01-05T00:00:00Z",
+  "notes": [
+    "Study and Training Support Loans thresholds for the 2024-25 income year.",
+    "Rates apply to the entire repayment income once a threshold is met."
+  ],
+  "rounding": { "precision": 0.01, "mode": "half_up" },
+  "thresholds": [
+    { "minimum": 0, "rate": 0 },
+    { "minimum": 51550, "rate": 0.01 },
+    { "minimum": 59518, "rate": 0.02 },
+    { "minimum": 63988, "rate": 0.025 },
+    { "minimum": 67487, "rate": 0.03 },
+    { "minimum": 71983, "rate": 0.035 },
+    { "minimum": 75491, "rate": 0.04 },
+    { "minimum": 80107, "rate": 0.045 },
+    { "minimum": 84293, "rate": 0.05 },
+    { "minimum": 89500, "rate": 0.055 },
+    { "minimum": 94868, "rate": 0.06 },
+    { "minimum": 100561, "rate": 0.065 },
+    { "minimum": 106489, "rate": 0.07 },
+    { "minimum": 112653, "rate": 0.075 },
+    { "minimum": 119067, "rate": 0.08 },
+    { "minimum": 125743, "rate": 0.085 },
+    { "minimum": 132695, "rate": 0.09 },
+    { "minimum": 139939, "rate": 0.095 },
+    { "minimum": 147489, "rate": 0.1 }
+  ]
+}

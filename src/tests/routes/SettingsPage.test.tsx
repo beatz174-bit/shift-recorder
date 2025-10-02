@@ -171,7 +171,6 @@ describe('SettingsPage', () => {
   });
 
   it('prevents saving when the penalty window end precedes the start', async () => {
-    const user = userEvent.setup();
     render(<SettingsPageComponent />);
 
     await screen.findByRole('heading', { name: /settings/i });

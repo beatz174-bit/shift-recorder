@@ -135,10 +135,10 @@ export function tryNormalizeTimeInput(value: string) {
 
   try {
     return parse24HourTime(trimmed);
-  } catch (error24) {
+  } catch {
     try {
       return parse12HourTime(trimmed);
-    } catch (error12) {
+    } catch {
       return null;
     }
   }

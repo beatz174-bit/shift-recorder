@@ -34,7 +34,7 @@ function buildNotificationDetails(
   const remaining = formatDistanceStrict(now, shiftStart, { unit: 'minute' });
   return {
     title: 'Shift starting soon',
-    body: `Shift at ${timeLabel} begins in ${remaining}. Tap when you\'re ready to clock in.`,
+    body: `Shift at ${timeLabel} begins in ${remaining}. Tap when you’re ready to clock in.`,
     requireInteraction: true
   };
 }
@@ -105,7 +105,6 @@ export default function NotificationManager() {
       return;
     }
 
-    let intervalId: number | undefined;
     let isProcessing = false;
 
     const processNotifications = async () => {
@@ -153,12 +152,10 @@ export default function NotificationManager() {
     };
 
     void processNotifications();
-    intervalId = window.setInterval(processNotifications, CHECK_INTERVAL_MS);
+    const intervalId = window.setInterval(processNotifications, CHECK_INTERVAL_MS);
 
     return () => {
-      if (intervalId) {
-        window.clearInterval(intervalId);
-      }
+      window.clearInterval(intervalId);
     };
   }, [settings]);
 

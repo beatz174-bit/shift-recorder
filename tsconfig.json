@@ -12,8 +12,14 @@
     "jsx": "react-jsx",
     "types": ["vite/client", "happy-dom", "@testing-library/jest-dom"],
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@app/*": ["src/app/*"],
+      "@tax-engine": ["packages/tax-engine/src/core/index.ts"],
+      "@tax-engine/*": ["packages/tax-engine/src/*"]
+    }
   },
-  "include": ["src"],
+  "include": ["src", "packages"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

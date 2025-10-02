@@ -43,7 +43,7 @@ function computeNextShortTrigger(
 }
 
 export function buildNotificationSchedule(
-  shifts: Array<Pick<Shift, 'id' | 'startISO' | 'endISO'>>,
+  shifts: Pick<Shift, 'id' | 'startISO' | 'endISO'>[],
   settings: Settings,
   now: Date = new Date()
 ): NotificationPlanEntry[] {

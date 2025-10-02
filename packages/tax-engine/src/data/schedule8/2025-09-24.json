@@ -1,0 +1,32 @@
+{
+  "schedule": "NAT3539",
+  "effective_from": "2025-09-24",
+  "source_url": "https://www.ato.gov.au/",
+  "retrieved_at": "2025-09-24T00:00:00Z",
+  "notes": [
+    "Threshold indexation announced September 2025.",
+    "Applies to repayments for pay dates on or after 24 September 2025."
+  ],
+  "rounding": { "precision": 0.01, "mode": "half_up" },
+  "thresholds": [
+    { "minimum": 0, "rate": 0 },
+    { "minimum": 53000, "rate": 0.01 },
+    { "minimum": 61250, "rate": 0.02 },
+    { "minimum": 65750, "rate": 0.025 },
+    { "minimum": 69350, "rate": 0.03 },
+    { "minimum": 73950, "rate": 0.035 },
+    { "minimum": 77600, "rate": 0.04 },
+    { "minimum": 82350, "rate": 0.045 },
+    { "minimum": 86750, "rate": 0.05 },
+    { "minimum": 92000, "rate": 0.055 },
+    { "minimum": 97500, "rate": 0.06 },
+    { "minimum": 103350, "rate": 0.065 },
+    { "minimum": 109500, "rate": 0.07 },
+    { "minimum": 115970, "rate": 0.075 },
+    { "minimum": 122770, "rate": 0.08 },
+    { "minimum": 129920, "rate": 0.085 },
+    { "minimum": 137440, "rate": 0.09 },
+    { "minimum": 145360, "rate": 0.095 },
+    { "minimum": 153710, "rate": 0.1 }
+  ]
+}

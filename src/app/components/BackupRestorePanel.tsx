@@ -5,6 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useId,
   type FormEvent,
   type ChangeEvent,
 } from 'react';
@@ -38,6 +39,9 @@ export default function BackupRestorePanel() {
   const [settingsOnly, setSettingsOnly] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const supported = useMemo(isBackupSupported, []);
+  const settingsOnlyId = useId();
+  const settingsOnlyLabelId = `${settingsOnlyId}-label`;
+  const settingsOnlyDescriptionId = `${settingsOnlyId}-description`;
 
   const appendLogs = useCallback((entries: string[]) => {
     if (entries.length === 0) {
@@ -175,21 +179,34 @@ export default function BackupRestorePanel() {
           notification schedules. Keep the app open until the download
           finishes.
         </p>
-        <label className="flex items-start gap-3 text-sm text-neutral-700 dark:text-neutral-200">
+        <div
+          className="flex items-start gap-3 text-sm text-neutral-700 dark:text-neutral-200"
+          role="group"
+          aria-labelledby={settingsOnlyLabelId}
+          aria-describedby={settingsOnlyDescriptionId}
+        >
           <input
+            id={settingsOnlyId}
             type="checkbox"
             className="mt-1 h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary dark:border-midnight-600"
             checked={settingsOnly}
             onChange={(event) => setSettingsOnly(event.target.checked)}
+            aria-labelledby={settingsOnlyLabelId}
+            aria-describedby={settingsOnlyDescriptionId}
           />
           <span>
-            <span className="font-medium">Backup settings only</span>
-            <span className="block text-xs font-normal text-neutral-500 dark:text-neutral-400">
+            <span id={settingsOnlyLabelId} className="font-medium">
+              Backup settings only
+            </span>
+            <span
+              id={settingsOnlyDescriptionId}
+              className="block text-xs font-normal text-neutral-500 dark:text-neutral-400"
+            >
               When enabled, the archive excludes shifts but keeps your settings and
               notification schedules.
             </span>
           </span>
-        </label>
+        </div>
         <button
           type="button"
           onClick={handleExport}
