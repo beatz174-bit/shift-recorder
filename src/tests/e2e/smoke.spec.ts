@@ -148,7 +148,7 @@ test.describe('Chrona PWA UI', () => {
       name: 'Include public holidays as all-day penalty shifts'
     });
     await includeHolidaysCheckbox.check();
-    await expect(page.getByText('State or region')).toBeVisible();
+    await expect(page.getByLabel('State or region')).toBeVisible();
     await expect(page.getByText('Holiday dates are sourced from')).toBeVisible();
 
     await page.getByRole('button', { name: 'Appearance', exact: true }).click();
@@ -263,7 +263,7 @@ test.describe('Chrona PWA UI', () => {
     await importInput.setInputFiles({
       name: 'shifts-import.csv',
       mimeType: 'text/csv',
-      buffer: Buffer.from('date,start,finish,notes\n2024-03-05,07:00,09:00,Imported shift\n')
+      buffer: Buffer.from(`date,start,finish,notes\n${shiftDate},07:00,09:00,Imported shift\n`)
     });
 
     await expect(page.getByRole('heading', { name: 'Import results' })).toBeVisible();
