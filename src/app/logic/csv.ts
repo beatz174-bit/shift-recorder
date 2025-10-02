@@ -24,11 +24,31 @@ export type ShiftCsvImportRow = {
 
 const HEADER = ['date', 'start', 'finish', 'notes'] as const;
 
+const DANGEROUS_CSV_PREFIXES = new Set(['=', '+', '-', '@']);
+
 function escapeCsvValue(value: string): string {
   if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
     return `"${value.replace(/"/g, '""')}"`;
   }
   return value;
+}
+
+function sanitizeCsvValue(value: string): string {
+  if (!value) {
+    return value;
+  }
+
+  const firstChar = value[0];
+
+  if (DANGEROUS_CSV_PREFIXES.has(firstChar) || firstChar === '\t' || firstChar === '\r' || firstChar === '\n') {
+    return `'${value}`;
+  }
+
+  return value;
+}
+
+export function encodeCsvCell(value: string): string {
+  return escapeCsvValue(sanitizeCsvValue(value));
 }
 
 function normalizeHeader(value: string): string {
@@ -97,9 +117,9 @@ export function shiftsToCsv(shifts: Shift[]): string {
       format(startDate, 'yyyy-MM-dd'),
       format(startDate, 'HH:mm'),
       endDate ? format(endDate, 'HH:mm') : '',
-      shift.note?.trim() ?? ''
+      shift.note ?? ''
     ];
-    lines.push(cells.map(escapeCsvValue).join(','));
+    lines.push(cells.map(encodeCsvCell).join(','));
   });
 
   return lines.join('\n');
