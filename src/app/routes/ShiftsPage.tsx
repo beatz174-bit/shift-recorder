@@ -244,7 +244,8 @@ export default function ShiftsPage() {
 
                   const shouldHighlightSelection =
                     isSelected && (hasUserInteracted || hasShifts || isCurrentDay);
-                  const shouldHighlightToday = !shouldHighlightSelection && isCurrentDay && hasShifts;
+                  const shouldHighlightToday =
+                    !hasUserInteracted && !shouldHighlightSelection && isCurrentDay && hasShifts;
 
                   const dayNumberClasses = [
                     'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition',
@@ -253,11 +254,11 @@ export default function ShiftsPage() {
                       : inCurrentMonth
                         ? 'text-neutral-700 dark:text-neutral-100'
                         : 'text-neutral-400 dark:text-neutral-500',
-                    shouldHighlightSelection
+                    hasShifts
                       ? 'ring-2 ring-emerald-300 ring-offset-2 ring-offset-white dark:ring-emerald-400/70 dark:ring-offset-midnight-950 sm:ring-0 sm:ring-offset-0'
                       : null,
-                    hasShifts && !shouldHighlightSelection && !isCurrentDay
-                      ? 'ring-2 ring-emerald-300 ring-offset-2 ring-offset-white text-emerald-700 dark:ring-emerald-400/70 dark:ring-offset-midnight-950 dark:text-emerald-200 sm:bg-emerald-100 sm:text-emerald-800 sm:dark:bg-emerald-500/20 sm:dark:text-emerald-100 sm:dark:ring-offset-midnight-900'
+                    hasShifts && !(shouldHighlightSelection || shouldHighlightToday)
+                      ? 'text-emerald-700 dark:text-emerald-200 sm:bg-emerald-100 sm:text-emerald-800 sm:dark:bg-emerald-500/20 sm:dark:text-emerald-100 sm:dark:ring-offset-midnight-900'
                       : null
                   ]
                     .filter(Boolean)
