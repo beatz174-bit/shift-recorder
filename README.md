@@ -45,6 +45,18 @@ Unit tests focus on pay rules and schedule logic. Add Playwright tests under `sr
 
 The app uses `vite-plugin-pwa` for service worker generation. Assets in `public/` supply install icons. Run `npm run build` to generate the service worker and manifest.
 
+## Deployment
+
+The sample Nginx configuration in `deploy/nginx.conf` is tuned for static hosting and now emits the following response headers:
+
+- `Content-Security-Policy` locks scripts, styles, workers, and other active content to same-origin assets while allowing API calls to `https://date.nager.at` for the optional public-holiday lookup. If you proxy requests through a different host or rely on additional CDNs, extend the relevant directives (for example, `connect-src`).
+- `X-Content-Type-Options: nosniff` prevents MIME-type sniffing on cached resources.
+- `Referrer-Policy: no-referrer` strips outgoing referrers; tighten or relax as required by your analytics posture.
+- `Permissions-Policy` disables unused browser capabilities such as camera, microphone, geolocation, and USB access. Remove specific directives only if a custom fork needs those APIs.
+- `Strict-Transport-Security` is preconfigured with a one-year TTL. Browsers only honor it on HTTPS responses, so leave it enabled when Chrona is served over TLS and disable it if you terminate TLS elsewhere and prefer to manage HSTS upstream.
+
+Because each cache-specific `location` block overrides inherited headers, the configuration duplicates the security directives to cover `/assets/`, `/sw.js`, and the SPA fallback. If you add more locations, remember to include the same header set.
+
 ## Project structure
 
 The project follows the guidance from `AGENTS.md`. Core directories include:
