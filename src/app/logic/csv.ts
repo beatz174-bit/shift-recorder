@@ -1,4 +1,4 @@
-import { addDays, formatISO, isValid, parse } from 'date-fns';
+import { isValid, parse } from 'date-fns';
 import templateCsvContent from '../assets/shift-import-template.csv?raw';
 import type { Shift } from '../db/schema';
 
@@ -25,6 +25,22 @@ export type ShiftCsvImportRow = {
 const HEADER = ['date', 'start', 'finish', 'notes'] as const;
 
 const DANGEROUS_CSV_PREFIXES = new Set(['=', '+', '-', '@']);
+
+function isDateValid(date: Date | null): date is Date {
+  return !!date && !Number.isNaN(date.getTime());
+}
+
+function padNumber(value: number): string {
+  return value.toString().padStart(2, '0');
+}
+
+function formatUtcDate(date: Date): string {
+  return `${date.getUTCFullYear()}-${padNumber(date.getUTCMonth() + 1)}-${padNumber(date.getUTCDate())}`;
+}
+
+function formatUtcTime(date: Date): string {
+  return `${padNumber(date.getUTCHours())}:${padNumber(date.getUTCMinutes())}`;
+}
 
 function escapeCsvValue(value: string): string {
   if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
@@ -113,11 +129,10 @@ export function shiftsToCsv(shifts: Shift[]): string {
   shifts.forEach((shift) => {
     const startDate = new Date(shift.startISO);
     const endDate = shift.endISO ? new Date(shift.endISO) : null;
-    const startIsoString = Number.isNaN(startDate.getTime()) ? null : startDate.toISOString();
-    const endIsoString = endDate && !Number.isNaN(endDate.getTime()) ? endDate.toISOString() : null;
-    const startDatePart = startIsoString ? startIsoString.slice(0, 10) : '';
-    const startTimePart = startIsoString ? startIsoString.slice(11, 16) : '';
-    const endTimePart = endIsoString ? endIsoString.slice(11, 16) : '';
+    const hasValidStart = isDateValid(startDate);
+    const startDatePart = hasValidStart ? formatUtcDate(startDate) : '';
+    const startTimePart = hasValidStart ? formatUtcTime(startDate) : '';
+    const endTimePart = isDateValid(endDate) ? formatUtcTime(endDate) : '';
     const cells = [
       startDatePart,
       startTimePart,
