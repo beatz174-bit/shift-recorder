@@ -15,10 +15,7 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@app/*": ["src/app/*"],
-      "@tax-engine": ["packages/tax-engine/src/core/index.ts"],
-      "@tax-engine/*": ["packages/tax-engine/src/*"],
-      "@tax-engine/core": ["packages/tax-engine/src/core/index.ts"]
+      "@app/*": ["src/app/*"]
     }
   },
   "include": ["src", "packages"],

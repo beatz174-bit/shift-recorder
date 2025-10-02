@@ -2,10 +2,15 @@
   "name": "shift-recorder",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "packageManager": "npm@11.6.1",
   "type": "module",
   "scripts": {
+    "predev": "npm run build:tax-engine",
     "dev": "vite",
+    "prebuild": "npm run build:tax-engine",
     "build": "tsc -b && vite build",
     "preview": "vite preview --strictPort --port 5173",
     "test": "vitest run",
@@ -16,9 +21,11 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "demo": "tsx packages/tax-engine/src/cli/demo.ts",
-    "postinstall": "node ./scripts/install-playwright.mjs"
+    "build:tax-engine": "npm run build --workspace=@tax-engine/core",
+    "postinstall": "node ./scripts/install-playwright.mjs && npm run build:tax-engine"
   },
   "dependencies": {
+    "@tax-engine/core": "workspace:*",
     "@gera2ld/tarjs": "^0.3.1",
     "@heroicons/react": "2.1.5",
     "@tanstack/react-query": "5.62.7",

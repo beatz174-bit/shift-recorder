@@ -7,10 +7,6 @@ import path from 'node:path';
 const projectRootDir = fileURLToPath(new URL('.', import.meta.url));
 const resolveFromRoot = (relativePath: string) =>
   path.resolve(projectRootDir, relativePath);
-const toPosixPath = (p: string) => p.replace(/\\/g, '/');
-const taxEngineFsRoot = resolveFromRoot('packages/tax-engine/src');
-const taxEngineRoot = toPosixPath(taxEngineFsRoot);
-
 export default defineConfig({
   plugins: [
     react(),
@@ -54,10 +50,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: [
-      { find: '@app', replacement: resolveFromRoot('src/app') },
-      { find: '@tax-engine/core', replacement: `${taxEngineRoot}/core/index.ts` },
-      { find: '@tax-engine', replacement: taxEngineRoot },
-      { find: /^@tax-engine\/(.+)$/, replacement: `${taxEngineRoot}/$1` }
+      { find: '@app', replacement: resolveFromRoot('src/app') }
     ]
   },
   test: {
