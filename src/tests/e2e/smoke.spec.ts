@@ -152,23 +152,25 @@ test.describe('Chrona PWA UI', () => {
     await expect(page.getByText('Holiday dates are sourced from')).toBeVisible();
 
     await page.getByRole('button', { name: 'Appearance', exact: true }).click();
-    await expect(page.getByText('Theme')).toBeVisible();
-    await expect(page.getByText('System')).toBeVisible();
-    await expect(page.getByText('Light')).toBeVisible();
-    await expect(page.getByText('Dark')).toBeVisible();
-    await expect(page.getByText('Time format')).toBeVisible();
-    await expect(page.getByText('Use 24-hour clock')).toBeVisible();
+    const themeLegend = page.locator('legend', { hasText: 'Theme' });
+    await expect(themeLegend).toBeVisible();
+    for (const label of ['System', 'Light', 'Dark']) {
+      await expect(page.getByRole('radio', { name: label })).toBeVisible();
+    }
+    await expect(page.getByText('Time format', { exact: true })).toBeVisible();
+    await expect(page.getByRole('checkbox', { name: 'Use 24-hour clock' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Data & backup', exact: true }).click();
-    const dataSection = page.locator('div').filter({ hasText: 'Import & export shifts' });
-    await expect(dataSection).toBeVisible();
-    const dataTabs = dataSection.getByRole('button');
-    await expect(dataTabs.filter({ hasText: 'Import & export' })).toBeVisible();
-    await expect(dataTabs.filter({ hasText: 'Backup & restore' })).toBeVisible();
-    await expect(dataSection.getByRole('heading', { level: 3, name: 'Import & export shifts' })).toBeVisible();
+    const importTabButton = page.getByRole('button', { name: 'Import & export', exact: true });
+    const backupTabButton = page.getByRole('button', { name: 'Backup & restore', exact: true });
+    await expect(importTabButton).toBeVisible();
+    await expect(backupTabButton).toBeVisible();
+    const dataSectionHeading = page.getByRole('heading', { level: 3, name: 'Import & export shifts' });
+    await expect(dataSectionHeading).toBeVisible();
+    const dataSection = dataSectionHeading.locator('..');
     await expect(dataSection.getByText(/Download a CSV of your shifts/i)).toBeVisible();
 
-    await dataTabs.filter({ hasText: 'Backup & restore' }).click();
+    await backupTabButton.click();
     await expect(page.getByRole('heading', { level: 3, name: 'Backup & restore' })).toBeVisible();
     await expect(page.getByText(/Create a full Chrona backup/i)).toBeVisible();
   });
@@ -207,7 +209,8 @@ test.describe('Chrona PWA UI', () => {
     await expect(baseHoursCard.locator('p').nth(1)).toHaveText('8.50');
     await expect(penaltyHoursCard.locator('p').nth(1)).toHaveText('0.00');
     await expect(totalPayCard.locator('p').nth(1)).toContainText('212.50');
-    await expect(page.getByText(/Chrona has logged 8\.50 hours this week so far/i)).toBeVisible();
+    const summaryInsight = page.getByText(/Chrona has logged/i);
+    await expect(summaryInsight).toContainText('8.50 hours this week so far');
 
     await page.getByRole('link', { name: 'Shifts' }).click();
     await expect(page).toHaveURL(/\/shifts$/);
@@ -246,7 +249,14 @@ test.describe('Chrona PWA UI', () => {
 
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('button', { name: 'Data & backup', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Import & export', exact: true })).toBeVisible();
+    const importTab = page.getByRole('button', { name: 'Import & export', exact: true });
+    const backupTab = page.getByRole('button', { name: 'Backup & restore', exact: true });
+    await expect(importTab).toBeVisible();
+    await expect(backupTab).toBeVisible();
+    const dataSectionHeading = page.getByRole('heading', { level: 3, name: 'Import & export shifts' });
+    await expect(dataSectionHeading).toBeVisible();
+    const dataSection = dataSectionHeading.locator('..');
+    await expect(dataSection.getByText(/Download a CSV of your shifts/i)).toBeVisible();
 
     const csvDownloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Download all shifts (CSV)' }).click();
@@ -270,7 +280,18 @@ test.describe('Chrona PWA UI', () => {
     await expect(page.getByText('Imported 1 of 1 row.')).toBeVisible();
     await expect(page.getByText('Imported successfully')).toBeVisible();
 
-    await page.getByRole('button', { name: 'Backup & restore' }).click();
+    await page.getByRole('link', { name: 'Summary' }).click();
+    await expect(baseHoursCard.locator('p').nth(1)).toHaveText('10.50');
+    await expect(summaryInsight).toContainText('10.50 hours this week so far');
+    await expect(totalPayCard.locator('p').nth(1)).toContainText('420.00');
+
+    await page.getByRole('link', { name: 'Settings' }).click();
+    await expect(page).toHaveURL(/\/settings$/);
+    await page.getByRole('button', { name: 'Data & backup', exact: true }).click();
+    const backupTabReturn = page.getByRole('button', { name: 'Backup & restore', exact: true });
+    await expect(backupTabReturn).toBeVisible();
+
+    await backupTabReturn.click();
     const settingsOnlyCheckbox = page.getByRole('checkbox', { name: 'Backup settings only' });
     if (!(await settingsOnlyCheckbox.isChecked())) {
       await settingsOnlyCheckbox.check();
@@ -295,7 +316,7 @@ test.describe('Chrona PWA UI', () => {
     await expect(page.getByText('Backup restored successfully.')).toBeVisible();
 
     await page.getByRole('link', { name: 'Summary' }).click();
-    await expect(page.getByText(/10\.50 hours this week so far/i)).toBeVisible();
-    await expect(totalPayCard).toContainText('420.00');
+    await expect(summaryInsight).toContainText('0.00 hours this week so far');
+    await expect(totalPayCard.locator('p').nth(1)).toContainText('0.00');
   });
 });
