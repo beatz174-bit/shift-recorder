@@ -19,21 +19,22 @@ export type ShiftPayBreakdown = {
   endISO: string;
   baseMinutes: number;
   penaltyMinutes: number;
-  baseHours: number;
-  penaltyHours: number;
-  totalHours: number;
+  totalMinutes: number;
   basePay: number;
   penaltyPay: number;
   totalPay: number;
   segments: ReturnType<typeof splitIntoDailySegments>;
 };
 
-function roundHours(minutes: number) {
-  return Number((minutes / 60).toFixed(4));
-}
+function calculatePayCents(minutes: number, hourlyRateCents: number): number {
+  if (minutes <= 0 || hourlyRateCents <= 0) {
+    return 0;
+  }
 
-function roundCurrency(amount: number) {
-  return Number(amount.toFixed(2));
+  const total = BigInt(minutes) * BigInt(hourlyRateCents);
+  const quotient = total / 60n;
+  const remainder = total % 60n;
+  return Number(remainder >= 30n ? quotient + 1n : quotient);
 }
 
 export function computePayForShift({
@@ -55,6 +56,10 @@ export function computePayForShift({
     throw new Error('Invalid ISO date provided');
   }
 
+  if (end.getTime() <= start.getTime()) {
+    throw new Error('Shift end must be after start');
+  }
+
   const segments = splitIntoDailySegments(start, end, {
     penaltyDailyWindowEnabled,
     penaltyDailyStartMinute,
@@ -68,22 +73,16 @@ export function computePayForShift({
   const penaltyMinutes = segments.reduce((total, segment) => total + segment.minutesPenalty, 0);
   const totalMinutes = baseMinutes + penaltyMinutes;
 
-  const baseHours = roundHours(baseMinutes);
-  const penaltyHours = roundHours(penaltyMinutes);
-  const totalHours = roundHours(totalMinutes);
-
-  const basePay = roundCurrency((baseMinutes / 60) * baseRate);
-  const penaltyPay = roundCurrency((penaltyMinutes / 60) * penaltyRate);
-  const totalPay = roundCurrency(basePay + penaltyPay);
+  const basePay = calculatePayCents(baseMinutes, baseRate);
+  const penaltyPay = calculatePayCents(penaltyMinutes, penaltyRate);
+  const totalPay = basePay + penaltyPay;
 
   return {
     startISO: formatISO(start),
     endISO: formatISO(end),
     baseMinutes,
     penaltyMinutes,
-    baseHours,
-    penaltyHours,
-    totalHours,
+    totalMinutes,
     basePay,
     penaltyPay,
     totalPay,

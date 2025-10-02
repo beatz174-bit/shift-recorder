@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { computePayForShift } from '../../app/logic/payRules';
 
-const BASE_RATE = 25;
-const PENALTY_RATE = 35;
+const BASE_RATE = 2500;
+const PENALTY_RATE = 3500;
 const DEFAULT_CONFIG = {
   penaltyDailyWindowEnabled: true,
   penaltyDailyStartMinute: 0,
@@ -84,12 +84,9 @@ describe('computePayForShift', () => {
 
     expect(result.penaltyMinutes).toBe(90);
     expect(result.baseMinutes).toBe(60);
-    expect(result.penaltyHours).toBeCloseTo(1.5, 4);
-    expect(result.baseHours).toBeCloseTo(1, 4);
-    expect(result.totalHours).toBeCloseTo(2.5, 4);
-    expect(result.penaltyPay).toBeCloseTo(52.5, 2);
-    expect(result.basePay).toBeCloseTo(25, 2);
-    expect(result.totalPay).toBe(result.basePay + result.penaltyPay);
+    expect(result.penaltyPay).toBe(5250);
+    expect(result.basePay).toBe(2500);
+    expect(result.totalPay).toBe(7750);
   });
 
   it('rounds short base-only shifts to expected precision', () => {
@@ -97,10 +94,8 @@ describe('computePayForShift', () => {
 
     expect(result.penaltyMinutes).toBe(0);
     expect(result.baseMinutes).toBe(1);
-    expect(result.baseHours).toBeCloseTo(0.0167, 4);
-    expect(result.totalHours).toBeCloseTo(0.0167, 4);
-    expect(result.basePay).toBeCloseTo(0.42, 2);
-    expect(result.totalPay).toBeCloseTo(0.42, 2);
+    expect(result.basePay).toBe(42);
+    expect(result.totalPay).toBe(42);
   });
 
   it('treats configured weekdays as all-day penalty periods', () => {
@@ -110,7 +105,7 @@ describe('computePayForShift', () => {
 
     expect(result.penaltyMinutes).toBe(120);
     expect(result.baseMinutes).toBe(0);
-    expect(result.penaltyPay).toBeCloseTo(70, 2);
+    expect(result.penaltyPay).toBe(7000);
     expect(result.basePay).toBe(0);
     expect(result.totalPay).toBe(result.penaltyPay);
   });

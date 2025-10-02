@@ -9,7 +9,7 @@ import {
 } from './schema';
 import { rebuildNotificationSchedules } from './notifications';
 
-const BACKUP_SCHEMA_VERSION = 1;
+const BACKUP_SCHEMA_VERSION = 2;
 
 const DEFAULT_MAX_ARCHIVE_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
 const DEFAULT_MAX_UNZIPPED_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
@@ -151,7 +151,26 @@ function sanitizeNotificationSchedule(
   } satisfies NotificationSchedule;
 }
 
-function sanitizeShift(record: Record<string, unknown>): Shift {
+function normalizeCurrencyValue(
+  value: unknown,
+  field: keyof Shift,
+  treatIntegersAsDollars: boolean
+): number {
+  assert(
+    typeof value === 'number' && Number.isFinite(value),
+    `Shift has invalid ${String(field)}`
+  );
+  const numericValue = value as number;
+  if (!Number.isInteger(numericValue) || treatIntegersAsDollars) {
+    return Math.max(0, Math.round(numericValue * 100));
+  }
+  return Math.max(0, Math.round(numericValue));
+}
+
+function sanitizeShift(
+  record: Record<string, unknown>,
+  { legacyCurrency = false }: { legacyCurrency?: boolean } = {}
+): Shift {
   assert(typeof record.id === 'string' && record.id, 'Shift is missing id');
   assert(typeof record.startISO === 'string', 'Shift is missing startISO');
   assert(
@@ -168,22 +187,23 @@ function sanitizeShift(record: Record<string, unknown>): Shift {
       'Shift has invalid endISO format'
     );
   }
-  const numericFields: Array<[keyof Shift, unknown]> = [
-    ['baseMinutes', record.baseMinutes],
-    ['penaltyMinutes', record.penaltyMinutes],
-    ['basePay', record.basePay],
-    ['penaltyPay', record.penaltyPay],
-    ['totalPay', record.totalPay],
-  ];
-  numericFields.forEach(([field, value]) => {
-    assert(
-      typeof value === 'number' && Number.isFinite(value),
-      `Shift has invalid ${String(field)}`
-    );
-  });
+  assert(
+    typeof record.baseMinutes === 'number' && Number.isFinite(record.baseMinutes),
+    'Shift has invalid baseMinutes'
+  );
+  assert(
+    typeof record.penaltyMinutes === 'number' && Number.isFinite(record.penaltyMinutes),
+    'Shift has invalid penaltyMinutes'
+  );
   assert(typeof record.weekKey === 'string', 'Shift is missing weekKey');
   assert(typeof record.createdAt === 'string', 'Shift is missing createdAt');
   assert(typeof record.updatedAt === 'string', 'Shift is missing updatedAt');
+
+  const baseMinutes = Math.max(0, Math.round(record.baseMinutes as number));
+  const penaltyMinutes = Math.max(0, Math.round(record.penaltyMinutes as number));
+  const basePay = normalizeCurrencyValue(record.basePay, 'basePay', legacyCurrency);
+  const penaltyPay = normalizeCurrencyValue(record.penaltyPay, 'penaltyPay', legacyCurrency);
+  const totalPay = normalizeCurrencyValue(record.totalPay, 'totalPay', legacyCurrency);
 
   return {
     id: record.id as string,
@@ -191,11 +211,11 @@ function sanitizeShift(record: Record<string, unknown>): Shift {
     endISO: (record.endISO === null || typeof record.endISO === 'string'
       ? record.endISO
       : null) as string | null,
-    baseMinutes: record.baseMinutes as number,
-    penaltyMinutes: record.penaltyMinutes as number,
-    basePay: record.basePay as number,
-    penaltyPay: record.penaltyPay as number,
-    totalPay: record.totalPay as number,
+    baseMinutes,
+    penaltyMinutes,
+    basePay,
+    penaltyPay,
+    totalPay,
     weekKey: record.weekKey as string,
     createdAt: record.createdAt as string,
     updatedAt: record.updatedAt as string,
@@ -353,7 +373,8 @@ export async function restoreBackupArchive(
     throw new Error(`Invalid meta.json: ${(error as Error).message}`);
   }
 
-  if (meta.schemaVersion !== BACKUP_SCHEMA_VERSION) {
+  const isLegacySchema = meta.schemaVersion === 1;
+  if (!isLegacySchema && meta.schemaVersion !== BACKUP_SCHEMA_VERSION) {
     throw new Error(`Unsupported backup schema version: ${meta.schemaVersion}`);
   }
 
@@ -366,8 +387,25 @@ export async function restoreBackupArchive(
     throw new Error(`Invalid settings.json: ${(error as Error).message}`);
   }
 
+  const settingsPayload = (() => {
+    if (!rawSettings || typeof rawSettings !== 'object') {
+      return rawSettings;
+    }
+    if (!isLegacySchema) {
+      return rawSettings;
+    }
+    const mutable = { ...(rawSettings as Record<string, unknown>) };
+    if (typeof mutable.baseRate === 'number') {
+      mutable.baseRate = Math.round(mutable.baseRate * 100);
+    }
+    if (typeof mutable.penaltyRate === 'number') {
+      mutable.penaltyRate = Math.round(mutable.penaltyRate * 100);
+    }
+    return mutable;
+  })();
+
   const settings = applySettingsDefaults(
-    rawSettings as Partial<Settings> | undefined
+    settingsPayload as Partial<Settings> | undefined
   );
   logs.push('Settings validated.');
 
@@ -379,7 +417,9 @@ export async function restoreBackupArchive(
   }
 
   assert(Array.isArray(rawShifts), 'shifts.json must contain an array');
-  const shifts = (rawShifts as Record<string, unknown>[]).map(sanitizeShift);
+  const shifts = (rawShifts as Record<string, unknown>[]).map((record) =>
+    sanitizeShift(record, { legacyCurrency: isLegacySchema })
+  );
   logs.push(
     `Validated ${shifts.length} shift${shifts.length === 1 ? '' : 's'}.`
   );
