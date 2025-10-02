@@ -23,8 +23,8 @@ const RESTORE_TIME = '2024-05-01T13:00:00.000Z';
 function buildSettings(): Settings {
   return applySettingsDefaults({
     ...DEFAULT_SETTINGS,
-    baseRate: 30,
-    penaltyRate: 40,
+    baseRate: 3000,
+    penaltyRate: 4000,
     createdAt: BASE_TIME,
     updatedAt: BASE_TIME,
   });
@@ -37,9 +37,9 @@ function buildShift(): Shift {
     endISO: '2024-05-02T17:00:00.000Z',
     baseMinutes: 8 * 60,
     penaltyMinutes: 0,
-    basePay: 240,
+    basePay: 24000,
     penaltyPay: 0,
-    totalPay: 240,
+    totalPay: 24000,
     weekKey: '2024-W18',
     createdAt: BASE_TIME,
     updatedAt: BASE_TIME,
@@ -110,7 +110,7 @@ describe('backup archive', () => {
       'shifts.json',
     ]);
     expect(meta).toEqual({
-      schemaVersion: 1,
+      schemaVersion: 2,
       exportedAt: EXPORT_TIME,
       shiftCount: 1,
       notificationCount: 1,
@@ -145,7 +145,7 @@ describe('backup archive', () => {
     expect(shifts).toEqual([]);
     expect(notifications).toEqual([buildNotification()]);
     expect(meta).toEqual({
-      schemaVersion: 1,
+      schemaVersion: 2,
       exportedAt: EXPORT_TIME,
       shiftCount: 0,
       notificationCount: 1,
@@ -208,8 +208,8 @@ describe('backup archive', () => {
         await db.settings.put(
           applySettingsDefaults({
             ...DEFAULT_SETTINGS,
-            baseRate: 99,
-            penaltyRate: 99,
+            baseRate: 9900,
+            penaltyRate: 9900,
             createdAt: '2024-06-01T00:00:00.000Z',
             updatedAt: '2024-06-01T00:00:00.000Z',
           })
@@ -230,8 +230,8 @@ describe('backup archive', () => {
     const shifts = await db.shifts.toArray();
     const schedules = await db.notificationSchedules.toArray();
 
-    expect(settings?.baseRate).toBe(30);
-    expect(settings?.penaltyRate).toBe(40);
+    expect(settings?.baseRate).toBe(3000);
+    expect(settings?.penaltyRate).toBe(4000);
     expect(shifts).toHaveLength(1);
     expect(shifts[0]?.id).toBe('shift-1');
     expect(schedules.length).toBeGreaterThanOrEqual(1);
@@ -280,7 +280,7 @@ describe('backup archive', () => {
     const shiftCount = await db.shifts.count();
     const scheduleCount = await db.notificationSchedules.count();
 
-    expect(settings?.baseRate).toBe(30);
+    expect(settings?.baseRate).toBe(3000);
     expect(shiftCount).toBe(1);
     expect(scheduleCount).toBe(1);
   });

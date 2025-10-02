@@ -206,11 +206,11 @@ test.describe('Chrona PWA UI', () => {
     }).first();
 
     await expect(page.getByText(/Chrona hasn't recorded any shifts for this week yet/i)).toBeHidden();
-    await expect(baseHoursCard.locator('p').nth(1)).toHaveText('8.50');
-    await expect(penaltyHoursCard.locator('p').nth(1)).toHaveText('0.00');
+    await expect(baseHoursCard.locator('p').nth(1)).toHaveText('8h 30m');
+    await expect(penaltyHoursCard.locator('p').nth(1)).toHaveText('0h 0m');
     await expect(totalPayCard.locator('p').nth(1)).toContainText('212.50');
     const summaryInsight = page.getByText(/Chrona has logged/i);
-    await expect(summaryInsight).toContainText('8.50 hours this week so far');
+    await expect(summaryInsight).toContainText('8h 30m this week so far');
 
     await page.getByRole('link', { name: 'Shifts' }).click();
     await expect(page).toHaveURL(/\/shifts$/);
@@ -236,7 +236,7 @@ test.describe('Chrona PWA UI', () => {
     await expect(page.getByText('Settings saved')).toBeVisible();
 
     await page.getByRole('link', { name: 'Summary' }).click();
-    await expect(baseHoursCard.locator('p').nth(1)).toHaveText('8.50');
+    await expect(baseHoursCard.locator('p').nth(1)).toHaveText('8h 30m');
     await expect(totalPayCard.locator('p').nth(1)).toContainText('340.00');
 
     await addShiftButton.click();
@@ -310,8 +310,8 @@ test.describe('Chrona PWA UI', () => {
     await expect(failedStat.locator('span').nth(1)).toHaveText('0');
 
     await page.getByRole('link', { name: 'Summary' }).click();
-    await expect(baseHoursCard.locator('p').nth(1)).toHaveText('10.50');
-    await expect(summaryInsight).toContainText('10.50 hours this week so far');
+    await expect(baseHoursCard.locator('p').nth(1)).toHaveText('10h 30m');
+    await expect(summaryInsight).toContainText('10h 30m this week so far');
     await expect(totalPayCard.locator('p').nth(1)).toContainText('420.00');
 
     await page.getByRole('link', { name: 'Settings' }).click();
@@ -344,7 +344,7 @@ test.describe('Chrona PWA UI', () => {
     await expect(page.getByText('Backup restored successfully.')).toBeVisible();
 
     await page.getByRole('link', { name: 'Summary' }).click();
-    await expect(summaryInsight).toContainText('0.00 hours this week so far');
+    await expect(summaryInsight).toContainText('0h 0m this week so far');
     await expect(totalPayCard.locator('p').nth(1)).toContainText('0.00');
   });
 });

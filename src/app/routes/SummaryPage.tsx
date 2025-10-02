@@ -5,6 +5,7 @@ import ShiftCard from '../components/ShiftCard';
 import { getShiftsForWeek } from '../db/repo';
 import { usePayWeekStart, useSettings } from '../state/SettingsContext';
 import { getWeekKey, getWeekRangeForDate, type WeekRange } from '../logic/week';
+import { formatMinutesDuration } from '../utils/format';
 
 function useWeekNavigation(): [WeekRange, () => void, () => void] {
   const weekStartsOn = usePayWeekStart();
@@ -66,22 +67,26 @@ export default function SummaryPage() {
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-midnight-800 dark:bg-midnight-900 sm:p-5">
           <p className="text-[10px] uppercase tracking-wide text-neutral-500 sm:text-xs">Base hours</p>
-          <p className="text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50 sm:text-3xl">{(totals.baseMinutes / 60).toFixed(2)}</p>
+          <p className="text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50 sm:text-3xl">
+            {formatMinutesDuration(totals.baseMinutes)}
+          </p>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-midnight-800 dark:bg-midnight-900 sm:p-5">
           <p className="text-[10px] uppercase tracking-wide text-neutral-500 sm:text-xs">Penalty hours</p>
-          <p className="text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50 sm:text-3xl">{(totals.penaltyMinutes / 60).toFixed(2)}</p>
+          <p className="text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50 sm:text-3xl">
+            {formatMinutesDuration(totals.penaltyMinutes)}
+          </p>
         </div>
         <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-midnight-800 dark:bg-midnight-900 sm:p-5">
           <p className="text-[10px] uppercase tracking-wide text-neutral-500 sm:text-xs">Total pay</p>
           <p className="text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50 sm:text-3xl">
-            {currencyFormatter.format(totalPay)}
+            {currencyFormatter.format(totalPay / 100)}
           </p>
         </div>
       </div>
       <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-100 p-4 text-sm text-neutral-600 dark:border-midnight-700 dark:bg-midnight-900/50 dark:text-neutral-200">
         <p>
-          Chrona has logged {(totalMinutes / 60).toFixed(2)} hours this week so far—keep an eye on the penalty windows to stay ahead.
+          Chrona has logged {formatMinutesDuration(totalMinutes)} this week so far—keep an eye on the penalty windows to stay ahead.
         </p>
       </div>
       <div className="flex flex-col gap-4">

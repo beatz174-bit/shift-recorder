@@ -150,8 +150,8 @@ describe('SettingsPage', () => {
     await waitFor(() => expect(updateSettingsSpy).toHaveBeenCalledTimes(1));
     const payload = updateSettingsSpy.mock.calls[0][0];
     expect(payload).toEqual({
-      baseRate: 30,
-      penaltyRate: 40,
+      baseRate: 3000,
+      penaltyRate: 4000,
       weekStartsOn: 0,
       currency: 'EUR',
       theme: 'dark',

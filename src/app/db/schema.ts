@@ -64,8 +64,8 @@ export type NotificationSchedule = {
 
 export const DEFAULT_SETTINGS: Settings = {
   id: 'singleton',
-  baseRate: 25,
-  penaltyRate: 35,
+  baseRate: 2500,
+  penaltyRate: 3500,
   weekStartsOn: 1,
   currency: 'USD',
   theme: 'system',
@@ -158,6 +158,16 @@ function sanitizeNotificationMinutes(
   return Math.floor(value);
 }
 
+function sanitizeRateCents(value: unknown, fallback: number): number {
+  if (typeof value !== 'number' || Number.isNaN(value) || !Number.isFinite(value)) {
+    return fallback;
+  }
+  if (!Number.isInteger(value)) {
+    return Math.max(0, Math.round(value * 100));
+  }
+  return Math.max(0, Math.round(value));
+}
+
 export function applySettingsDefaults(partial: Partial<Settings> | undefined): Settings {
   const base = partial ?? {};
   const penaltyDailyWindowEnabled = Boolean(
@@ -204,8 +214,8 @@ export function applySettingsDefaults(partial: Partial<Settings> | undefined): S
 
   return {
     id: 'singleton',
-    baseRate: typeof base.baseRate === 'number' ? base.baseRate : DEFAULT_SETTINGS.baseRate,
-    penaltyRate: typeof base.penaltyRate === 'number' ? base.penaltyRate : DEFAULT_SETTINGS.penaltyRate,
+    baseRate: sanitizeRateCents(base.baseRate, DEFAULT_SETTINGS.baseRate),
+    penaltyRate: sanitizeRateCents(base.penaltyRate, DEFAULT_SETTINGS.penaltyRate),
     weekStartsOn: (typeof base.weekStartsOn === 'number' ? base.weekStartsOn : DEFAULT_SETTINGS.weekStartsOn) as WeekStart,
     currency: typeof base.currency === 'string' && base.currency.trim() ? base.currency : DEFAULT_SETTINGS.currency,
     theme: sanitizeTheme(base.theme ?? DEFAULT_SETTINGS.theme),
@@ -242,6 +252,50 @@ export class ShiftRecorderDB extends Dexie {
       settings: 'id',
       notificationSchedules: 'id, shiftId, type, nextTriggerISO'
     });
+    this.version(3)
+      .stores({
+        shifts: 'id, weekKey, startISO, endISO',
+        settings: 'id',
+        notificationSchedules: 'id, shiftId, type, nextTriggerISO'
+      })
+      .upgrade(async (transaction) => {
+        const settingsTable = transaction.table('settings');
+        await settingsTable.toCollection().modify((record) => {
+          if (typeof record.baseRate === 'number') {
+            const raw = record.baseRate;
+            let rate = raw;
+            if (!Number.isInteger(raw) || raw < 1000) {
+              rate = Math.round(raw * 100);
+            }
+            record.baseRate = rate < 0 ? 0 : rate;
+          }
+          if (typeof record.penaltyRate === 'number') {
+            const raw = record.penaltyRate;
+            let rate = raw;
+            if (!Number.isInteger(raw) || raw < 1000) {
+              rate = Math.round(raw * 100);
+            }
+            record.penaltyRate = rate < 0 ? 0 : rate;
+          }
+        });
+
+        const shiftsTable = transaction.table('shifts');
+        await shiftsTable.toCollection().modify((record) => {
+          (['basePay', 'penaltyPay', 'totalPay'] as const).forEach((field) => {
+            const value = record[field];
+            if (typeof value === 'number') {
+              let cents = value;
+              if (!Number.isInteger(value) || value < 0) {
+                cents = Math.round(value * 100);
+              }
+              if (cents < 0) {
+                cents = 0;
+              }
+              record[field] = cents < 0 ? 0 : cents;
+            }
+          });
+        });
+      });
   }
 }
 

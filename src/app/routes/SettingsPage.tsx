@@ -6,7 +6,7 @@ import {
   type FormEvent,
 } from 'react';
 import { useSettings } from '../state/SettingsContext';
-import type { ThemePreference, WeekStart, Weekday } from '../db/schema';
+import { DEFAULT_SETTINGS, type ThemePreference, type WeekStart, type Weekday } from '../db/schema';
 import {
   fetchPublicHolidays,
   fetchPublicHolidayRegions,
@@ -156,6 +156,22 @@ export function timeToMinutes(value: string): number {
   return Math.max(0, Math.min(totalMinutes, 24 * 60));
 }
 
+function formatRateInput(rateCents: number): string {
+  return (Math.max(0, rateCents) / 100).toFixed(2);
+}
+
+function parseRateInput(value: string, fallbackCents: number): number {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return Math.max(0, Math.round(fallbackCents));
+  }
+  const parsed = Number.parseFloat(trimmed);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return Math.max(0, Math.round(fallbackCents));
+  }
+  return Math.max(0, Math.round(parsed * 100));
+}
+
 export default function SettingsPage() {
   const { settings, updateSettings, isLoading, error } = useSettings();
   const [activeTab, setActiveTab] = useState<SettingsTabId>('general');
@@ -172,9 +188,11 @@ export default function SettingsPage() {
     whiteSpace: 'nowrap',
     border: 0,
   };
-  const [baseRate, setBaseRate] = useState(() => settings?.baseRate ?? 25);
-  const [penaltyRate, setPenaltyRate] = useState(
-    () => settings?.penaltyRate ?? 35
+  const [baseRate, setBaseRate] = useState(() =>
+    formatRateInput(settings?.baseRate ?? DEFAULT_SETTINGS.baseRate)
+  );
+  const [penaltyRate, setPenaltyRate] = useState(() =>
+    formatRateInput(settings?.penaltyRate ?? DEFAULT_SETTINGS.penaltyRate)
   );
   const [weekStartsOn, setWeekStartsOn] = useState<WeekStart>(
     () => settings?.weekStartsOn ?? 1
@@ -230,8 +248,8 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (settings) {
-      setBaseRate(settings.baseRate);
-      setPenaltyRate(settings.penaltyRate);
+      setBaseRate(formatRateInput(settings.baseRate));
+      setPenaltyRate(formatRateInput(settings.penaltyRate));
       setWeekStartsOn(settings.weekStartsOn);
       setCurrency(settings.currency);
       setTheme(settings.theme ?? 'system');
@@ -402,8 +420,11 @@ export default function SettingsPage() {
 
     try {
       await updateSettings({
-        baseRate: Number(baseRate),
-        penaltyRate: Number(penaltyRate),
+        baseRate: parseRateInput(baseRate, settings?.baseRate ?? DEFAULT_SETTINGS.baseRate),
+        penaltyRate: parseRateInput(
+          penaltyRate,
+          settings?.penaltyRate ?? DEFAULT_SETTINGS.penaltyRate
+        ),
         weekStartsOn,
         currency,
         theme,
@@ -774,7 +795,7 @@ export default function SettingsPage() {
                     min="0"
                     step="0.01"
                     value={baseRate}
-                    onChange={(event) => setBaseRate(Number(event.target.value))}
+                    onChange={(event) => setBaseRate(event.target.value)}
                     className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
                   />
                 </div>
@@ -785,7 +806,7 @@ export default function SettingsPage() {
                     min="0"
                     step="0.01"
                     value={penaltyRate}
-                    onChange={(event) => setPenaltyRate(Number(event.target.value))}
+                    onChange={(event) => setPenaltyRate(event.target.value)}
                     className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
                   />
                 </div>

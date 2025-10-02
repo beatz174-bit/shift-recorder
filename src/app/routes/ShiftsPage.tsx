@@ -24,6 +24,7 @@ import { deleteShift, getAllShifts, updateShift } from '../db/repo';
 import type { Shift, WeekStart } from '../db/schema';
 import { useSettings } from '../state/SettingsContext';
 import { useDateTimeFormatter, useTimeFormatter } from '../state/useTimeFormatter';
+import { formatMinutesDuration } from '../utils/format';
 
 function ShiftSummaryCard({
   shift,
@@ -39,7 +40,7 @@ function ShiftSummaryCard({
   const startDate = new Date(shift.startISO);
   const endDate = shift.endISO ? new Date(shift.endISO) : null;
   const upcoming = endDate ? endDate >= now : startDate >= now;
-  const totalHours = ((shift.baseMinutes + shift.penaltyMinutes) / 60).toFixed(2);
+  const totalDuration = formatMinutesDuration(shift.baseMinutes + shift.penaltyMinutes);
   const shiftClasses = upcoming
     ? 'border-emerald-200 bg-emerald-100/80 text-emerald-900 dark:border-emerald-500/40 dark:bg-emerald-500/20 dark:text-emerald-100'
     : 'border-neutral-200 bg-neutral-100/80 text-neutral-700 dark:border-midnight-700 dark:bg-midnight-800/70 dark:text-neutral-200';
@@ -63,7 +64,7 @@ function ShiftSummaryCard({
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-col">
           <span className="text-sm font-semibold">{timeFormatter.format(startDate)}</span>
-          <span className="text-[0.65rem] opacity-80">{totalHours}h</span>
+          <span className="text-[0.65rem] opacity-80">{totalDuration}</span>
         </div>
       </div>
     </article>
@@ -373,9 +374,9 @@ export default function ShiftsPage() {
                   <span>Ends {dateTimeFormatter.format(new Date(selectedShift.endISO))}</span>
                 )}
                 <span>
-                  Base: {(selectedShift.baseMinutes / 60).toFixed(2)}h · Penalty: {(selectedShift.penaltyMinutes / 60).toFixed(2)}h
+                  Base: {formatMinutesDuration(selectedShift.baseMinutes)} · Penalty: {formatMinutesDuration(selectedShift.penaltyMinutes)}
                 </span>
-                <span>Total pay: {currencyFormatter.format(selectedShift.totalPay)}</span>
+                <span>Total pay: {currencyFormatter.format(selectedShift.totalPay / 100)}</span>
               </div>
               <button
                 type="button"
