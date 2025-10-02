@@ -1,40 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSettings } from './SettingsContext';
+import { db } from '../db/schema';
+import { advanceSchedule, buildNotificationDetails } from '../notifications/scheduling';
 import { NOTIFICATION_TRIGGER_MESSAGE, PERIODIC_SYNC_TAG } from '../notifications/constants';
+import type { NotificationSchedule } from '../db/schema';
+import { useSettings } from './SettingsContext';
 
 const CHECK_INTERVAL_MS = 60_000;
 
-function formatShiftTime(date: Date, use24HourTime: boolean): string {
-  return new Intl.DateTimeFormat(undefined, {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: !use24HourTime,
-    hourCycle: use24HourTime ? 'h23' : 'h12'
-  }).format(date);
+function loadDueSchedules(now: Date): Promise<NotificationSchedule[]> {
+  const nowISO = now.toISOString();
+  return db.notificationSchedules.where('nextTriggerISO').belowOrEqual(nowISO).toArray();
 }
 
-function buildNotificationDetails(
-  schedule: NotificationSchedule,
-  settings: Settings,
-  now: Date
-): { title: string; body: string; requireInteraction: boolean } {
-  const shiftStart = new Date(schedule.shiftStartISO);
-  const timeLabel = formatShiftTime(shiftStart, settings.use24HourTime);
-
-  if (schedule.type === 'long-range') {
-    const lead = formatDistanceStrict(now, shiftStart, { unit: 'minute' });
-    return {
-      title: 'Upcoming shift reminder',
-      body: `Shift at ${timeLabel} starts in ${lead}.`,
-      requireInteraction: false
-    };
-  }
-
-  const remaining = formatDistanceStrict(now, shiftStart, { unit: 'minute' });
-  return {
-    title: 'Shift starting soon',
-    body: `Shift at ${timeLabel} begins in ${remaining}. Tap when you’re ready to clock in.`,
-    requireInteraction: true
 type PeriodicSyncRegistration = ServiceWorkerRegistration & {
   periodicSync?: {
     getTags(): Promise<string[]>;
@@ -148,8 +125,48 @@ export default function NotificationManager() {
       return;
     }
 
-    let isProcessing = false;
     let cancelled = false;
+    let intervalId: number | null = null;
+
+    const processNotifications = async () => {
+      if (cancelled) {
+        return;
+      }
+
+      try {
+        const now = new Date();
+        const dueSchedules = await loadDueSchedules(now);
+        if (cancelled || dueSchedules.length === 0) {
+          return;
+        }
+
+        const registration = await navigator.serviceWorker.ready;
+        if (cancelled) {
+          return;
+        }
+
+        for (const schedule of dueSchedules) {
+          try {
+            const details = buildNotificationDetails(schedule, settings, now);
+            await registration.showNotification(details.title, {
+              body: details.body,
+              tag: schedule.id,
+              requireInteraction: details.requireInteraction,
+              data: {
+                shiftId: schedule.shiftId,
+                type: schedule.type
+              }
+            });
+          } catch (error) {
+            console.warn('Failed to display shift reminder notification', error);
+          } finally {
+            await advanceSchedule(db, schedule, now);
+          }
+        }
+      } catch (error) {
+        console.warn('Notification processing failed', error);
+      }
+    };
 
     const registerBackgroundTasks = async () => {
       try {
@@ -158,22 +175,24 @@ export default function NotificationManager() {
           return;
         }
 
-        const periodicSync = registration.periodicSync;
-        if (periodicSync) {
-          try {
-            const tags = (await periodicSync.getTags?.()) ?? [];
-            if (!tags.includes(PERIODIC_SYNC_TAG)) {
-              await periodicSync.register(PERIODIC_SYNC_TAG, {
-                minInterval: minIntervalMinutes * 60_000
-              });
-            }
-          } catch (error) {
-            console.warn('Unable to register periodic background sync', error);
-          }
-        }
-
         if (registration.active?.postMessage) {
           registration.active.postMessage({ type: NOTIFICATION_TRIGGER_MESSAGE });
+        }
+
+        const periodicSync = registration.periodicSync;
+        if (!periodicSync) {
+          return;
+        }
+
+        try {
+          const tags = (await periodicSync.getTags?.()) ?? [];
+          if (!tags.includes(PERIODIC_SYNC_TAG)) {
+            await periodicSync.register(PERIODIC_SYNC_TAG, {
+              minInterval: minIntervalMinutes * 60_000
+            });
+          }
+        } catch (error) {
+          console.warn('Unable to register periodic background sync', error);
         }
       } catch (error) {
         console.warn('Notification background task registration failed', error);
@@ -181,14 +200,16 @@ export default function NotificationManager() {
     };
 
     void processNotifications();
-    const intervalId = window.setInterval(processNotifications, CHECK_INTERVAL_MS);
-
-    return () => {
-      window.clearInterval(intervalId);
+    intervalId = window.setInterval(() => {
+      void processNotifications();
+    }, CHECK_INTERVAL_MS);
     void registerBackgroundTasks();
 
     return () => {
       cancelled = true;
+      if (intervalId !== null) {
+        window.clearInterval(intervalId);
+      }
     };
   }, [settings, minIntervalMinutes, permissionState]);
 
