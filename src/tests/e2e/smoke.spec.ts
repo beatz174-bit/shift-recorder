@@ -5,6 +5,18 @@ const HOLIDAY_API_PATTERN = 'https://date.nager.at/api/v3/*';
 
 test.describe('Chrona PWA UI', () => {
   test.beforeEach(async ({ page }) => {
+    await page.goto('about:blank');
+    await page.evaluate(async () => {
+      await new Promise<void>((resolve, reject) => {
+        const request = indexedDB.deleteDatabase('shift-recorder');
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error ?? new Error('Failed to clear IndexedDB'));
+        request.onblocked = () => resolve();
+      });
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+
     await page.route(HOLIDAY_API_PATTERN, async (route) => {
       const url = route.request().url();
       if (url.includes('/CountryInfo/')) {
@@ -145,5 +157,129 @@ test.describe('Chrona PWA UI', () => {
     await dataTabs.filter({ hasText: 'Backup & restore' }).click();
     await expect(page.getByRole('heading', { level: 3, name: 'Backup & restore' })).toBeVisible();
     await expect(page.getByText(/Create a full Chrona backup/i)).toBeVisible();
+  });
+
+  test('user can manage shifts, settings, imports, exports, and backups', async ({ page }, testInfo) => {
+    const addShiftButton = page.getByRole('button', { name: 'Add shift' });
+    await addShiftButton.click();
+
+    const createShiftDialog = page.getByRole('dialog', { name: 'Add a shift' });
+    await expect(createShiftDialog).toBeVisible();
+
+    const dateInput = createShiftDialog.locator('input[type="date"]');
+    const timeInputs = createShiftDialog.locator('input[type="text"]');
+    const noteInput = createShiftDialog.locator('textarea');
+
+    await dateInput.fill('2024-03-04');
+    await timeInputs.first().fill('9:00 AM');
+    await timeInputs.nth(1).fill('5:30 PM');
+    await noteInput.fill('Project kickoff');
+
+    await createShiftDialog.getByRole('button', { name: 'Save shift' }).click();
+    await expect(createShiftDialog).not.toBeVisible();
+
+    const baseHoursCard = page.locator('div.rounded-xl', {
+      has: page.getByText('Base hours', { exact: true })
+    }).first();
+    const penaltyHoursCard = page.locator('div.rounded-xl', {
+      has: page.getByText('Penalty hours', { exact: true })
+    }).first();
+    const totalPayCard = page.locator('div.rounded-xl', {
+      has: page.getByText('Total pay', { exact: true })
+    }).first();
+
+    await expect(baseHoursCard).toContainText('8.50');
+    await expect(penaltyHoursCard).toContainText('0.00');
+    await expect(totalPayCard).toContainText('212.50');
+    await expect(page.getByText(/Chrona has logged 8\.50 hours this week so far/i)).toBeVisible();
+
+    await page.getByRole('link', { name: 'Shifts' }).click();
+    await expect(page).toHaveURL(/\/shifts$/);
+    await expect(page.getByRole('button', { name: /Shift starting/i })).toBeVisible();
+
+    await page.getByRole('link', { name: 'Summary' }).click();
+    await expect(page).toHaveURL(/\/?$/);
+
+    await page.getByRole('link', { name: 'Settings' }).click();
+    await expect(page).toHaveURL(/\/settings$/);
+
+    const generalForm = page.locator('form#settings-form');
+    const numberInputs = generalForm.locator('input[type="number"]');
+    await numberInputs.first().fill('40');
+    await numberInputs.nth(1).fill('60');
+    await generalForm.locator('#week-starts-on').selectOption('0');
+
+    await page.getByRole('button', { name: 'Appearance', exact: true }).click();
+    const appearanceForm = page.locator('form[data-tab="appearance"]');
+    await appearanceForm.getByRole('checkbox', { name: 'Use 24-hour clock' }).check();
+
+    await page.getByRole('button', { name: 'Save settings' }).click();
+    await expect(page.getByText('Settings saved')).toBeVisible();
+
+    await page.getByRole('link', { name: 'Summary' }).click();
+    await expect(baseHoursCard).toContainText('8.50');
+    await expect(totalPayCard).toContainText('340.00');
+
+    await addShiftButton.click();
+    await expect(createShiftDialog).toBeVisible();
+    await expect(createShiftDialog.locator('input[type="text"]').first()).toHaveAttribute(
+      'placeholder',
+      /14:30/
+    );
+    await createShiftDialog.getByRole('button', { name: 'Cancel' }).click();
+
+    await page.getByRole('link', { name: 'Settings' }).click();
+    await page.getByRole('button', { name: 'Data & backup', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Import & export', exact: true })).toBeVisible();
+
+    const csvDownloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Download all shifts (CSV)' }).click();
+    const csvDownload = await csvDownloadPromise;
+    let csvPath = await csvDownload.path();
+    if (!csvPath) {
+      csvPath = testInfo.outputPath(csvDownload.suggestedFilename() ?? 'shift-export.csv');
+      await csvDownload.saveAs(csvPath);
+    }
+    await expect(page.getByText(/Exported 1 shift/i)).toBeVisible();
+    expect(csvPath).toBeTruthy();
+
+    const importInput = page.locator('input[type="file"][accept=".csv,text/csv"]');
+    await importInput.setInputFiles({
+      name: 'shifts-import.csv',
+      mimeType: 'text/csv',
+      buffer: Buffer.from('date,start,finish,notes\n2024-03-05,07:00,09:00,Imported shift\n')
+    });
+
+    await expect(page.getByRole('heading', { name: 'Import results' })).toBeVisible();
+    await expect(page.getByText('Imported 1 of 1 rows.')).toBeVisible();
+    await expect(page.getByText('Imported successfully')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Backup & restore' }).click();
+    const settingsOnlyCheckbox = page.getByRole('checkbox', { name: 'Backup settings only' });
+    if (!(await settingsOnlyCheckbox.isChecked())) {
+      await settingsOnlyCheckbox.check();
+    }
+
+    const backupDownloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Download backup' }).click();
+    const backupDownload = await backupDownloadPromise;
+    let backupPath = await backupDownload.path();
+    if (!backupPath) {
+      backupPath = testInfo.outputPath(backupDownload.suggestedFilename() ?? 'chrona-backup.tar.gz');
+      await backupDownload.saveAs(backupPath);
+    }
+    await expect(page.getByText(/Backup saved as/i)).toBeVisible();
+    expect(backupPath).toBeTruthy();
+
+    const backupInput = page.locator('input[type="file"][accept=".tar.gz"]');
+    await backupInput.setInputFiles(backupPath!);
+    await expect(page.getByText(/\.tar\.gz$/)).toBeVisible();
+
+    await page.getByRole('button', { name: 'Restore backup' }).click();
+    await expect(page.getByText('Backup restored successfully.')).toBeVisible();
+
+    await page.getByRole('link', { name: 'Summary' }).click();
+    await expect(page.getByText(/10\.50 hours this week so far/i)).toBeVisible();
+    await expect(totalPayCard).toContainText('420.00');
   });
 });
