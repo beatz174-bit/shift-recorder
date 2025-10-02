@@ -234,16 +234,13 @@ export function parseShiftsCsv(content: string): {
       continue;
     }
 
-    const year = parsedDate.getFullYear();
-    const month = parsedDate.getMonth();
-    const day = parsedDate.getDate();
+    const startDate = new Date(parsedDate.getTime());
+    startDate.setHours(startTime.hours, startTime.minutes, 0, 0);
 
-    const startDate = new Date(Date.UTC(year, month, day, startTime.hours, startTime.minutes, 0, 0));
-
-    let endDate = new Date(Date.UTC(year, month, day, finishTime.hours, finishTime.minutes, 0, 0));
-
+    const endDate = new Date(parsedDate.getTime());
+    endDate.setHours(finishTime.hours, finishTime.minutes, 0, 0);
     if (endDate <= startDate) {
-      endDate = new Date(Date.UTC(year, month, day + 1, finishTime.hours, finishTime.minutes, 0, 0));
+      endDate.setDate(endDate.getDate() + 1);
     }
 
     const startISO = startDate.toISOString().replace(/\.\d{3}Z$/, 'Z');
