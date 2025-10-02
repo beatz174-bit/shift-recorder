@@ -1,0 +1,56 @@
+{
+  "schedule": "NAT1004",
+  "effective_from": "2024-06-17",
+  "source_url": "https://www.ato.gov.au/",
+  "retrieved_at": "2025-01-05T00:00:00Z",
+  "notes": [
+    "Stage 3 tax rates commencing 1 July 2024.",
+    "Coefficients include low income tax offset and Medicare levy parameters."
+  ],
+  "frequencies": {
+    "weekly": { "annual_factor": 52, "rounding": { "precision": 0.01, "mode": "half_up" } },
+    "fortnightly": { "annual_factor": 26, "rounding": { "precision": 0.01, "mode": "half_up" } },
+    "monthly": { "annual_factor": 12, "rounding": { "precision": 0.01, "mode": "half_up" } },
+    "quarterly": { "annual_factor": 4, "rounding": { "precision": 0.01, "mode": "half_up" } }
+  },
+  "resident": {
+    "tax_free_threshold": {
+      "tax_rates": [
+        { "threshold": 0, "rate": 0, "base": 0 },
+        { "threshold": 18200, "rate": 0.16, "base": 0 },
+        { "threshold": 45000, "rate": 0.3, "base": 4292 },
+        { "threshold": 135000, "rate": 0.37, "base": 31292 },
+        { "threshold": 190000, "rate": 0.45, "base": 52392 }
+      ],
+      "lito": {
+        "maximum": 700,
+        "full_threshold": 37500,
+        "middle_threshold": 45000,
+        "phase_out": 66667,
+        "phase_out_rate_low": 0.05,
+        "phase_out_rate_high": 0.015,
+        "middle_offset": 325
+      }
+    },
+    "no_tax_free_threshold": {
+      "tax_rates": [
+        { "threshold": 0, "rate": 0.16, "base": 0 },
+        { "threshold": 45000, "rate": 0.3, "base": 7200 },
+        { "threshold": 135000, "rate": 0.37, "base": 34200 },
+        { "threshold": 190000, "rate": 0.45, "base": 54550 }
+      ]
+    },
+    "medicare_levy": {
+      "standard": { "type": "flat_rate", "rate": 0.02 },
+      "half_exempt": { "type": "flat_rate", "rate": 0.01 },
+      "full_exempt": { "type": "flat_rate", "rate": 0 }
+    }
+  },
+  "non_resident": {
+    "tax_rates": [
+      { "threshold": 0, "rate": 0.3, "base": 0 },
+      { "threshold": 135000, "rate": 0.37, "base": 40500 },
+      { "threshold": 190000, "rate": 0.45, "base": 60850 }
+    ]
+  }
+}

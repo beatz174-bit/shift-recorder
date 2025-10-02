@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useId,
   useMemo,
   useState,
   type CSSProperties,
@@ -14,8 +15,9 @@ import {
 } from '../logic/publicHolidays';
 import ImportExportPanel from '../components/ImportExportPanel';
 import BackupRestorePanel from '../components/BackupRestorePanel';
+import TaxSettingsScreen from '../features/settings/tax/TaxSettingsScreen';
 
-const WEEK_START_OPTIONS: Array<{ value: WeekStart; label: string }> = [
+const WEEK_START_OPTIONS: { value: WeekStart; label: string }[] = [
   { value: 0, label: 'Sunday' },
   { value: 1, label: 'Monday' },
   { value: 2, label: 'Tuesday' },
@@ -25,7 +27,7 @@ const WEEK_START_OPTIONS: Array<{ value: WeekStart; label: string }> = [
   { value: 6, label: 'Saturday' },
 ];
 
-const WEEKDAY_OPTIONS: Array<{ value: Weekday; label: string }> = [
+const WEEKDAY_OPTIONS: { value: Weekday; label: string }[] = [
   { value: 0, label: 'Sunday' },
   { value: 1, label: 'Monday' },
   { value: 2, label: 'Tuesday' },
@@ -35,7 +37,7 @@ const WEEKDAY_OPTIONS: Array<{ value: Weekday; label: string }> = [
   { value: 6, label: 'Saturday' },
 ];
 
-const PUBLIC_HOLIDAY_REGIONS: Array<{ code: string; label: string }> = [
+const PUBLIC_HOLIDAY_REGIONS: { code: string; label: string }[] = [
   { code: 'AU', label: 'Australia' },
   { code: 'NZ', label: 'New Zealand' },
   { code: 'US', label: 'United States' },
@@ -43,11 +45,11 @@ const PUBLIC_HOLIDAY_REGIONS: Array<{ code: string; label: string }> = [
   { code: 'CA', label: 'Canada' },
 ];
 
-const THEME_OPTIONS: Array<{
+const THEME_OPTIONS: {
   value: ThemePreference;
   label: string;
   description: string;
-}> = [
+}[] = [
   {
     value: 'system',
     label: 'System',
@@ -66,6 +68,11 @@ const SETTINGS_TABS = [
     id: 'general',
     label: 'General',
     description: 'Base rate, currency, and week alignment.',
+  },
+  {
+    id: 'tax',
+    label: 'Tax & withholding',
+    description: 'Residency, Medicare levy, and STSL preferences.',
   },
   {
     id: 'notifications',
@@ -174,6 +181,10 @@ function parseRateInput(value: string, fallbackCents: number): number {
 
 export default function SettingsPage() {
   const { settings, updateSettings, isLoading, error } = useSettings();
+  const idPrefix = useId();
+  const baseRateInputId = `${idPrefix}-base-rate`;
+  const penaltyRateInputId = `${idPrefix}-penalty-rate`;
+  const currencyInputId = `${idPrefix}-currency`;
   const [activeTab, setActiveTab] = useState<SettingsTabId>('general');
   const [activeDataTab, setActiveDataTab] = useState<DataTabId>('import');
   const isTestEnvironment = import.meta.env?.MODE === 'test';
@@ -675,29 +686,33 @@ export default function SettingsPage() {
           Theme
         </legend>
         <div className="grid gap-2">
-          {THEME_OPTIONS.map((option) => (
-            <label
-              key={option.value}
-              className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm transition hover:border-primary/60 dark:border-midnight-700 dark:bg-midnight-900"
-            >
-              <input
-                type="radio"
-                name="theme"
-                value={option.value}
-                checked={theme === option.value}
-                onChange={() => setTheme(option.value)}
-                className="mt-1 h-4 w-4 border-neutral-300 text-primary focus:ring-primary"
-              />
-              <span className="flex flex-col">
-                <span className="font-medium text-neutral-700 dark:text-neutral-100">
-                  {option.label}
-                </span>
-                <span className="text-xs text-neutral-500 dark:text-neutral-300">
-                  {option.description}
-                </span>
-              </span>
-            </label>
-          ))}
+          {THEME_OPTIONS.map((option) => {
+            const optionId = `${idPrefix}-theme-${option.value}`;
+            return (
+              <div
+                key={option.value}
+                className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm transition hover:border-primary/60 dark:border-midnight-700 dark:bg-midnight-900"
+              >
+                <input
+                  id={optionId}
+                  type="radio"
+                  name="theme"
+                  value={option.value}
+                  checked={theme === option.value}
+                  onChange={() => setTheme(option.value)}
+                  className="mt-1 h-4 w-4 border-neutral-300 text-primary focus:ring-primary"
+                />
+                <label htmlFor={optionId} className="flex cursor-pointer flex-col">
+                  <span className="font-medium text-neutral-700 dark:text-neutral-100">
+                    {option.label}
+                  </span>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-300">
+                    {option.description}
+                  </span>
+                </label>
+              </div>
+            );
+          })}
         </div>
       </fieldset>
 
@@ -732,7 +747,7 @@ export default function SettingsPage() {
   if (error) {
     return (
       <p className="text-sm text-red-500">
-        Chrona couldn't load your preferences: {error.message}
+        Chrona couldn’t load your preferences: {error.message}
       </p>
     );
   }
@@ -789,8 +804,14 @@ export default function SettingsPage() {
             <form id="settings-form" className="flex flex-col gap-5" onSubmit={handleSubmit}>
               <div className="grid gap-5">
                 <div className="grid gap-2">
-                  <label className="text-xs font-semibold uppercase text-neutral-500">Base rate (per hour)</label>
+                  <label
+                    className="text-xs font-semibold uppercase text-neutral-500"
+                    htmlFor={baseRateInputId}
+                  >
+                    Base rate (per hour)
+                  </label>
                   <input
+                    id={baseRateInputId}
                     type="number"
                     min="0"
                     step="0.01"
@@ -800,8 +821,14 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <label className="text-xs font-semibold uppercase text-neutral-500">Penalty rate (per hour)</label>
+                  <label
+                    className="text-xs font-semibold uppercase text-neutral-500"
+                    htmlFor={penaltyRateInputId}
+                  >
+                    Penalty rate (per hour)
+                  </label>
                   <input
+                    id={penaltyRateInputId}
                     type="number"
                     min="0"
                     step="0.01"
@@ -832,8 +859,14 @@ export default function SettingsPage() {
                   </select>
                 </div>
                 <div className="grid gap-2">
-                  <label className="text-xs font-semibold uppercase text-neutral-500">Currency</label>
+                  <label
+                    className="text-xs font-semibold uppercase text-neutral-500"
+                    htmlFor={currencyInputId}
+                  >
+                    Currency
+                  </label>
                   <input
+                    id={currencyInputId}
                     type="text"
                     value={currency}
                     onChange={(event) => setCurrency(event.target.value.toUpperCase())}
@@ -843,6 +876,12 @@ export default function SettingsPage() {
                 </div>
               </div>
             </form>
+          ) : null}
+
+          {activeTab === 'tax' ? (
+            <div className="flex flex-col gap-5">
+              <TaxSettingsScreen />
+            </div>
           ) : null}
 
           {activeTab === 'notifications' ? (

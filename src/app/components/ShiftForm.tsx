@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { Shift } from '../db/schema';
 import {
   createDateFromLocalInputs,
@@ -28,6 +28,11 @@ export type ShiftFormProps = {
 export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabel }: ShiftFormProps) {
   const { settings } = useSettings();
   const preferred24Hour = settings?.use24HourTime ?? false;
+  const idPrefix = useId();
+  const dateInputId = `${idPrefix}-date`;
+  const startInputId = `${idPrefix}-start`;
+  const endInputId = `${idPrefix}-end`;
+  const noteInputId = `${idPrefix}-note`;
   const [timeMode, setTimeMode] = useState(preferred24Hour ? '24-hour' : '12-hour');
   const timeModeRef = useRef(timeMode);
 
@@ -192,8 +197,11 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
       }}
     >
       <div className="grid gap-2">
-        <label className="text-xs font-semibold uppercase text-neutral-500">Date</label>
+        <label className="text-xs font-semibold uppercase text-neutral-500" htmlFor={dateInputId}>
+          Date
+        </label>
         <input
+          id={dateInputId}
           type="date"
           value={date}
           onChange={(event) => setDate(event.target.value)}
@@ -202,8 +210,11 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
         />
       </div>
       <div className="grid gap-2">
-        <label className="text-xs font-semibold uppercase text-neutral-500">Start time</label>
+        <label className="text-xs font-semibold uppercase text-neutral-500" htmlFor={startInputId}>
+          Start time
+        </label>
         <input
+          id={startInputId}
           type="text"
           value={startTime}
           onChange={(event) => {
@@ -220,8 +231,11 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
         />
       </div>
       <div className="grid gap-2">
-        <label className="text-xs font-semibold uppercase text-neutral-500">Finish time</label>
+        <label className="text-xs font-semibold uppercase text-neutral-500" htmlFor={endInputId}>
+          Finish time
+        </label>
         <input
+          id={endInputId}
           type="text"
           value={endTime}
           onChange={(event) => {
@@ -241,8 +255,11 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
         </p>
       </div>
       <div className="grid gap-2">
-        <label className="text-xs font-semibold uppercase text-neutral-500">Note</label>
+        <label className="text-xs font-semibold uppercase text-neutral-500" htmlFor={noteInputId}>
+          Note
+        </label>
         <textarea
+          id={noteInputId}
           value={note}
           onChange={(event) => setNote(event.target.value)}
           className="h-20 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"

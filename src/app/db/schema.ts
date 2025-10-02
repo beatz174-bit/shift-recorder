@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import { v4 as uuidv4 } from 'uuid';
+import type { PayFrequency } from '@tax-engine/core';
 import { computePayForShift } from '../logic/payRules';
 import { getWeekKey } from '../logic/week';
 
@@ -7,6 +8,10 @@ export type WeekStart = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 Sunday through 6 Saturda
 export type Weekday = WeekStart;
 
 export type ThemePreference = 'system' | 'light' | 'dark';
+
+export type TaxResidency = 'resident' | 'nonResident';
+export type MedicareLevyStatus = 'standard' | 'halfExempt' | 'fullExempt';
+export type TaxPayFrequency = PayFrequency;
 
 export type Settings = {
   id: 'singleton';
@@ -27,6 +32,11 @@ export type Settings = {
   publicHolidayCountry: string;
   publicHolidaySubdivision: string;
   publicHolidayDates: string[];
+  taxResidency: TaxResidency;
+  claimsTaxFreeThreshold: boolean;
+  medicareLevyStatus: MedicareLevyStatus;
+  hasSTSL: boolean;
+  taxPayFrequency: TaxPayFrequency;
   createdAt: string;
   updatedAt: string;
 };
@@ -81,6 +91,11 @@ export const DEFAULT_SETTINGS: Settings = {
   publicHolidayCountry: 'AU',
   publicHolidaySubdivision: '',
   publicHolidayDates: [],
+  taxResidency: 'resident',
+  claimsTaxFreeThreshold: true,
+  medicareLevyStatus: 'standard',
+  hasSTSL: false,
+  taxPayFrequency: 'weekly',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
 };
@@ -168,6 +183,31 @@ function sanitizeRateCents(value: unknown, fallback: number): number {
   return Math.max(0, Math.round(value));
 }
 
+function sanitizeResidency(value: unknown): TaxResidency {
+  return value === 'nonResident' ? 'nonResident' : 'resident';
+}
+
+function sanitizeMedicareStatus(value: unknown): MedicareLevyStatus {
+  if (value === 'halfExempt' || value === 'fullExempt') {
+    return value;
+  }
+  return 'standard';
+}
+
+function sanitizeBooleanFlag(value: unknown, fallback: boolean): boolean {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  return fallback;
+}
+
+function sanitizePayFrequency(value: unknown, fallback: TaxPayFrequency): TaxPayFrequency {
+  if (value === 'weekly' || value === 'fortnightly' || value === 'monthly' || value === 'quarterly') {
+    return value;
+  }
+  return fallback;
+}
+
 export function applySettingsDefaults(partial: Partial<Settings> | undefined): Settings {
   const base = partial ?? {};
   const penaltyDailyWindowEnabled = Boolean(
@@ -231,6 +271,14 @@ export function applySettingsDefaults(partial: Partial<Settings> | undefined): S
     publicHolidayCountry,
     publicHolidaySubdivision,
     publicHolidayDates,
+    taxResidency: sanitizeResidency(base.taxResidency),
+    claimsTaxFreeThreshold: sanitizeBooleanFlag(
+      base.claimsTaxFreeThreshold,
+      DEFAULT_SETTINGS.claimsTaxFreeThreshold
+    ),
+    medicareLevyStatus: sanitizeMedicareStatus(base.medicareLevyStatus),
+    hasSTSL: sanitizeBooleanFlag(base.hasSTSL, DEFAULT_SETTINGS.hasSTSL),
+    taxPayFrequency: sanitizePayFrequency(base.taxPayFrequency, DEFAULT_SETTINGS.taxPayFrequency),
     createdAt: base.createdAt ?? DEFAULT_SETTINGS.createdAt,
     updatedAt: base.updatedAt ?? DEFAULT_SETTINGS.updatedAt
   };
@@ -294,6 +342,41 @@ export class ShiftRecorderDB extends Dexie {
               record[field] = cents < 0 ? 0 : cents;
             }
           });
+        });
+      });
+    this.version(4)
+      .stores({
+        shifts: 'id, weekKey, startISO, endISO',
+        settings: 'id',
+        notificationSchedules: 'id, shiftId, type, nextTriggerISO'
+      })
+      .upgrade(async (transaction) => {
+        const settingsTable = transaction.table('settings');
+        await settingsTable.toCollection().modify((record) => {
+          if (record.taxResidency !== 'resident' && record.taxResidency !== 'nonResident') {
+            record.taxResidency = DEFAULT_SETTINGS.taxResidency;
+          }
+          if (typeof record.claimsTaxFreeThreshold !== 'boolean') {
+            record.claimsTaxFreeThreshold = DEFAULT_SETTINGS.claimsTaxFreeThreshold;
+          }
+          if (
+            record.medicareLevyStatus !== 'standard' &&
+            record.medicareLevyStatus !== 'halfExempt' &&
+            record.medicareLevyStatus !== 'fullExempt'
+          ) {
+            record.medicareLevyStatus = DEFAULT_SETTINGS.medicareLevyStatus;
+          }
+          if (typeof record.hasSTSL !== 'boolean') {
+            record.hasSTSL = DEFAULT_SETTINGS.hasSTSL;
+          }
+          if (
+            record.taxPayFrequency !== 'weekly' &&
+            record.taxPayFrequency !== 'fortnightly' &&
+            record.taxPayFrequency !== 'monthly' &&
+            record.taxPayFrequency !== 'quarterly'
+          ) {
+            record.taxPayFrequency = DEFAULT_SETTINGS.taxPayFrequency;
+          }
         });
       });
   }

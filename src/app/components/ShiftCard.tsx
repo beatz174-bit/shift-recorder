@@ -1,6 +1,7 @@
 import type { Shift } from '../db/schema';
 import { useTimeFormatter } from '../state/useTimeFormatter';
 import { formatMinutesDuration } from '../utils/format';
+import { useShiftWithholding } from '../features/shifts/useShiftWithholding';
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   weekday: 'short',
@@ -24,6 +25,7 @@ export default function ShiftCard({ shift, currency, onEdit, onDelete }: ShiftCa
     currency,
     maximumFractionDigits: 2
   });
+  const withholding = useShiftWithholding(shift);
 
   return (
     <article className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-midnight-800 dark:bg-midnight-900">
@@ -55,6 +57,28 @@ export default function ShiftCard({ shift, currency, onEdit, onDelete }: ShiftCa
             </dd>
           </div>
         </dl>
+        <div className="col-span-2 grid gap-1 text-[11px] text-neutral-500 dark:text-neutral-300 sm:col-span-1 sm:col-start-3 sm:row-start-1 sm:text-xs">
+          <span className="font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
+            Withholding
+          </span>
+          <div className="flex flex-col gap-1 text-neutral-600 dark:text-neutral-200">
+            <span>
+              Tax withheld:{' '}
+              {withholding
+                ? currencyFormatter.format(withholding.totalWithheldCents / 100)
+                : '—'}
+            </span>
+            <span>
+              Take-home:{' '}
+              {withholding
+                ? currencyFormatter.format(withholding.takeHomeCents / 100)
+                : '—'}
+            </span>
+            <span className="text-[10px] text-neutral-400 dark:text-neutral-500">
+              Tax profile from Settings.
+            </span>
+          </div>
+        </div>
       </div>
       {(onEdit || onDelete) && (
         <footer className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">

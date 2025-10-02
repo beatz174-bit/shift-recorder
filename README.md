@@ -20,6 +20,12 @@ npx playwright install
 
 The development server runs at http://localhost:5173.
 
+## Tax & withholding
+
+- Open **Settings → Tax & withholding** to configure residency, the tax-free threshold, Medicare levy status, STSL repayments, and your assumed pay frequency.
+- The per-shift view and weekly summary automatically apply the selected profile using the in-app ATO Schedule 1 and Schedule 8 engine.
+- Use `npm run demo` for a quick CLI estimate (for example: `npm run demo -- --date 2025-09-24 --gross 1500 --freq weekly --stsl`).
+
 ## Available scripts
 
 - `npm run dev` – start the Vite development server

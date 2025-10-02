@@ -2,6 +2,39 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSettings } from './SettingsContext';
 import { NOTIFICATION_TRIGGER_MESSAGE, PERIODIC_SYNC_TAG } from '../notifications/constants';
 
+const CHECK_INTERVAL_MS = 60_000;
+
+function formatShiftTime(date: Date, use24HourTime: boolean): string {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: !use24HourTime,
+    hourCycle: use24HourTime ? 'h23' : 'h12'
+  }).format(date);
+}
+
+function buildNotificationDetails(
+  schedule: NotificationSchedule,
+  settings: Settings,
+  now: Date
+): { title: string; body: string; requireInteraction: boolean } {
+  const shiftStart = new Date(schedule.shiftStartISO);
+  const timeLabel = formatShiftTime(shiftStart, settings.use24HourTime);
+
+  if (schedule.type === 'long-range') {
+    const lead = formatDistanceStrict(now, shiftStart, { unit: 'minute' });
+    return {
+      title: 'Upcoming shift reminder',
+      body: `Shift at ${timeLabel} starts in ${lead}.`,
+      requireInteraction: false
+    };
+  }
+
+  const remaining = formatDistanceStrict(now, shiftStart, { unit: 'minute' });
+  return {
+    title: 'Shift starting soon',
+    body: `Shift at ${timeLabel} begins in ${remaining}. Tap when you’re ready to clock in.`,
+    requireInteraction: true
 type PeriodicSyncRegistration = ServiceWorkerRegistration & {
   periodicSync?: {
     getTags(): Promise<string[]>;
@@ -115,6 +148,7 @@ export default function NotificationManager() {
       return;
     }
 
+    let isProcessing = false;
     let cancelled = false;
 
     const registerBackgroundTasks = async () => {
@@ -146,6 +180,11 @@ export default function NotificationManager() {
       }
     };
 
+    void processNotifications();
+    const intervalId = window.setInterval(processNotifications, CHECK_INTERVAL_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
     void registerBackgroundTasks();
 
     return () => {

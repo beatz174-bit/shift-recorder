@@ -11,7 +11,7 @@ type CountryInfoResponse = {
   countryCode: string;
   name: string;
   officialName?: string;
-  counties?: Array<{ code: string; name: string; shortName?: string }>;
+  counties?: { code: string; name: string; shortName?: string }[];
 };
 
 export type HolidayRegion = {
@@ -58,7 +58,7 @@ export async function fetchPublicHolidayRegions(countryCode: string): Promise<Ho
   let response: Response;
   try {
     response = await fetch(endpoint);
-  } catch (error) {
+  } catch {
     throw new Error(`Unable to reach the public holidays service (${endpoint}).`);
   }
 
@@ -119,7 +119,7 @@ export async function fetchPublicHolidays(
     let response: Response;
     try {
       response = await fetch(endpoint);
-    } catch (error) {
+    } catch {
       throw new Error(`Unable to reach the public holidays service (${endpoint}).`);
     }
 
