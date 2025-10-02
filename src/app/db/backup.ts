@@ -11,6 +11,42 @@ import { rebuildNotificationSchedules } from './notifications';
 
 const BACKUP_SCHEMA_VERSION = 1;
 
+const DEFAULT_MAX_ARCHIVE_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
+const DEFAULT_MAX_UNZIPPED_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+
+let maxArchiveSizeBytes = DEFAULT_MAX_ARCHIVE_SIZE_BYTES;
+let maxUnzippedSizeBytes = DEFAULT_MAX_UNZIPPED_SIZE_BYTES;
+
+function formatByteSize(bytes: number): string {
+  if (bytes < 1024) {
+    return `${bytes} bytes`;
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+export function __setBackupSizeLimitsForTests({
+  maxArchiveBytes,
+  maxUnzippedBytes,
+}: {
+  maxArchiveBytes?: number;
+  maxUnzippedBytes?: number;
+}): void {
+  if (typeof maxArchiveBytes === 'number') {
+    maxArchiveSizeBytes = maxArchiveBytes;
+  }
+  if (typeof maxUnzippedBytes === 'number') {
+    maxUnzippedSizeBytes = maxUnzippedBytes;
+  }
+}
+
+export function __resetBackupSizeLimitsForTests(): void {
+  maxArchiveSizeBytes = DEFAULT_MAX_ARCHIVE_SIZE_BYTES;
+  maxUnzippedSizeBytes = DEFAULT_MAX_UNZIPPED_SIZE_BYTES;
+}
+
 type BackupMeta = {
   schemaVersion: number;
   exportedAt: string;
@@ -268,6 +304,12 @@ export async function restoreBackupArchive(
   logs.push(`Restore started at ${now.toISOString()}`);
   logs.push(`Reading ${file.name || 'selected file'} (${file.size} bytes)`);
 
+  if (file.size > maxArchiveSizeBytes) {
+    throw new Error(
+      `Backup file is too large to import. The maximum supported size is ${formatByteSize(maxArchiveSizeBytes)}.`
+    );
+  }
+
   let buffer: ArrayBuffer;
   try {
     buffer = await file.arrayBuffer();
@@ -275,10 +317,26 @@ export async function restoreBackupArchive(
     throw new Error(`Failed to read archive: ${(error as Error).message}`);
   }
 
-  let tarReader: TarReader;
+  let unzipped: Uint8Array;
   try {
     const zipped = new Uint8Array(buffer);
-    const unzipped = gunzipSync(zipped);
+    unzipped = gunzipSync(zipped);
+  } catch (error) {
+    throw new Error(`Failed to open archive: ${(error as Error).message}`);
+  }
+
+  if (unzipped.byteLength > maxUnzippedSizeBytes) {
+    throw new Error(
+      `Backup archive expanded to ${formatByteSize(
+        unzipped.byteLength
+      )}, which exceeds the maximum allowed size of ${formatByteSize(
+        maxUnzippedSizeBytes
+      )}. Choose a smaller backup.`
+    );
+  }
+
+  let tarReader: TarReader;
+  try {
     const tarBuffer = unzipped.buffer.slice(
       unzipped.byteOffset,
       unzipped.byteOffset + unzipped.byteLength

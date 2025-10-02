@@ -121,11 +121,7 @@ export default function BackupRestorePanel() {
     setInfoMessage(null);
 
     try {
-      const buffer = await selectedFile.arrayBuffer();
-      const hydratedFile = new File([buffer], selectedFile.name, {
-        type: selectedFile.type,
-      });
-      const result = await restoreBackupArchive(hydratedFile, new Date());
+      const result = await restoreBackupArchive(selectedFile, new Date());
       appendLogs(result.logs);
       await reloadSettings();
       setInfoMessage('Backup restored successfully.');
