@@ -38,6 +38,77 @@ describe('shiftsToCsv', () => {
 
     expect(csv).toBe('date,start,finish,notes\n2024-01-02,07:15,15:45,"Includes, comma"');
   });
+
+  it('prefixes potentially dangerous values to prevent csv injection', () => {
+    const shifts: Shift[] = [
+      createShift({
+        id: 'a',
+        note: '=2+2',
+        startISO: '2024-01-03T09:00:00.000Z',
+        endISO: '2024-01-03T17:00:00.000Z'
+      }),
+      createShift({
+        id: 'b',
+        note: '+cmd',
+        startISO: '2024-01-04T09:00:00.000Z',
+        endISO: '2024-01-04T17:00:00.000Z'
+      }),
+      createShift({
+        id: 'c',
+        note: '-danger',
+        startISO: '2024-01-05T09:00:00.000Z',
+        endISO: '2024-01-05T17:00:00.000Z'
+      }),
+      createShift({
+        id: 'd',
+        note: '@mention',
+        startISO: '2024-01-06T09:00:00.000Z',
+        endISO: '2024-01-06T17:00:00.000Z'
+      }),
+      createShift({
+        id: 'e',
+        note: '\tformula',
+        startISO: '2024-01-07T09:00:00.000Z',
+        endISO: '2024-01-07T17:00:00.000Z'
+      }),
+      createShift({
+        id: 'f',
+        note: 'Normal text',
+        startISO: '2024-01-08T09:00:00.000Z',
+        endISO: '2024-01-08T17:00:00.000Z'
+      })
+    ];
+
+    const csv = shiftsToCsv(shifts);
+    const notes = csv
+      .split('\n')
+      .slice(1)
+      .map((line) => line.split(',')[3]);
+
+    expect(notes).toEqual([
+      "'=2+2",
+      "'+cmd",
+      "'-danger",
+      "'@mention",
+      "'\tformula",
+      'Normal text'
+    ]);
+  });
+
+  it('prefixes control characters such as newline before escaping', () => {
+    const shifts: Shift[] = [
+      createShift({
+        id: 'newline',
+        note: '\n=stealth',
+        startISO: '2024-01-09T09:00:00.000Z',
+        endISO: '2024-01-09T17:00:00.000Z'
+      })
+    ];
+
+    const csv = shiftsToCsv(shifts);
+
+    expect(csv).toContain("\"'\n=stealth\"");
+  });
 });
 
 describe('parseShiftsCsv', () => {

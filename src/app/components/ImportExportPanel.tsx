@@ -2,7 +2,13 @@ import { ArrowDownTrayIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline'
 import { format } from 'date-fns';
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { getAllShifts, importShifts, type ShiftImportResult } from '../db/repo';
-import { parseShiftsCsv, shiftsToCsv, type ShiftCsvParseError, type ShiftCsvImportRow } from '../logic/csv';
+import {
+  encodeCsvCell,
+  parseShiftsCsv,
+  shiftsToCsv,
+  type ShiftCsvParseError,
+  type ShiftCsvImportRow
+} from '../logic/csv';
 import templateCsvUrl from '../assets/shift-import-template.csv?url';
 import { useSettings } from '../state/SettingsContext';
 
@@ -45,31 +51,34 @@ const STATUS_COPY: Record<ImportRowStatus['status'], { label: string; className:
   }
 };
 
-function escapeCsv(value: string): string {
-  if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
-}
-
 function buildLogContent(rows: ImportRowStatus[], dataErrors: ShiftCsvParseError[]): string {
   const header = 'line,date,start,finish,note,status,message';
   const dataLines = rows.map((row) => {
     const message = row.message ?? '';
     return [
-      row.line.toString(),
-      escapeCsv(row.date),
-      escapeCsv(row.start),
-      escapeCsv(row.finish),
-      escapeCsv(row.note),
-      escapeCsv(STATUS_COPY[row.status].label),
-      escapeCsv(message)
+      encodeCsvCell(row.line.toString()),
+      encodeCsvCell(row.date),
+      encodeCsvCell(row.start),
+      encodeCsvCell(row.finish),
+      encodeCsvCell(row.note),
+      encodeCsvCell(STATUS_COPY[row.status].label),
+      encodeCsvCell(message)
     ].join(',');
   });
 
   const errorLines = dataErrors
     .filter((error) => !rows.some((row) => row.line === error.line))
-    .map((error) => [error.line.toString(), '', '', '', '', 'Failed', escapeCsv(error.message)].join(','));
+    .map((error) =>
+      [
+        encodeCsvCell(error.line.toString()),
+        '',
+        '',
+        '',
+        '',
+        encodeCsvCell('Failed'),
+        encodeCsvCell(error.message)
+      ].join(',')
+    );
 
   return [header, ...dataLines, ...errorLines].join('\n');
 }
