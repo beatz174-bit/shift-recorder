@@ -7,6 +7,9 @@ import path from 'node:path';
 const projectRootDir = fileURLToPath(new URL('.', import.meta.url));
 const resolveFromRoot = (relativePath: string) =>
   path.resolve(projectRootDir, relativePath);
+const toPosixPath = (p: string) => p.replace(/\\/g, '/');
+const taxEngineFsRoot = resolveFromRoot('packages/tax-engine/src');
+const taxEngineRoot = toPosixPath(taxEngineFsRoot);
 
 export default defineConfig({
   plugins: [
@@ -50,11 +53,21 @@ export default defineConfig({
     })
   ],
   resolve: {
-    alias: {
-      '@app': resolveFromRoot('src/app'),
-      '@tax-engine': resolveFromRoot('packages/tax-engine/src'),
-      '@tax-engine/core': resolveFromRoot('packages/tax-engine/src/core/index.ts')
-    }
+    alias: [
+      { find: '@app', replacement: resolveFromRoot('src/app') },
+      {
+        find: '@tax-engine/core',
+        replacement: toPosixPath(path.resolve(taxEngineFsRoot, 'core/index.ts'))
+      },
+      {
+        find: '@tax-engine',
+        replacement: toPosixPath(path.resolve(taxEngineFsRoot, 'core/index.ts'))
+      },
+      {
+        find: /^@tax-engine\/(.+)$/,
+        replacement: `${taxEngineRoot}/$1`
+      }
+    ]
   },
   test: {
     environment: 'happy-dom',
