@@ -55,18 +55,8 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: '@app', replacement: resolveFromRoot('src/app') },
-      {
-        find: '@tax-engine/core',
-        replacement: toPosixPath(path.resolve(taxEngineFsRoot, 'core/index.ts'))
-      },
-      {
-        find: '@tax-engine',
-        replacement: toPosixPath(path.resolve(taxEngineFsRoot, 'core/index.ts'))
-      },
-      {
-        find: /^@tax-engine\/(.+)$/,
-        replacement: `${taxEngineRoot}/$1`
-      }
+      { find: '@tax-engine', replacement: taxEngineRoot },
+      { find: /^@tax-engine\/(.+)$/, replacement: `${taxEngineRoot}/$1` }
     ]
   },
   test: {
