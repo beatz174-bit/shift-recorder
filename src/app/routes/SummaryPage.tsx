@@ -81,39 +81,46 @@ export default function SummaryPage() {
   const totalPay = totals.basePay + totals.penaltyPay;
   const totalWithheld = totals.taxWithheld;
   const totalTakeHome = totals.takeHome || totalPay;
+  const hasWithholding = totalWithheld > 0;
+  const metricCardClass =
+    'rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-midnight-800 dark:bg-midnight-900 sm:p-5';
+  const metricLabelClass = 'text-[10px] uppercase tracking-wide text-neutral-500 sm:text-xs';
+  const metricDetailClass = 'text-[11px] text-neutral-500 dark:text-neutral-300 sm:text-xs';
 
   return (
     <section className="flex flex-col gap-6">
       <WeekNavigator range={range} onPrev={goPrev} onNext={goNext} />
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-midnight-800 dark:bg-midnight-900 sm:p-5">
-          <p className="text-[10px] uppercase tracking-wide text-neutral-500 sm:text-xs">Base hours</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+        <div className={metricCardClass}>
+          <p className={metricLabelClass}>Base hours</p>
           <p className="text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50 sm:text-3xl">
             {formatMinutesDuration(totals.baseMinutes)}
           </p>
         </div>
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-midnight-800 dark:bg-midnight-900 sm:p-5">
-          <p className="text-[10px] uppercase tracking-wide text-neutral-500 sm:text-xs">Penalty hours</p>
+        <div className={metricCardClass}>
+          <p className={metricLabelClass}>Penalty hours</p>
           <p className="text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50 sm:text-3xl">
             {formatMinutesDuration(totals.penaltyMinutes)}
           </p>
         </div>
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-midnight-800 dark:bg-midnight-900 sm:p-5">
-          <p className="text-[10px] uppercase tracking-wide text-neutral-500 sm:text-xs">Total pay</p>
+        <div className={metricCardClass}>
+          <p className={metricLabelClass}>Gross pay</p>
           <p className="text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50 sm:text-3xl">
             {currencyFormatter.format(totalPay / 100)}
           </p>
-        </div>
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-midnight-800 dark:bg-midnight-900 sm:p-5">
-          <p className="text-[10px] uppercase tracking-wide text-neutral-500 sm:text-xs">Tax withheld</p>
-          <p className="text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50 sm:text-3xl">
-            {currencyFormatter.format(totalWithheld / 100)}
+          <p className={metricDetailClass}>
+            Tax withheld: {currencyFormatter.format(totalWithheld / 100)}
           </p>
         </div>
-        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-midnight-800 dark:bg-midnight-900 sm:p-5">
-          <p className="text-[10px] uppercase tracking-wide text-neutral-500 sm:text-xs">Take-home pay</p>
+        <div className={metricCardClass}>
+          <p className={metricLabelClass}>Take-home pay</p>
           <p className="text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50 sm:text-3xl">
             {currencyFormatter.format(totalTakeHome / 100)}
+          </p>
+          <p className={metricDetailClass}>
+            {hasWithholding
+              ? `Net after ${currencyFormatter.format(totalWithheld / 100)} withheld`
+              : 'All pay recorded as take-home'}
           </p>
         </div>
       </div>
