@@ -276,9 +276,38 @@ test.describe('Chrona PWA UI', () => {
       buffer: Buffer.from(`date,start,finish,notes\n${shiftDate},07:00,09:00,Imported shift\n`)
     });
 
-    await expect(page.getByRole('heading', { name: 'Import results' })).toBeVisible();
-    await expect(page.getByText(/Imported 1 of 1 row\./i)).toBeVisible();
-    await expect(page.getByText('Imported successfully')).toBeVisible();
+    const importResultsSection = page
+      .locator('div')
+      .filter({ has: page.getByRole('heading', { name: 'Import results' }) })
+      .first();
+    await expect(importResultsSection).toBeVisible();
+
+    const importedStat = importResultsSection
+      .locator('span')
+      .filter({ hasText: /^Imported$/ })
+      .first()
+      .locator('..');
+    const duplicateStat = importResultsSection
+      .locator('span')
+      .filter({ hasText: /^Duplicates$/ })
+      .first()
+      .locator('..');
+    const overlapStat = importResultsSection
+      .locator('span')
+      .filter({ hasText: /^Overlapping$/ })
+      .first()
+      .locator('..');
+    const failedStat = importResultsSection
+      .locator('span')
+      .filter({ hasText: /^Failed$/ })
+      .first()
+      .locator('..');
+
+    await expect(importResultsSection.getByText('Imported successfully')).toBeVisible();
+    await expect(importedStat.locator('span').nth(1)).toHaveText('1');
+    await expect(duplicateStat.locator('span').nth(1)).toHaveText('0');
+    await expect(overlapStat.locator('span').nth(1)).toHaveText('0');
+    await expect(failedStat.locator('span').nth(1)).toHaveText('0');
 
     await page.getByRole('link', { name: 'Summary' }).click();
     await expect(baseHoursCard.locator('p').nth(1)).toHaveText('10.50');
@@ -290,7 +319,6 @@ test.describe('Chrona PWA UI', () => {
     await page.getByRole('button', { name: 'Data & backup', exact: true }).click();
     const backupTabReturn = page.getByRole('button', { name: 'Backup & restore', exact: true });
     await expect(backupTabReturn).toBeVisible();
-
     await backupTabReturn.click();
     const settingsOnlyCheckbox = page.getByRole('checkbox', { name: 'Backup settings only' });
     if (!(await settingsOnlyCheckbox.isChecked())) {
