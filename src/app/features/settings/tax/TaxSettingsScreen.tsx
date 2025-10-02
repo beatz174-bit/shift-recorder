@@ -5,7 +5,14 @@ import {
   type PayFrequency,
   type TaxProfileSettings
 } from '@tax-engine/core';
-import { useTaxSettings } from './taxSettingsSlice';
+
+type TaxSettingsScreenProps = {
+  profile: TaxProfileSettings;
+  payFrequency: PayFrequency;
+  onProfileChange: (next: TaxProfileSettings) => void;
+  onPayFrequencyChange: (next: PayFrequency) => void;
+  isDisabled?: boolean;
+};
 
 const FREQUENCY_LABELS: Record<PayFrequency, string> = {
   weekly: 'Weekly',
@@ -19,8 +26,13 @@ const TAX_FREE_THRESHOLD_DESCRIPTION_ID = 'tax-free-threshold-toggle-description
 const STSL_LABEL_ID = 'stsl-toggle-label';
 const STSL_DESCRIPTION_ID = 'stsl-toggle-description';
 
-export default function TaxSettingsScreen() {
-  const { profile, payFrequency, setProfile, setPayFrequency, isLoading } = useTaxSettings();
+export default function TaxSettingsScreen({
+  profile,
+  payFrequency,
+  onProfileChange,
+  onPayFrequencyChange,
+  isDisabled = false
+}: TaxSettingsScreenProps) {
 
   const todayISO = useMemo(() => new Date().toISOString().split('T')[0], []);
 
@@ -50,14 +62,14 @@ export default function TaxSettingsScreen() {
           <button
             type="button"
             onClick={() =>
-              setProfile({
+              onProfileChange({
                 ...profile,
                 residency: 'resident',
                 claimsTaxFreeThreshold: profile.claimsTaxFreeThreshold,
                 medicareLevy: profile.medicareLevy
               })
             }
-            disabled={isLoading}
+            disabled={isDisabled}
             className={`rounded-full px-4 py-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 ${
               profile.residency === 'resident'
                 ? 'bg-primary text-primary-foreground shadow'
@@ -70,14 +82,14 @@ export default function TaxSettingsScreen() {
           <button
             type="button"
             onClick={() =>
-              setProfile({
+              onProfileChange({
                 ...profile,
                 residency: 'nonResident',
                 claimsTaxFreeThreshold: false,
                 medicareLevy: 'fullExempt'
               })
             }
-            disabled={isLoading}
+            disabled={isDisabled}
             className={`rounded-full px-4 py-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 ${
               profile.residency === 'nonResident'
                 ? 'bg-primary text-primary-foreground shadow'
@@ -117,12 +129,12 @@ export default function TaxSettingsScreen() {
               <button
                 type="button"
                 onClick={() =>
-                  setProfile({
+                  onProfileChange({
                     ...profile,
                     claimsTaxFreeThreshold: !profile.claimsTaxFreeThreshold
                   })
                 }
-                disabled={isLoading}
+                disabled={isDisabled}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
                   profile.claimsTaxFreeThreshold ? 'bg-primary' : 'bg-neutral-300 dark:bg-midnight-700'
                 }`}
@@ -150,12 +162,12 @@ export default function TaxSettingsScreen() {
                     key={option.value}
                     type="button"
                     onClick={() =>
-                      setProfile({
+                      onProfileChange({
                         ...profile,
                         medicareLevy: option.value as TaxProfileSettings['medicareLevy']
                       })
                     }
-                    disabled={isLoading}
+                    disabled={isDisabled}
                     className={`rounded-full px-4 py-2 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 ${
                       profile.medicareLevy === option.value
                         ? 'bg-primary text-primary-foreground shadow'
@@ -198,8 +210,10 @@ export default function TaxSettingsScreen() {
           </span>
           <button
             type="button"
-            onClick={() => setProfile({ ...profile, hasSTSL: !profile.hasSTSL })}
-            disabled={isLoading}
+            onClick={() =>
+              onProfileChange({ ...profile, hasSTSL: !profile.hasSTSL })
+            }
+            disabled={isDisabled}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
               profile.hasSTSL ? 'bg-primary' : 'bg-neutral-300 dark:bg-midnight-700'
             }`}
@@ -227,8 +241,8 @@ export default function TaxSettingsScreen() {
             <button
               key={frequency}
               type="button"
-              onClick={() => setPayFrequency(frequency)}
-              disabled={isLoading}
+              onClick={() => onPayFrequencyChange(frequency)}
+              disabled={isDisabled}
               className={`rounded-full px-4 py-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 ${
                 payFrequency === frequency
                   ? 'bg-primary text-primary-foreground shadow'

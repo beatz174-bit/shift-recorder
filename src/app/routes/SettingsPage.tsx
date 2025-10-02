@@ -6,6 +6,10 @@ import {
   type CSSProperties,
   type FormEvent,
 } from 'react';
+import type {
+  PayFrequency,
+  TaxProfileSettings,
+} from '@tax-engine/core';
 import { useSettings } from '../state/SettingsContext';
 import { DEFAULT_SETTINGS, type ThemePreference, type WeekStart, type Weekday } from '../db/schema';
 import {
@@ -16,6 +20,10 @@ import {
 import ImportExportPanel from '../components/ImportExportPanel';
 import BackupRestorePanel from '../components/BackupRestorePanel';
 import TaxSettingsScreen from '../features/settings/tax/TaxSettingsScreen';
+import {
+  derivePayFrequency,
+  deriveTaxProfile,
+} from '../features/settings/tax/taxSettingsSlice';
 
 const WEEK_START_OPTIONS: { value: WeekStart; label: string }[] = [
   { value: 0, label: 'Sunday' },
@@ -251,6 +259,12 @@ export default function SettingsPage() {
   const [status, setStatus] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [taxProfile, setTaxProfile] = useState<TaxProfileSettings>(() =>
+    deriveTaxProfile(settings)
+  );
+  const [taxPayFrequency, setTaxPayFrequency] = useState<PayFrequency>(() =>
+    derivePayFrequency(settings)
+  );
 
   useEffect(() => {
     setFormError(null);
@@ -258,24 +272,27 @@ export default function SettingsPage() {
   }, [activeTab]);
 
   useEffect(() => {
-    if (settings) {
-      setBaseRate(formatRateInput(settings.baseRate));
-      setPenaltyRate(formatRateInput(settings.penaltyRate));
-      setWeekStartsOn(settings.weekStartsOn);
-      setCurrency(settings.currency);
-      setTheme(settings.theme ?? 'system');
-      setUse24HourTime(settings.use24HourTime ?? false);
-      setNotificationLongLead(settings.notificationLongLeadMinutes);
-      setNotificationShortLead(settings.notificationShortLeadMinutes);
-      setNotificationRepeat(settings.notificationRepeatMinutes);
-      setPenaltyDailyWindowEnabled(settings.penaltyDailyWindowEnabled);
-      setPenaltyStartTime(minutesToTime(settings.penaltyDailyStartMinute));
-      setPenaltyEndTime(minutesToTime(settings.penaltyDailyEndMinute));
-      setPenaltyAllDayWeekdays(settings.penaltyAllDayWeekdays);
-      setIncludePublicHolidays(settings.includePublicHolidays);
-      setPublicHolidayCountry(settings.publicHolidayCountry);
-      setPublicHolidaySubdivision(settings.publicHolidaySubdivision ?? '');
+    setTaxProfile(deriveTaxProfile(settings));
+    setTaxPayFrequency(derivePayFrequency(settings));
+    if (!settings) {
+      return;
     }
+    setBaseRate(formatRateInput(settings.baseRate));
+    setPenaltyRate(formatRateInput(settings.penaltyRate));
+    setWeekStartsOn(settings.weekStartsOn);
+    setCurrency(settings.currency);
+    setTheme(settings.theme ?? 'system');
+    setUse24HourTime(settings.use24HourTime ?? false);
+    setNotificationLongLead(settings.notificationLongLeadMinutes);
+    setNotificationShortLead(settings.notificationShortLeadMinutes);
+    setNotificationRepeat(settings.notificationRepeatMinutes);
+    setPenaltyDailyWindowEnabled(settings.penaltyDailyWindowEnabled);
+    setPenaltyStartTime(minutesToTime(settings.penaltyDailyStartMinute));
+    setPenaltyEndTime(minutesToTime(settings.penaltyDailyEndMinute));
+    setPenaltyAllDayWeekdays(settings.penaltyAllDayWeekdays);
+    setIncludePublicHolidays(settings.includePublicHolidays);
+    setPublicHolidayCountry(settings.publicHolidayCountry);
+    setPublicHolidaySubdivision(settings.publicHolidaySubdivision ?? '');
   }, [settings]);
 
   const cachedHolidayCount = settings?.publicHolidayDates?.length ?? 0;
@@ -451,6 +468,11 @@ export default function SettingsPage() {
         publicHolidayCountry: publicHolidayCountry.toUpperCase(),
         publicHolidaySubdivision: normalizedSubdivision,
         publicHolidayDates,
+        taxResidency: taxProfile.residency,
+        claimsTaxFreeThreshold: taxProfile.claimsTaxFreeThreshold,
+        medicareLevyStatus: taxProfile.medicareLevy,
+        hasSTSL: taxProfile.hasSTSL,
+        taxPayFrequency: taxPayFrequency,
       });
       setStatus('Settings saved');
       setTimeout(() => setStatus(null), 2500);
@@ -476,7 +498,7 @@ export default function SettingsPage() {
           type="submit"
           form="settings-form"
           className="w-full max-w-xs rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-midnight-900 disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isSaving}
+          disabled={isSaving || isLoading}
         >
           {isSaving ? 'Saving…' : 'Save settings'}
         </button>
@@ -879,9 +901,19 @@ export default function SettingsPage() {
           ) : null}
 
           {activeTab === 'tax' ? (
-            <div className="flex flex-col gap-5">
-              <TaxSettingsScreen />
-            </div>
+            <form
+              id="settings-form"
+              className="flex flex-col gap-5"
+              onSubmit={handleSubmit}
+            >
+              <TaxSettingsScreen
+                profile={taxProfile}
+                payFrequency={taxPayFrequency}
+                onProfileChange={(next) => setTaxProfile(next)}
+                onPayFrequencyChange={(next) => setTaxPayFrequency(next)}
+                isDisabled={isSaving || isLoading}
+              />
+            </form>
           ) : null}
 
           {activeTab === 'notifications' ? (

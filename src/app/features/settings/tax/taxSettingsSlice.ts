@@ -1,6 +1,4 @@
-import { useCallback, useMemo } from 'react';
 import type { PayFrequency, TaxProfileSettings } from '@tax-engine/core';
-import { useSettings } from '../../../state/SettingsContext';
 import type { Settings } from '../../../db/schema';
 
 export const DEFAULT_TAX_PROFILE: TaxProfileSettings = {
@@ -14,7 +12,7 @@ export const DEFAULT_PAY_FREQUENCY: PayFrequency = 'weekly';
 
 export function deriveTaxProfile(settings: Settings | null | undefined): TaxProfileSettings {
   if (!settings) {
-    return DEFAULT_TAX_PROFILE;
+    return { ...DEFAULT_TAX_PROFILE };
   }
   return {
     residency: settings.taxResidency ?? DEFAULT_TAX_PROFILE.residency,
@@ -32,41 +30,4 @@ export function derivePayFrequency(settings: Settings | null | undefined): PayFr
   return settings.taxPayFrequency ?? DEFAULT_PAY_FREQUENCY;
 }
 
-export function useTaxProfile(): TaxProfileSettings {
-  const { settings } = useSettings();
-  return useMemo(() => deriveTaxProfile(settings), [settings]);
-}
-
-export function useTaxSettings() {
-  const { settings, updateSettings, isLoading } = useSettings();
-
-  const profile = useMemo(() => deriveTaxProfile(settings), [settings]);
-  const payFrequency = useMemo(() => derivePayFrequency(settings), [settings]);
-
-  const setProfile = useCallback(
-    async (next: TaxProfileSettings) => {
-      await updateSettings({
-        taxResidency: next.residency,
-        claimsTaxFreeThreshold: next.claimsTaxFreeThreshold,
-        medicareLevyStatus: next.medicareLevy,
-        hasSTSL: next.hasSTSL
-      });
-    },
-    [updateSettings]
-  );
-
-  const setPayFrequency = useCallback(
-    async (next: PayFrequency) => {
-      await updateSettings({ taxPayFrequency: next });
-    },
-    [updateSettings]
-  );
-
-  return {
-    profile,
-    payFrequency,
-    isLoading,
-    setProfile,
-    setPayFrequency
-  };
-}
+// Legacy hooks removed in favour of explicit form state managed by SettingsPage.
