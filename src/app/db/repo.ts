@@ -207,6 +207,7 @@ export async function importShifts(
         endISO: shift.endISO,
         note: shift.note ?? undefined,
         status: 'success',
+        message: 'Imported successfully',
       });
     }
 
