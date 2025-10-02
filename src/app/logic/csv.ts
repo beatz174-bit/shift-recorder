@@ -24,11 +24,31 @@ export type ShiftCsvImportRow = {
 
 const HEADER = ['date', 'start', 'finish', 'notes'] as const;
 
+const DANGEROUS_CSV_PREFIXES = new Set(['=', '+', '-', '@']);
+
 function escapeCsvValue(value: string): string {
   if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
     return `"${value.replace(/"/g, '""')}"`;
   }
   return value;
+}
+
+function sanitizeCsvValue(value: string): string {
+  if (!value) {
+    return value;
+  }
+
+  const firstChar = value[0];
+
+  if (DANGEROUS_CSV_PREFIXES.has(firstChar) || firstChar === '\t' || firstChar === '\r' || firstChar === '\n') {
+    return `'${value}`;
+  }
+
+  return value;
+}
+
+export function encodeCsvCell(value: string): string {
+  return escapeCsvValue(sanitizeCsvValue(value));
 }
 
 function normalizeHeader(value: string): string {
@@ -104,7 +124,7 @@ export function shiftsToCsv(shifts: Shift[]): string {
       endTimePart,
       shift.note?.trim() ?? ''
     ];
-    lines.push(cells.map(escapeCsvValue).join(','));
+    lines.push(cells.map(encodeCsvCell).join(','));
   });
 
   return lines.join('\n');
@@ -199,20 +219,25 @@ export function parseShiftsCsv(content: string): {
       continue;
     }
 
-    const startDate = new Date(parsedDate);
-    startDate.setHours(startTime.hours, startTime.minutes, 0, 0);
+    const year = parsedDate.getFullYear();
+    const month = parsedDate.getMonth();
+    const day = parsedDate.getDate();
 
-    let endDate = new Date(parsedDate);
-    endDate.setHours(finishTime.hours, finishTime.minutes, 0, 0);
+    const startDate = new Date(Date.UTC(year, month, day, startTime.hours, startTime.minutes, 0, 0));
+
+    let endDate = new Date(Date.UTC(year, month, day, finishTime.hours, finishTime.minutes, 0, 0));
 
     if (endDate <= startDate) {
-      endDate = addDays(endDate, 1);
+      endDate = new Date(Date.UTC(year, month, day + 1, finishTime.hours, finishTime.minutes, 0, 0));
     }
+
+    const startISO = startDate.toISOString().replace(/\.\d{3}Z$/, 'Z');
+    const endISO = endDate.toISOString().replace(/\.\d{3}Z$/, 'Z');
 
     entries.push({
       line: lineNumber,
-      startISO: formatISO(startDate),
-      endISO: formatISO(endDate),
+      startISO,
+      endISO,
       note: note || undefined
     });
   }

@@ -1,7 +1,12 @@
 import { TarReader, TarWriter } from '@gera2ld/tarjs';
 import { gunzipSync, gzipSync } from 'fflate';
-import { beforeEach, describe, expect, it } from 'vitest';
-import { exportBackupArchive, restoreBackupArchive } from '../../app/db/backup';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  __resetBackupSizeLimitsForTests,
+  __setBackupSizeLimitsForTests,
+  exportBackupArchive,
+  restoreBackupArchive,
+} from '../../app/db/backup';
 import {
   applySettingsDefaults,
   db,
@@ -78,6 +83,10 @@ async function resetDatabase() {
 describe('backup archive', () => {
   beforeEach(async () => {
     await resetDatabase();
+  });
+
+  afterEach(() => {
+    __resetBackupSizeLimitsForTests();
   });
 
   it('exports a tarball containing expected members', async () => {
@@ -274,5 +283,42 @@ describe('backup archive', () => {
     expect(settings?.baseRate).toBe(30);
     expect(shiftCount).toBe(1);
     expect(scheduleCount).toBe(1);
+  });
+
+  it('rejects archives that exceed the maximum file size limit', async () => {
+    __setBackupSizeLimitsForTests({
+      maxArchiveBytes: 1024,
+      maxUnzippedBytes: 4096,
+    });
+
+    const arrayBuffer = vi.fn(async () => new ArrayBuffer(0));
+    const oversizedFile = {
+      name: 'huge-backup.tar.gz',
+      size: 2048,
+      type: 'application/gzip',
+      arrayBuffer,
+    } as unknown as File;
+
+    await expect(
+      restoreBackupArchive(oversizedFile, new Date(RESTORE_TIME))
+    ).rejects.toThrow(/too large to import/i);
+    expect(arrayBuffer).not.toHaveBeenCalled();
+  });
+
+  it('rejects archives whose contents inflate beyond the safety limit', async () => {
+    __setBackupSizeLimitsForTests({
+      maxArchiveBytes: 1024 * 1024,
+      maxUnzippedBytes: 1024,
+    });
+
+    const inflatedSize = 1024 + 1;
+    const zipped = gzipSync(new Uint8Array(inflatedSize));
+    const inflatedFile = new File([zipped], 'inflated.tar.gz', {
+      type: 'application/gzip',
+    });
+
+    await expect(
+      restoreBackupArchive(inflatedFile, new Date(RESTORE_TIME))
+    ).rejects.toThrow(/exceeds the maximum allowed size/i);
   });
 });
