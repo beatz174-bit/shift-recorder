@@ -38,6 +38,31 @@ describe('shiftsToCsv', () => {
 
     expect(csv).toBe('date,start,finish,notes\n2024-01-02,07:15,15:45,"Includes, comma"');
   });
+
+  it('serializes consistently across timezone environments', () => {
+    const shift = createShift({
+      note: 'Timezone check',
+      startISO: '2024-01-02T07:15:00.000Z',
+      endISO: '2024-01-02T15:45:00.000Z'
+    });
+
+    const expected = 'date,start,finish,notes\n2024-01-02,07:15,15:45,Timezone check';
+    const originalTz = process.env.TZ;
+    const timezones = ['UTC', 'America/New_York', 'Asia/Tokyo'];
+
+    try {
+      for (const timezone of timezones) {
+        process.env.TZ = timezone;
+        expect(shiftsToCsv([shift])).toBe(expected);
+      }
+    } finally {
+      if (originalTz === undefined) {
+        delete process.env.TZ;
+      } else {
+        process.env.TZ = originalTz;
+      }
+    }
+  });
 });
 
 describe('parseShiftsCsv', () => {
