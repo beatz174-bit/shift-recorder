@@ -226,7 +226,7 @@ export default function ShiftsPage() {
         </div>
       </header>
 
-      {isLoading && <p className="text-sm text-neutral-500">Chrona is preparing your calendar…</p>}
+      {isLoading && <p className="text-sm text-neutral-500">Chrona is preparing your calendar...</p>}
 
       <div className="grid min-h-[70vh] grid-rows-[minmax(0,1fr)_minmax(0,1fr)] gap-4 sm:flex sm:flex-col">
         <div className="overflow-x-auto sm:overflow-visible">
@@ -369,7 +369,7 @@ export default function ShiftsPage() {
 
       {!isLoading && shifts.length === 0 && (
         <p className="text-sm text-neutral-500 dark:text-neutral-300">
-          Chrona hasn’t logged any shifts yet.
+          Chrona hasn't logged any shifts yet.
         </p>
       )}
 

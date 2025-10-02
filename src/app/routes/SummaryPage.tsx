@@ -104,7 +104,7 @@ export default function SummaryPage() {
           </p>
         </div>
         <div className={metricCardClass}>
-          <p className={metricLabelClass}>Gross pay</p>
+          <p className={metricLabelClass}>Total pay</p>
           <p className="text-xl font-semibold leading-tight text-neutral-900 dark:text-neutral-50 sm:text-3xl">
             {currencyFormatter.format(totalPay / 100)}
           </p>
@@ -133,7 +133,7 @@ export default function SummaryPage() {
         <h2 className="text-lg font-semibold text-neutral-800 dark:text-neutral-100">Shifts</h2>
         {isLoading && <p className="text-sm text-neutral-500">Chrona is syncing your shifts…</p>}
         {!isLoading && shifts.length === 0 && (
-          <p className="text-sm text-neutral-500">Chrona hasn’t recorded any shifts for this week yet.</p>
+          <p className="text-sm text-neutral-500">Chrona hasn't recorded any shifts for this week yet.</p>
         )}
         <div className="flex flex-col gap-4">
           {shifts.map((shift) => (
