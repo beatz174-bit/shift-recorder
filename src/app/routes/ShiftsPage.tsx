@@ -15,12 +15,13 @@ import {
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
+  DocumentDuplicateIcon,
   PencilSquareIcon,
   TrashIcon
 } from '@heroicons/react/24/outline';
 import Modal from '../components/Modal';
 import ShiftForm, { type ShiftFormValues } from '../components/ShiftForm';
-import { deleteShift, getAllShifts, updateShift } from '../db/repo';
+import { createShift, deleteShift, getAllShifts, updateShift } from '../db/repo';
 import type { Shift, WeekStart } from '../db/schema';
 import { useSettings } from '../state/SettingsContext';
 import { useDateTimeFormatter, useTimeFormatter } from '../state/useTimeFormatter';
@@ -87,6 +88,7 @@ export default function ShiftsPage() {
   const { settings } = useSettings();
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
+  const [duplicatingShift, setDuplicatingShift] = useState<Shift | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
@@ -167,6 +169,27 @@ export default function ShiftsPage() {
       ]);
     }
   });
+
+  const duplicateMutation = useMutation({
+    mutationFn: async (values: ShiftFormValues) => {
+      if (!settings) throw new Error('Settings not loaded');
+      return createShift(
+        { startISO: values.start, endISO: values.end, note: values.note },
+        settings
+      );
+    },
+    onSuccess: async (newShift) => {
+      setDuplicatingShift(null);
+      setSelectedShift(newShift);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['shifts'] }),
+        queryClient.invalidateQueries({ queryKey: ['summary'] })
+      ]);
+    }
+  });
+
+  const hasPendingMutation =
+    updateMutation.isPending || deleteMutation.isPending || duplicateMutation.isPending;
 
   const now = new Date();
   const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
@@ -392,17 +415,32 @@ export default function ShiftsPage() {
                 </span>
                 <span>Total pay: {currencyFormatter.format(selectedShift.totalPay / 100)}</span>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingShift(selectedShift);
-                  setSelectedShift(null);
-                }}
-                className="rounded-full border border-neutral-200 p-2 text-neutral-500 transition hover:border-primary hover:text-primary-emphasis dark:border-midnight-700 dark:text-neutral-300 dark:hover:border-primary dark:hover:text-primary-foreground"
-                aria-label="Edit shift"
-              >
-                <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
-              </button>
+              <div className="grid gap-2 justify-items-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDuplicatingShift(selectedShift);
+                    setSelectedShift(null);
+                  }}
+                  className="rounded-full border border-neutral-200 p-2 text-neutral-500 transition hover:border-primary hover:text-primary-emphasis disabled:opacity-60 dark:border-midnight-700 dark:text-neutral-300 dark:hover:border-primary dark:hover:text-primary-foreground"
+                  aria-label="Copy shift"
+                  disabled={hasPendingMutation}
+                >
+                  <DocumentDuplicateIcon className="h-5 w-5" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingShift(selectedShift);
+                    setSelectedShift(null);
+                  }}
+                  className="rounded-full border border-neutral-200 p-2 text-neutral-500 transition hover:border-primary hover:text-primary-emphasis disabled:opacity-60 dark:border-midnight-700 dark:text-neutral-300 dark:hover:border-primary dark:hover:text-primary-foreground"
+                  aria-label="Edit shift"
+                  disabled={hasPendingMutation}
+                >
+                  <PencilSquareIcon className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-col gap-3 border-t border-neutral-200 pt-4 dark:border-midnight-800 sm:flex-row sm:items-center sm:justify-between">
@@ -410,12 +448,40 @@ export default function ShiftsPage() {
                 type="button"
                 onClick={() => deleteMutation.mutate(selectedShift)}
                 className="flex w-full items-center justify-center gap-2 rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-500/40 dark:text-red-200 dark:hover:bg-red-500/10 sm:w-auto"
-                disabled={deleteMutation.isPending || updateMutation.isPending}
+                disabled={hasPendingMutation}
               >
                 <TrashIcon className="h-4 w-4" aria-hidden="true" /> Delete shift
               </button>
             </div>
           </div>
+        )}
+      </Modal>
+
+      <Modal
+        isOpen={Boolean(duplicatingShift)}
+        onClose={() => {
+          if (duplicatingShift) {
+            setSelectedShift(duplicatingShift);
+          }
+          setDuplicatingShift(null);
+        }}
+        title="Copy shift"
+      >
+        {duplicatingShift && (
+          <ShiftForm
+            key={duplicatingShift.id}
+            initialShift={duplicatingShift}
+            submitLabel="Save copy"
+            onCancel={() => {
+              if (duplicatingShift) {
+                setSelectedShift(duplicatingShift);
+              }
+              setDuplicatingShift(null);
+            }}
+            onSubmit={async (values) => {
+              await duplicateMutation.mutateAsync(values);
+            }}
+          />
         )}
       </Modal>
 
