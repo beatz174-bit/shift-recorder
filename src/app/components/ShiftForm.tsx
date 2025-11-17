@@ -1,12 +1,10 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import type { Shift } from '../db/schema';
 import {
   createDateFromLocalInputs,
-  formatNormalizedTime,
   nowLocalDateInputValue,
   nowLocalTimeInputValue,
   parseTimeInput,
-  tryNormalizeTimeInput,
   toLocalDateInput,
   toLocalTimeInput
 } from '../utils/datetime';
@@ -27,18 +25,13 @@ export type ShiftFormProps = {
 
 export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabel }: ShiftFormProps) {
   const { settings } = useSettings();
-  const preferred24Hour = settings?.use24HourTime ?? false;
+  const use24HourTime = settings?.use24HourTime ?? false;
+  const timeInputLocale = use24HourTime ? 'en-GB' : 'en-US';
   const idPrefix = useId();
   const dateInputId = `${idPrefix}-date`;
   const startInputId = `${idPrefix}-start`;
   const endInputId = `${idPrefix}-end`;
   const noteInputId = `${idPrefix}-note`;
-  const [timeMode, setTimeMode] = useState(preferred24Hour ? '24-hour' : '12-hour');
-  const timeModeRef = useRef(timeMode);
-
-  useEffect(() => {
-    timeModeRef.current = timeMode;
-  }, [timeMode]);
 
   const defaultDate = initialShift?.startISO
     ? toLocalDateInput(initialShift.startISO)
@@ -51,62 +44,18 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
     : defaultStartNormalized;
 
   const [date, setDate] = useState(defaultDate);
-  const [startTime, setStartTime] = useState(
-    timeMode === '24-hour'
-      ? defaultStartNormalized
-      : formatNormalizedTime(defaultStartNormalized, false)
-  );
-  const [endTime, setEndTime] = useState(
-    timeMode === '24-hour'
-      ? defaultEndNormalized
-      : formatNormalizedTime(defaultEndNormalized, false)
-  );
+  const [startTime, setStartTime] = useState(defaultStartNormalized);
+  const [endTime, setEndTime] = useState(defaultEndNormalized);
   const [note, setNote] = useState(initialShift?.note ?? '');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const nextMode = preferred24Hour ? '24-hour' : '12-hour';
-    if (nextMode === timeMode) {
-      return;
-    }
-
-    setStartTime((value) => {
-      const normalized = tryNormalizeTimeInput(value);
-      if (!normalized) {
-        return value;
-      }
-      return nextMode === '24-hour'
-        ? normalized
-        : formatNormalizedTime(normalized, false);
-    });
-
-    setEndTime((value) => {
-      const normalized = tryNormalizeTimeInput(value);
-      if (!normalized) {
-        return value;
-      }
-      return nextMode === '24-hour'
-        ? normalized
-        : formatNormalizedTime(normalized, false);
-    });
-
-    setTimeMode(nextMode);
-  }, [preferred24Hour, timeMode]);
-
-  useEffect(() => {
     if (!initialShift) {
       setDate(nowLocalDateInputValue());
       const nowTime = nowLocalTimeInputValue();
-      const currentMode = timeModeRef.current;
-      if (currentMode === '24-hour') {
-        setStartTime(nowTime);
-        setEndTime(nowTime);
-      } else {
-        const formatted = formatNormalizedTime(nowTime, false);
-        setStartTime(formatted);
-        setEndTime(formatted);
-      }
+      setStartTime(nowTime);
+      setEndTime(nowTime);
       setNote('');
       return;
     }
@@ -117,23 +66,11 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
       ? toLocalTimeInput(initialShift.endISO)
       : startNormalized;
 
-    const currentMode = timeModeRef.current;
-    if (currentMode === '24-hour') {
-      setStartTime(startNormalized);
-      setEndTime(endNormalized);
-    } else {
-      setStartTime(formatNormalizedTime(startNormalized, false));
-      setEndTime(formatNormalizedTime(endNormalized, false));
-    }
-
+    setStartTime(startNormalized);
+    setEndTime(endNormalized);
     setNote(initialShift.note ?? '');
   }, [initialShift]);
 
-  const use24HourTime = timeMode === '24-hour';
-  const timePattern = use24HourTime
-    ? '^(?:[01]?\\d|2[0-3]):[0-5]\\d$'
-    : '^(?:0?[1-9]|1[0-2]):[0-5]\\d\\s?(?:[AaPp][Mm])$';
-  const timePlaceholder = use24HourTime ? 'e.g. 14:30' : 'e.g. 02:30 PM';
   const formatTimeErrorMessage = (label: string, message: string) => {
     if (message === 'Enter a time value.') {
       return `${label} is required.`;
@@ -142,12 +79,6 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
       return `${label} must use ${message.slice(4)}`;
     }
     return `${label}: ${message}`;
-  };
-  const normalizeTypedValue = (value: string) => {
-    if (use24HourTime) {
-      return value;
-    }
-    return value.replace(/\s*(am|pm)$/i, (_, suffix: string) => ` ${suffix.toUpperCase()}`);
   };
 
   return (
@@ -160,7 +91,7 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
         try {
           let normalizedStart: string;
           try {
-            normalizedStart = parseTimeInput(startTime, use24HourTime);
+            normalizedStart = parseTimeInput(startTime, true);
           } catch (err) {
             setError(formatTimeErrorMessage('Start time', (err as Error).message));
             return;
@@ -168,7 +99,7 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
 
           let normalizedEnd: string;
           try {
-            normalizedEnd = parseTimeInput(endTime, use24HourTime);
+            normalizedEnd = parseTimeInput(endTime, true);
           } catch (err) {
             setError(formatTimeErrorMessage('Finish time', (err as Error).message));
             return;
@@ -215,17 +146,15 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
         </label>
         <input
           id={startInputId}
-          type="text"
+          type="time"
           value={startTime}
           onChange={(event) => {
-            setStartTime(normalizeTypedValue(event.target.value));
+            setStartTime(event.target.value);
             setError(null);
           }}
-          inputMode={use24HourTime ? 'numeric' : 'text'}
-          pattern={timePattern}
-          placeholder={timePlaceholder}
+          step={60}
           autoComplete="off"
-          spellCheck={false}
+          lang={timeInputLocale}
           className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
           required
         />
@@ -236,17 +165,15 @@ export default function ShiftForm({ initialShift, onSubmit, onCancel, submitLabe
         </label>
         <input
           id={endInputId}
-          type="text"
+          type="time"
           value={endTime}
           onChange={(event) => {
-            setEndTime(normalizeTypedValue(event.target.value));
+            setEndTime(event.target.value);
             setError(null);
           }}
-          inputMode={use24HourTime ? 'numeric' : 'text'}
-          pattern={timePattern}
-          placeholder={timePlaceholder}
+          step={60}
           autoComplete="off"
-          spellCheck={false}
+          lang={timeInputLocale}
           className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
           required
         />
