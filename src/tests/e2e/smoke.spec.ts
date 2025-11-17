@@ -183,13 +183,13 @@ test.describe('Chrona PWA UI', () => {
     await expect(createShiftDialog).toBeVisible();
 
     const dateInput = createShiftDialog.locator('input[type="date"]');
-    const timeInputs = createShiftDialog.locator('input[type="text"]');
+    const timeInputs = createShiftDialog.locator('input[type="time"]');
     const noteInput = createShiftDialog.locator('textarea');
 
     const shiftDate = formatDateForInput(new Date());
     await dateInput.fill(shiftDate);
-    await timeInputs.first().fill('9:00 AM');
-    await timeInputs.nth(1).fill('5:30 PM');
+    await timeInputs.first().fill('09:00');
+    await timeInputs.nth(1).fill('17:30');
     await noteInput.fill('Project kickoff');
 
     await createShiftDialog.getByRole('button', { name: 'Save shift' }).click();
