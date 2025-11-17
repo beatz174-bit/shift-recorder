@@ -5,7 +5,9 @@ WORKDIR /app
 # Install deps first (better layer caching)
 COPY package*.json ./
 COPY scripts ./scripts
-RUN corepack enable && corepack prepare npm@11.6.1 --activate
+# npm 10 (bundled with Node 20) does not understand workspace:* refs in our lockfile.
+# Explicitly install npm 11 before running npm ci so workspaces resolve correctly.
+RUN npm install -g npm@11.6.1
 RUN npm ci
 
 # Copy source
