@@ -23,14 +23,11 @@ import Modal from '../components/Modal';
 import ShiftForm, { type ShiftFormValues } from '../components/ShiftForm';
 import { createShift, deleteShift, getAllShifts, updateShift } from '../db/repo';
 import type { Shift, WeekStart } from '../db/schema';
+import { buildDuplicateShiftInput } from '../logic/duplicateShift';
 import { useSettings } from '../state/SettingsContext';
 import { useDateTimeFormatter, useTimeFormatter } from '../state/useTimeFormatter';
 import { formatMinutesDuration } from '../utils/format';
-import {
-  createDateFromLocalInputs,
-  toLocalDateInput,
-  toLocalTimeInput
-} from '../utils/datetime';
+import { toLocalDateInput } from '../utils/datetime';
 
 function ShiftSummaryCard({
   shift,
@@ -179,23 +176,18 @@ export default function ShiftsPage() {
   });
 
   const duplicateMutation = useMutation({
-    mutationFn: async (values: ShiftFormValues) => {
+    mutationFn: async ({
+      shift,
+      targetDate,
+      note
+    }: {
+      shift: Shift;
+      targetDate: string;
+      note: string;
+    }) => {
       if (!settings) throw new Error('Settings not loaded');
-      const startTime = toLocalTimeInput(shift.startISO);
-      const startDate = createDateFromLocalInputs(targetDate, startTime);
-      const startISO = startDate.toISOString();
-
-      let endISO: string | null = null;
-      if (shift.endISO) {
-        const endTime = toLocalTimeInput(shift.endISO);
-        let endDate = createDateFromLocalInputs(targetDate, endTime);
-        if (endDate <= startDate) {
-          endDate = addDays(endDate, 1);
-        }
-        endISO = endDate.toISOString();
-      }
-
-      return createShift({ startISO, endISO, note }, settings);
+      const input = buildDuplicateShiftInput(shift, targetDate, note);
+      return createShift(input, settings);
     },
     onSuccess: async (newShift) => {
       setDuplicatingShift(null);
@@ -504,24 +496,22 @@ export default function ShiftsPage() {
             setSelectedShift(duplicatingShift);
           }
           setDuplicatingShift(null);
+          setDuplicateError(null);
         }}
         title="Copy shift"
       >
         {duplicatingShift && (
-          <ShiftForm
-            key={duplicatingShift.id}
-            initialShift={duplicatingShift}
-            submitLabel="Save copy"
-            onCancel={() => {
-              if (duplicatingShift) {
-                setSelectedShift(duplicatingShift);
-              }
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={async (event) => {
+              event.preventDefault();
+              if (!duplicatingShift) return;
               setDuplicateError(null);
               try {
                 await duplicateMutation.mutateAsync({
                   shift: duplicatingShift,
                   targetDate: duplicateDate,
-                  note: duplicateNotes.trim()
+                  note: duplicateNotes
                 });
               } catch (error) {
                 const message =
@@ -531,10 +521,70 @@ export default function ShiftsPage() {
                 setDuplicateError(message);
               }
             }}
-            onSubmit={async (values) => {
-              await duplicateMutation.mutateAsync(values);
-            }}
-          />
+          >
+            <div className="grid gap-2">
+              <label className="text-xs font-semibold uppercase text-neutral-500" htmlFor="duplicate-date">
+                Date
+              </label>
+              <input
+                id="duplicate-date"
+                type="date"
+                value={duplicateDate}
+                onChange={(event) => setDuplicateDate(event.target.value)}
+                className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
+                required
+              />
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                Copying {timeFormatter.format(new Date(duplicatingShift.startISO))}
+                {duplicatingShift.endISO ? ` – ${timeFormatter.format(new Date(duplicatingShift.endISO))}` : ''} to the
+                selected date.
+              </p>
+            </div>
+
+            <div className="grid gap-2">
+              <label className="text-xs font-semibold uppercase text-neutral-500" htmlFor="duplicate-notes">
+                Notes
+              </label>
+              <textarea
+                id="duplicate-notes"
+                value={duplicateNotes}
+                onChange={(event) => setDuplicateNotes(event.target.value)}
+                rows={3}
+                className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
+                placeholder="Optional"
+              />
+            </div>
+
+            {duplicateError && (
+              <p className="text-sm text-red-600 dark:text-red-300" role="status">
+                {duplicateError}
+              </p>
+            )}
+
+            <div className="flex flex-col gap-2 border-t border-neutral-200 pt-3 dark:border-midnight-800 sm:flex-row sm:items-center sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  if (duplicatingShift) {
+                    setSelectedShift(duplicatingShift);
+                  }
+                  setDuplicatingShift(null);
+                  setDuplicateError(null);
+                }}
+                className="w-full rounded-full border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 dark:border-midnight-700 dark:text-neutral-100 dark:hover:bg-midnight-800 sm:w-auto"
+                disabled={duplicateMutation.isPending}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="w-full rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow hover:bg-primary-emphasis disabled:opacity-60 sm:w-auto"
+                disabled={duplicateMutation.isPending}
+              >
+                Save copy
+              </button>
+            </div>
+          </form>
         )}
       </Modal>
 
