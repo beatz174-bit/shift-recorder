@@ -106,9 +106,7 @@ export default function ShiftsPage() {
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [duplicatingShift, setDuplicatingShift] = useState<Shift | null>(null);
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
-  const [duplicateDate, setDuplicateDate] = useState(() =>
-    toLocalDateInput(new Date().toISOString())
-  );
+  const [duplicateDate, setDuplicateDate] = useState('');
   const [duplicateNotes, setDuplicateNotes] = useState('');
   const [currentMonth, setCurrentMonth] = useState(() =>
     startOfMonth(new Date())
@@ -175,6 +173,7 @@ export default function ShiftsPage() {
 
     setDuplicateDate(toLocalDateInput(duplicatingShift.startISO));
     setDuplicateNotes(duplicatingShift.note ?? '');
+    setDuplicateError(null);
   }, [duplicatingShift]);
 
   const updateMutation = useMutation({
@@ -216,22 +215,15 @@ export default function ShiftsPage() {
   });
 
   const duplicateMutation = useMutation({
-    mutationFn: async ({
-      shift,
-      targetDate,
-      note,
-    }: {
-      shift: Shift;
-      targetDate: string;
-      note: string;
-    }) => {
+    mutationFn: async (shift: Shift) => {
       if (!settings) throw new Error('Settings not loaded');
-      const input = buildDuplicateShiftInput(shift, targetDate, note);
+      const input = buildDuplicateShiftInput(shift, duplicateDate, duplicateNotes);
       return createShift(input, settings);
     },
     onSuccess: async (newShift) => {
       setDuplicatingShift(null);
       setSelectedShift(null);
+      setDuplicateError(null);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['shifts'] }),
         queryClient.invalidateQueries({ queryKey: ['summary'] }),
@@ -508,6 +500,9 @@ export default function ShiftsPage() {
                 <button
                   type="button"
                   onClick={() => {
+                    setDuplicateDate(toLocalDateInput(selectedShift.startISO));
+                    setDuplicateNotes(selectedShift.note ?? '');
+                    setDuplicateError(null);
                     setDuplicatingShift(selectedShift);
                     setSelectedShift(null);
                   }}
@@ -569,11 +564,7 @@ export default function ShiftsPage() {
               if (!duplicatingShift) return;
               setDuplicateError(null);
               try {
-                await duplicateMutation.mutateAsync({
-                  shift: duplicatingShift,
-                  targetDate: duplicateDate,
-                  note: duplicateNotes,
-                });
+                await duplicateMutation.mutateAsync(duplicatingShift);
               } catch (error) {
                 const message =
                   error instanceof Error
