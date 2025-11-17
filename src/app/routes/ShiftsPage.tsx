@@ -88,6 +88,7 @@ export const CALENDAR_WEEK_START: WeekStart = 1;
 export default function ShiftsPage() {
   const queryClient = useQueryClient();
   const { settings } = useSettings();
+  const weekStartsOn = settings?.weekStartsOn ?? CALENDAR_WEEK_START;
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [duplicatingShift, setDuplicatingShift] = useState<Shift | null>(null);
@@ -117,18 +118,18 @@ export default function ShiftsPage() {
   );
 
   const calendarDays = useMemo(() => {
-    const options = { weekStartsOn: CALENDAR_WEEK_START } as const;
+    const options = { weekStartsOn } as const;
     const start = startOfWeek(startOfMonth(currentMonth), options);
     const end = endOfWeek(endOfMonth(currentMonth), options);
     const total = differenceInCalendarDays(end, start) + 1;
     return Array.from({ length: total }, (_, index) => addDays(start, index));
-  }, [currentMonth]);
+  }, [currentMonth, weekStartsOn]);
 
   const weekdayLabels = useMemo(() => {
-    const options = { weekStartsOn: CALENDAR_WEEK_START } as const;
+    const options = { weekStartsOn } as const;
     const start = startOfWeek(new Date(), options);
     return Array.from({ length: 7 }, (_, index) => format(addDays(start, index), 'EEE'));
-  }, []);
+  }, [weekStartsOn]);
 
   const shiftsByDay = useMemo(() => {
     const grouped = new Map<string, Shift[]>();
