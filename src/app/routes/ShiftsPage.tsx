@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   addDays,
@@ -26,11 +26,6 @@ import type { Shift, WeekStart } from '../db/schema';
 import { useSettings } from '../state/SettingsContext';
 import { useDateTimeFormatter, useTimeFormatter } from '../state/useTimeFormatter';
 import { formatMinutesDuration } from '../utils/format';
-import {
-  createDateFromLocalInputs,
-  toLocalDateInput,
-  toLocalTimeInput
-} from '../utils/datetime';
 
 function ShiftSummaryCard({
   shift,
@@ -94,8 +89,6 @@ export default function ShiftsPage() {
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [duplicatingShift, setDuplicatingShift] = useState<Shift | null>(null);
-  const [duplicateDate, setDuplicateDate] = useState('');
-  const [duplicateNotes, setDuplicateNotes] = useState('');
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
@@ -181,21 +174,17 @@ export default function ShiftsPage() {
   const duplicateMutation = useMutation({
     mutationFn: async (values: ShiftFormValues) => {
       if (!settings) throw new Error('Settings not loaded');
-      const startTime = toLocalTimeInput(shift.startISO);
-      const startDate = createDateFromLocalInputs(targetDate, startTime);
-      const startISO = startDate.toISOString();
 
-      let endISO: string | null = null;
-      if (shift.endISO) {
-        const endTime = toLocalTimeInput(shift.endISO);
-        let endDate = createDateFromLocalInputs(targetDate, endTime);
-        if (endDate <= startDate) {
-          endDate = addDays(endDate, 1);
-        }
-        endISO = endDate.toISOString();
-      }
+      const trimmedNote = values.note.trim();
 
-      return createShift({ startISO, endISO, note }, settings);
+      return createShift(
+        {
+          startISO: values.start,
+          endISO: values.end ?? null,
+          note: trimmedNote || undefined
+        },
+        settings
+      );
     },
     onSuccess: async (newShift) => {
       setDuplicatingShift(null);
@@ -247,19 +236,6 @@ export default function ShiftsPage() {
     setCurrentMonth(startOfMonth(todayDate));
     setSelectedDate(todayDate);
   };
-
-  useEffect(() => {
-    if (!duplicatingShift) {
-      setDuplicateDate('');
-      setDuplicateNotes('');
-      setDuplicateError(null);
-      return;
-    }
-
-    setDuplicateDate(toLocalDateInput(duplicatingShift.startISO));
-    setDuplicateNotes(duplicatingShift.note ?? '');
-    setDuplicateError(null);
-  }, [duplicatingShift]);
 
   return (
     <section className="flex flex-col gap-6">
@@ -503,6 +479,7 @@ export default function ShiftsPage() {
           if (duplicatingShift) {
             setSelectedShift(duplicatingShift);
           }
+          setDuplicateError(null);
           setDuplicatingShift(null);
         }}
         title="Copy shift"
@@ -517,19 +494,7 @@ export default function ShiftsPage() {
                 setSelectedShift(duplicatingShift);
               }
               setDuplicateError(null);
-              try {
-                await duplicateMutation.mutateAsync({
-                  shift: duplicatingShift,
-                  targetDate: duplicateDate,
-                  note: duplicateNotes.trim()
-                });
-              } catch (error) {
-                const message =
-                  error instanceof Error
-                    ? error.message
-                    : 'Unable to copy this shift. Please try again.';
-                setDuplicateError(message);
-              }
+              setDuplicatingShift(null);
             }}
             onSubmit={async (values) => {
               await duplicateMutation.mutateAsync(values);
