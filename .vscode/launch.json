@@ -72,16 +72,19 @@
       },
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Dev (Vite)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "TZ": "Australia/Brisbane"
+      }
     }
   ],
   "compounds": [
-    {
-      "name": "Dev (Vite + Chrome)",
-      "configurations": [
-        "Chrome: Attach to Vite (DEV)"
-      ],
-      "preLaunchTask": "Dev"
-    },
     {
       "name": "Prod Preview + Chrome",
       "configurations": [
