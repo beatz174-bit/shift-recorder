@@ -191,7 +191,7 @@ export default function ShiftsPage() {
     },
     onSuccess: async (newShift) => {
       setDuplicatingShift(null);
-      setSelectedShift(newShift);
+      setSelectedShift(null);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['shifts'] }),
         queryClient.invalidateQueries({ queryKey: ['summary'] }),
