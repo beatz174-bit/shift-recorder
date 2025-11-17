@@ -181,18 +181,37 @@ export default function ShiftsPage() {
   const duplicateMutation = useMutation({
     mutationFn: async (values: ShiftFormValues) => {
       if (!settings) throw new Error('Settings not loaded');
-      return createShift(
-        { startISO: values.start, endISO: values.end, note: values.note },
-        settings
-      );
+      const startTime = toLocalTimeInput(shift.startISO);
+      const startDate = createDateFromLocalInputs(targetDate, startTime);
+      const startISO = startDate.toISOString();
+
+      let endISO: string | null = null;
+      if (shift.endISO) {
+        const endTime = toLocalTimeInput(shift.endISO);
+        let endDate = createDateFromLocalInputs(targetDate, endTime);
+        if (endDate <= startDate) {
+          endDate = addDays(endDate, 1);
+        }
+        endISO = endDate.toISOString();
+      }
+
+      return createShift({ startISO, endISO, note }, settings);
     },
     onSuccess: async (newShift) => {
       setDuplicatingShift(null);
       setSelectedShift(newShift);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['shifts'] }),
-        queryClient.invalidateQueries({ queryKey: ['summary'] })
+        queryClient.invalidateQueries({ queryKey: ['summary'] }),
+        queryClient.invalidateQueries({ queryKey: ['active-shift'] })
       ]);
+    },
+    onError: (error) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unable to copy this shift. Please try again.';
+      setDuplicateError(message);
     }
   });
 
@@ -497,7 +516,20 @@ export default function ShiftsPage() {
               if (duplicatingShift) {
                 setSelectedShift(duplicatingShift);
               }
-              setDuplicatingShift(null);
+              setDuplicateError(null);
+              try {
+                await duplicateMutation.mutateAsync({
+                  shift: duplicatingShift,
+                  targetDate: duplicateDate,
+                  note: duplicateNotes.trim()
+                });
+              } catch (error) {
+                const message =
+                  error instanceof Error
+                    ? error.message
+                    : 'Unable to copy this shift. Please try again.';
+                setDuplicateError(message);
+              }
             }}
             onSubmit={async (values) => {
               await duplicateMutation.mutateAsync(values);
