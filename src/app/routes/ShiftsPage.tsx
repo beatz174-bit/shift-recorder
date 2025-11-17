@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   addDays,
@@ -10,34 +10,39 @@ import {
   isSameDay,
   isSameMonth,
   startOfMonth,
-  startOfWeek
+  startOfWeek,
 } from 'date-fns';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   DocumentDuplicateIcon,
   PencilSquareIcon,
-  TrashIcon
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import Modal from '../components/Modal';
 import ShiftForm, { type ShiftFormValues } from '../components/ShiftForm';
-import { createShift, deleteShift, getAllShifts, updateShift } from '../db/repo';
+import {
+  createShift,
+  deleteShift,
+  getAllShifts,
+  updateShift,
+} from '../db/repo';
 import type { Shift, WeekStart } from '../db/schema';
 import { buildDuplicateShiftInput } from '../logic/duplicateShift';
 import { useSettings } from '../state/SettingsContext';
-import { useDateTimeFormatter, useTimeFormatter } from '../state/useTimeFormatter';
+import {
+  useDateTimeFormatter,
+  useTimeFormatter,
+} from '../state/useTimeFormatter';
 import { formatMinutesDuration } from '../utils/format';
-<<<<<<< HEAD
 import { toLocalDateInput } from '../utils/datetime';
-=======
->>>>>>> codex/implement-createshift-mutation-in-shiftspage
 
 function ShiftSummaryCard({
   shift,
   now,
   timeFormatter,
   onSelect,
-  currency
+  currency,
 }: {
   shift: Shift;
   now: Date;
@@ -48,12 +53,14 @@ function ShiftSummaryCard({
   const startDate = new Date(shift.startISO);
   const endDate = shift.endISO ? new Date(shift.endISO) : null;
   const upcoming = endDate ? endDate >= now : startDate >= now;
-  const totalDuration = formatMinutesDuration(shift.baseMinutes + shift.penaltyMinutes);
+  const totalDuration = formatMinutesDuration(
+    shift.baseMinutes + shift.penaltyMinutes
+  );
   const currencyFormatter = useMemo(
     () =>
       new Intl.NumberFormat(undefined, {
         style: 'currency',
-        currency
+        currency,
       }),
     [currency]
   );
@@ -72,14 +79,17 @@ function ShiftSummaryCard({
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-col">
-          <span className="text-sm font-semibold">{timeFormatter.format(startDate)}</span>
+          <span className="text-sm font-semibold">
+            {timeFormatter.format(startDate)}
+          </span>
           <span className="text-[0.65rem] opacity-80">{totalDuration}</span>
         </div>
       </div>
       <div className="flex flex-col gap-1 text-[0.65rem] text-neutral-600 dark:text-neutral-300">
         <span>Total pay: {currencyFormatter.format(shift.totalPay / 100)}</span>
         <span>
-          Base {formatMinutesDuration(shift.baseMinutes)} · Penalty {formatMinutesDuration(shift.penaltyMinutes)}
+          Base {formatMinutesDuration(shift.baseMinutes)} · Penalty{' '}
+          {formatMinutesDuration(shift.penaltyMinutes)}
         </span>
       </div>
     </button>
@@ -96,13 +106,19 @@ export default function ShiftsPage() {
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [duplicatingShift, setDuplicatingShift] = useState<Shift | null>(null);
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
-  const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
+  const [duplicateDate, setDuplicateDate] = useState(() =>
+    toLocalDateInput(new Date().toISOString())
+  );
+  const [duplicateNotes, setDuplicateNotes] = useState('');
+  const [currentMonth, setCurrentMonth] = useState(() =>
+    startOfMonth(new Date())
+  );
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const { data: shifts = [], isLoading } = useQuery({
     queryKey: ['shifts', 'all'],
     queryFn: getAllShifts,
-    enabled: Boolean(settings)
+    enabled: Boolean(settings),
   });
 
   const timeFormatter = useTimeFormatter();
@@ -113,7 +129,7 @@ export default function ShiftsPage() {
     () =>
       new Intl.NumberFormat(undefined, {
         style: 'currency',
-        currency: currencyCode
+        currency: currencyCode,
       }),
     [currencyCode]
   );
@@ -129,7 +145,9 @@ export default function ShiftsPage() {
   const weekdayLabels = useMemo(() => {
     const options = { weekStartsOn } as const;
     const start = startOfWeek(new Date(), options);
-    return Array.from({ length: 7 }, (_, index) => format(addDays(start, index), 'EEE'));
+    return Array.from({ length: 7 }, (_, index) =>
+      format(addDays(start, index), 'EEE')
+    );
   }, [weekStartsOn]);
 
   const shiftsByDay = useMemo(() => {
@@ -143,25 +161,45 @@ export default function ShiftsPage() {
     }
 
     for (const [, dayShifts] of grouped) {
-      dayShifts.sort((a, b) => new Date(a.startISO).getTime() - new Date(b.startISO).getTime());
+      dayShifts.sort(
+        (a, b) =>
+          new Date(a.startISO).getTime() - new Date(b.startISO).getTime()
+      );
     }
 
     return grouped;
   }, [shifts]);
 
+  useEffect(() => {
+    if (!duplicatingShift) return;
+
+    setDuplicateDate(toLocalDateInput(duplicatingShift.startISO));
+    setDuplicateNotes(duplicatingShift.note ?? '');
+  }, [duplicatingShift]);
+
   const updateMutation = useMutation({
-    mutationFn: async ({ shift, values }: { shift: Shift; values: ShiftFormValues }) => {
+    mutationFn: async ({
+      shift,
+      values,
+    }: {
+      shift: Shift;
+      values: ShiftFormValues;
+    }) => {
       if (!settings) throw new Error('Settings not loaded');
-      return updateShift(shift, { startISO: values.start, endISO: values.end, note: values.note }, settings);
+      return updateShift(
+        shift,
+        { startISO: values.start, endISO: values.end, note: values.note },
+        settings
+      );
     },
     onSuccess: async (updatedShift) => {
       setEditingShift(null);
       setSelectedShift(updatedShift);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['shifts'] }),
-        queryClient.invalidateQueries({ queryKey: ['summary'] })
+        queryClient.invalidateQueries({ queryKey: ['summary'] }),
       ]);
-    }
+    },
   });
 
   const deleteMutation = useMutation({
@@ -172,38 +210,24 @@ export default function ShiftsPage() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['shifts'] }),
         queryClient.invalidateQueries({ queryKey: ['summary'] }),
-        queryClient.invalidateQueries({ queryKey: ['active-shift'] })
+        queryClient.invalidateQueries({ queryKey: ['active-shift'] }),
       ]);
-    }
+    },
   });
 
   const duplicateMutation = useMutation({
     mutationFn: async ({
       shift,
       targetDate,
-      note
+      note,
     }: {
       shift: Shift;
       targetDate: string;
       note: string;
     }) => {
       if (!settings) throw new Error('Settings not loaded');
-<<<<<<< HEAD
       const input = buildDuplicateShiftInput(shift, targetDate, note);
       return createShift(input, settings);
-=======
-
-      const trimmedNote = values.note.trim();
-
-      return createShift(
-        {
-          startISO: values.start,
-          endISO: values.end ?? null,
-          note: trimmedNote || undefined
-        },
-        settings
-      );
->>>>>>> codex/implement-createshift-mutation-in-shiftspage
     },
     onSuccess: async (newShift) => {
       setDuplicatingShift(null);
@@ -211,7 +235,7 @@ export default function ShiftsPage() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['shifts'] }),
         queryClient.invalidateQueries({ queryKey: ['summary'] }),
-        queryClient.invalidateQueries({ queryKey: ['active-shift'] })
+        queryClient.invalidateQueries({ queryKey: ['active-shift'] }),
       ]);
     },
     onError: (error) => {
@@ -220,11 +244,13 @@ export default function ShiftsPage() {
           ? error.message
           : 'Unable to copy this shift. Please try again.';
       setDuplicateError(message);
-    }
+    },
   });
 
   const hasPendingMutation =
-    updateMutation.isPending || deleteMutation.isPending || duplicateMutation.isPending;
+    updateMutation.isPending ||
+    deleteMutation.isPending ||
+    duplicateMutation.isPending;
 
   const now = new Date();
   const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
@@ -244,7 +270,9 @@ export default function ShiftsPage() {
     setHasUserInteracted(true);
     setCurrentMonth((month) => {
       const next = startOfMonth(addMonths(month, offset));
-      setSelectedDate((date) => (isSameMonth(date, next) ? date : new Date(next)));
+      setSelectedDate((date) =>
+        isSameMonth(date, next) ? date : new Date(next)
+      );
       return next;
     });
   };
@@ -284,7 +312,11 @@ export default function ShiftsPage() {
         </div>
       </header>
 
-      {isLoading && <p className="text-sm text-neutral-500">Chrona is preparing your calendar...</p>}
+      {isLoading && (
+        <p className="text-sm text-neutral-500">
+          Chrona is preparing your calendar...
+        </p>
+      )}
 
       <div className="grid min-h-[70vh] grid-rows-[minmax(0,1fr)_minmax(0,1fr)] gap-4 sm:flex sm:flex-col">
         <div className="overflow-x-auto sm:overflow-visible">
@@ -307,9 +339,13 @@ export default function ShiftsPage() {
                   const hasShifts = dayShifts.length > 0;
 
                   const shouldHighlightSelection =
-                    isSelected && (hasUserInteracted || hasShifts || isCurrentDay);
+                    isSelected &&
+                    (hasUserInteracted || hasShifts || isCurrentDay);
                   const shouldHighlightToday =
-                    !hasUserInteracted && !shouldHighlightSelection && isCurrentDay && hasShifts;
+                    !hasUserInteracted &&
+                    !shouldHighlightSelection &&
+                    isCurrentDay &&
+                    hasShifts;
 
                   const dayNumberClasses = [
                     'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition',
@@ -321,9 +357,10 @@ export default function ShiftsPage() {
                     hasShifts
                       ? 'ring-2 ring-emerald-300 ring-offset-2 ring-offset-white dark:ring-emerald-400/70 dark:ring-offset-midnight-950 sm:ring-0 sm:ring-offset-0'
                       : null,
-                    hasShifts && !(shouldHighlightSelection || shouldHighlightToday)
+                    hasShifts &&
+                    !(shouldHighlightSelection || shouldHighlightToday)
                       ? 'text-emerald-700 dark:text-emerald-200 sm:bg-emerald-100 sm:text-emerald-800 sm:dark:bg-emerald-500/20 sm:dark:text-emerald-100 sm:dark:ring-offset-midnight-900'
-                      : null
+                      : null,
                   ]
                     .filter(Boolean)
                     .join(' ');
@@ -338,7 +375,7 @@ export default function ShiftsPage() {
                       : null,
                     isCurrentDay
                       ? 'sm:ring-2 sm:ring-purple-400 sm:ring-offset-2 sm:ring-offset-white dark:sm:ring-purple-500/70 dark:sm:ring-offset-midnight-950'
-                      : null
+                      : null,
                   ]
                     .filter(Boolean)
                     .join(' ');
@@ -359,9 +396,13 @@ export default function ShiftsPage() {
                         aria-pressed={isSelected}
                         aria-label={format(day, 'PPPP')}
                       >
-                        <span className={dayNumberClasses}>{format(day, 'd')}</span>
+                        <span className={dayNumberClasses}>
+                          {format(day, 'd')}
+                        </span>
                       </button>
-                      <span className={desktopDayNumberClasses}>{format(day, 'd')}</span>
+                      <span className={desktopDayNumberClasses}>
+                        {format(day, 'd')}
+                      </span>
                       <div className="mt-3 hidden flex-col gap-2 sm:flex">
                         {dayShifts.map((shift) => (
                           <ShiftSummaryCard
@@ -391,7 +432,9 @@ export default function ShiftsPage() {
               <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-300">
                 Selected day
               </span>
-              <span className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">{format(selectedDate, 'PPP')}</span>
+              <span className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                {format(selectedDate, 'PPP')}
+              </span>
             </div>
             <button
               type="button"
@@ -440,15 +483,26 @@ export default function ShiftsPage() {
           <div className="flex flex-col gap-6">
             <div className="flex items-start justify-between">
               <div className="grid gap-1 text-sm text-neutral-600 dark:text-neutral-200">
-                <span className="font-medium text-neutral-700 dark:text-neutral-100">Summary</span>
-                <span>{dateTimeFormatter.format(new Date(selectedShift.startISO))}</span>
+                <span className="font-medium text-neutral-700 dark:text-neutral-100">
+                  Summary
+                </span>
+                <span>
+                  {dateTimeFormatter.format(new Date(selectedShift.startISO))}
+                </span>
                 {selectedShift.endISO && (
-                  <span>Ends {dateTimeFormatter.format(new Date(selectedShift.endISO))}</span>
+                  <span>
+                    Ends{' '}
+                    {dateTimeFormatter.format(new Date(selectedShift.endISO))}
+                  </span>
                 )}
                 <span>
-                  Base: {formatMinutesDuration(selectedShift.baseMinutes)} · Penalty: {formatMinutesDuration(selectedShift.penaltyMinutes)}
+                  Base: {formatMinutesDuration(selectedShift.baseMinutes)} ·
+                  Penalty: {formatMinutesDuration(selectedShift.penaltyMinutes)}
                 </span>
-                <span>Total pay: {currencyFormatter.format(selectedShift.totalPay / 100)}</span>
+                <span>
+                  Total pay:{' '}
+                  {currencyFormatter.format(selectedShift.totalPay / 100)}
+                </span>
               </div>
               <div className="grid gap-2 justify-items-end">
                 <button
@@ -461,7 +515,10 @@ export default function ShiftsPage() {
                   aria-label="Copy shift"
                   disabled={hasPendingMutation}
                 >
-                  <DocumentDuplicateIcon className="h-5 w-5" aria-hidden="true" />
+                  <DocumentDuplicateIcon
+                    className="h-5 w-5"
+                    aria-hidden="true"
+                  />
                 </button>
                 <button
                   type="button"
@@ -485,7 +542,8 @@ export default function ShiftsPage() {
                 className="flex w-full items-center justify-center gap-2 rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-500/40 dark:text-red-200 dark:hover:bg-red-500/10 sm:w-auto"
                 disabled={hasPendingMutation}
               >
-                <TrashIcon className="h-4 w-4" aria-hidden="true" /> Delete shift
+                <TrashIcon className="h-4 w-4" aria-hidden="true" /> Delete
+                shift
               </button>
             </div>
           </div>
@@ -500,7 +558,6 @@ export default function ShiftsPage() {
           }
           setDuplicateError(null);
           setDuplicatingShift(null);
-          setDuplicateError(null);
         }}
         title="Copy shift"
       >
@@ -511,12 +568,11 @@ export default function ShiftsPage() {
               event.preventDefault();
               if (!duplicatingShift) return;
               setDuplicateError(null);
-<<<<<<< HEAD
               try {
                 await duplicateMutation.mutateAsync({
                   shift: duplicatingShift,
                   targetDate: duplicateDate,
-                  note: duplicateNotes
+                  note: duplicateNotes,
                 });
               } catch (error) {
                 const message =
@@ -525,13 +581,13 @@ export default function ShiftsPage() {
                     : 'Unable to copy this shift. Please try again.';
                 setDuplicateError(message);
               }
-=======
-              setDuplicatingShift(null);
->>>>>>> codex/implement-createshift-mutation-in-shiftspage
             }}
           >
             <div className="grid gap-2">
-              <label className="text-xs font-semibold uppercase text-neutral-500" htmlFor="duplicate-date">
+              <label
+                className="text-xs font-semibold uppercase text-neutral-500"
+                htmlFor="duplicate-date"
+              >
                 Date
               </label>
               <input
@@ -543,14 +599,20 @@ export default function ShiftsPage() {
                 required
               />
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                Copying {timeFormatter.format(new Date(duplicatingShift.startISO))}
-                {duplicatingShift.endISO ? ` – ${timeFormatter.format(new Date(duplicatingShift.endISO))}` : ''} to the
-                selected date.
+                Copying{' '}
+                {timeFormatter.format(new Date(duplicatingShift.startISO))}
+                {duplicatingShift.endISO
+                  ? ` – ${timeFormatter.format(new Date(duplicatingShift.endISO))}`
+                  : ''}{' '}
+                to the selected date.
               </p>
             </div>
 
             <div className="grid gap-2">
-              <label className="text-xs font-semibold uppercase text-neutral-500" htmlFor="duplicate-notes">
+              <label
+                className="text-xs font-semibold uppercase text-neutral-500"
+                htmlFor="duplicate-notes"
+              >
                 Notes
               </label>
               <textarea
@@ -564,7 +626,10 @@ export default function ShiftsPage() {
             </div>
 
             {duplicateError && (
-              <p className="text-sm text-red-600 dark:text-red-300" role="status">
+              <p
+                className="text-sm text-red-600 dark:text-red-300"
+                role="status"
+              >
                 {duplicateError}
               </p>
             )}
