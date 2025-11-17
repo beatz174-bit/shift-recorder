@@ -191,6 +191,7 @@ export default function ShiftsPage() {
       if (!settings) throw new Error('Settings not loaded');
       const startTime = toLocalTimeInput(shift.startISO);
       const startDate = createDateFromLocalInputs(targetDate, startTime);
+      const startISO = startDate.toISOString();
 
       let endISO: string | null = null;
       if (shift.endISO) {
@@ -202,7 +203,7 @@ export default function ShiftsPage() {
         endISO = endDate.toISOString();
       }
 
-      return createShift({ startISO: startDate.toISOString(), endISO, note }, settings);
+      return createShift({ startISO, endISO, note }, settings);
     },
     onSuccess: async (newShift) => {
       setDuplicatingShift(null);
@@ -212,8 +213,16 @@ export default function ShiftsPage() {
       setSelectedShift(newShift);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['shifts'] }),
-        queryClient.invalidateQueries({ queryKey: ['summary'] })
+        queryClient.invalidateQueries({ queryKey: ['summary'] }),
+        queryClient.invalidateQueries({ queryKey: ['active-shift'] })
       ]);
+    },
+    onError: (error) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unable to copy this shift. Please try again.';
+      setDuplicateError(message);
     }
   });
 
@@ -522,11 +531,19 @@ export default function ShiftsPage() {
                 return;
               }
               setDuplicateError(null);
-              await duplicateMutation.mutateAsync({
-                shift: duplicatingShift,
-                targetDate: duplicateDate,
-                note: duplicateNotes.trim()
-              });
+              try {
+                await duplicateMutation.mutateAsync({
+                  shift: duplicatingShift,
+                  targetDate: duplicateDate,
+                  note: duplicateNotes.trim()
+                });
+              } catch (error) {
+                const message =
+                  error instanceof Error
+                    ? error.message
+                    : 'Unable to copy this shift. Please try again.';
+                setDuplicateError(message);
+              }
             }}
           >
             <div className="grid gap-2">
