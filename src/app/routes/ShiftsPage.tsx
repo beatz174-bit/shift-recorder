@@ -179,15 +179,7 @@ export default function ShiftsPage() {
   });
 
   const duplicateMutation = useMutation({
-    mutationFn: async ({
-      shift,
-      targetDate,
-      note
-    }: {
-      shift: Shift;
-      targetDate: string;
-      note: string;
-    }) => {
+    mutationFn: async (values: ShiftFormValues) => {
       if (!settings) throw new Error('Settings not loaded');
       const startTime = toLocalTimeInput(shift.startISO);
       const startDate = createDateFromLocalInputs(targetDate, startTime);
@@ -207,9 +199,6 @@ export default function ShiftsPage() {
     },
     onSuccess: async (newShift) => {
       setDuplicatingShift(null);
-      setDuplicateDate('');
-      setDuplicateNotes('');
-      setDuplicateError(null);
       setSelectedShift(newShift);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['shifts'] }),
@@ -466,7 +455,7 @@ export default function ShiftsPage() {
                 </span>
                 <span>Total pay: {currencyFormatter.format(selectedShift.totalPay / 100)}</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="grid gap-2 justify-items-end">
                 <button
                   type="button"
                   onClick={() => {
@@ -515,20 +504,17 @@ export default function ShiftsPage() {
             setSelectedShift(duplicatingShift);
           }
           setDuplicatingShift(null);
-          setDuplicateDate('');
-          setDuplicateNotes('');
-          setDuplicateError(null);
         }}
         title="Copy shift"
       >
         {duplicatingShift && (
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={async (event) => {
-              event.preventDefault();
-              if (!duplicateDate) {
-                setDuplicateError('Please choose a date to copy this shift to.');
-                return;
+          <ShiftForm
+            key={duplicatingShift.id}
+            initialShift={duplicatingShift}
+            submitLabel="Save copy"
+            onCancel={() => {
+              if (duplicatingShift) {
+                setSelectedShift(duplicatingShift);
               }
               setDuplicateError(null);
               try {
@@ -545,64 +531,10 @@ export default function ShiftsPage() {
                 setDuplicateError(message);
               }
             }}
-          >
-            <div className="grid gap-2">
-              <label
-                className="text-xs font-semibold uppercase text-neutral-500"
-                htmlFor="duplicate-date"
-              >
-                Copy to date
-              </label>
-              <input
-                id="duplicate-date"
-                type="date"
-                value={duplicateDate}
-                min={toLocalDateInput('1900-01-01T00:00:00.000Z')}
-                max={toLocalDateInput('9999-12-31T00:00:00.000Z')}
-                onChange={(event) => {
-                  setDuplicateDate(event.target.value);
-                  setDuplicateError(null);
-                }}
-                className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <label className="text-xs font-semibold uppercase text-neutral-500" htmlFor="duplicate-notes">
-                Notes
-              </label>
-              <textarea
-                id="duplicate-notes"
-                value={duplicateNotes}
-                onChange={(event) => setDuplicateNotes(event.target.value)}
-                className="h-24 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
-                placeholder="Add notes to this copy (optional)"
-              />
-            </div>
-            {duplicateError && <p className="text-sm text-red-500">{duplicateError}</p>}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  setDuplicateDate('');
-                  setDuplicateNotes('');
-                  setDuplicateError(null);
-                  setDuplicatingShift(null);
-                  setSelectedShift(duplicatingShift);
-                }}
-                className="w-full rounded-full border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 transition hover:border-primary hover:text-primary-emphasis dark:border-midnight-700 dark:text-neutral-200 sm:w-auto"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={duplicateMutation.isPending || !duplicateDate}
-                className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-primary-emphasis disabled:opacity-60 sm:w-auto"
-              >
-                {duplicateMutation.isPending ? 'Saving…' : 'Save'}
-              </button>
-            </div>
-          </form>
+            onSubmit={async (values) => {
+              await duplicateMutation.mutateAsync(values);
+            }}
+          />
         )}
       </Modal>
 
