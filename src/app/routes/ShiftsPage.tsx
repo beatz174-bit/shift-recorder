@@ -101,7 +101,7 @@ export const CALENDAR_WEEK_START: WeekStart = 1;
 export default function ShiftsPage() {
   const queryClient = useQueryClient();
   const { settings } = useSettings();
-  const weekStartsOn = settings?.weekStartsOn ?? CALENDAR_WEEK_START;
+  const weekStartsOn = CALENDAR_WEEK_START;
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [duplicatingShift, setDuplicatingShift] = useState<Shift | null>(null);
