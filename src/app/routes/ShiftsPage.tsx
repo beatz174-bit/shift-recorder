@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   addDays,
@@ -27,7 +27,10 @@ import { buildDuplicateShiftInput } from '../logic/duplicateShift';
 import { useSettings } from '../state/SettingsContext';
 import { useDateTimeFormatter, useTimeFormatter } from '../state/useTimeFormatter';
 import { formatMinutesDuration } from '../utils/format';
+<<<<<<< HEAD
 import { toLocalDateInput } from '../utils/datetime';
+=======
+>>>>>>> codex/implement-createshift-mutation-in-shiftspage
 
 function ShiftSummaryCard({
   shift,
@@ -91,8 +94,6 @@ export default function ShiftsPage() {
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [duplicatingShift, setDuplicatingShift] = useState<Shift | null>(null);
-  const [duplicateDate, setDuplicateDate] = useState('');
-  const [duplicateNotes, setDuplicateNotes] = useState('');
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
@@ -186,8 +187,22 @@ export default function ShiftsPage() {
       note: string;
     }) => {
       if (!settings) throw new Error('Settings not loaded');
+<<<<<<< HEAD
       const input = buildDuplicateShiftInput(shift, targetDate, note);
       return createShift(input, settings);
+=======
+
+      const trimmedNote = values.note.trim();
+
+      return createShift(
+        {
+          startISO: values.start,
+          endISO: values.end ?? null,
+          note: trimmedNote || undefined
+        },
+        settings
+      );
+>>>>>>> codex/implement-createshift-mutation-in-shiftspage
     },
     onSuccess: async (newShift) => {
       setDuplicatingShift(null);
@@ -239,19 +254,6 @@ export default function ShiftsPage() {
     setCurrentMonth(startOfMonth(todayDate));
     setSelectedDate(todayDate);
   };
-
-  useEffect(() => {
-    if (!duplicatingShift) {
-      setDuplicateDate('');
-      setDuplicateNotes('');
-      setDuplicateError(null);
-      return;
-    }
-
-    setDuplicateDate(toLocalDateInput(duplicatingShift.startISO));
-    setDuplicateNotes(duplicatingShift.note ?? '');
-    setDuplicateError(null);
-  }, [duplicatingShift]);
 
   return (
     <section className="flex flex-col gap-6">
@@ -495,6 +497,7 @@ export default function ShiftsPage() {
           if (duplicatingShift) {
             setSelectedShift(duplicatingShift);
           }
+          setDuplicateError(null);
           setDuplicatingShift(null);
           setDuplicateError(null);
         }}
@@ -507,6 +510,7 @@ export default function ShiftsPage() {
               event.preventDefault();
               if (!duplicatingShift) return;
               setDuplicateError(null);
+<<<<<<< HEAD
               try {
                 await duplicateMutation.mutateAsync({
                   shift: duplicatingShift,
@@ -520,6 +524,9 @@ export default function ShiftsPage() {
                     : 'Unable to copy this shift. Please try again.';
                 setDuplicateError(message);
               }
+=======
+              setDuplicatingShift(null);
+>>>>>>> codex/implement-createshift-mutation-in-shiftspage
             }}
           >
             <div className="grid gap-2">
