@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   addDays,
@@ -26,6 +26,11 @@ import type { Shift, WeekStart } from '../db/schema';
 import { useSettings } from '../state/SettingsContext';
 import { useDateTimeFormatter, useTimeFormatter } from '../state/useTimeFormatter';
 import { formatMinutesDuration } from '../utils/format';
+import {
+  createDateFromLocalInputs,
+  toLocalDateInput,
+  toLocalTimeInput
+} from '../utils/datetime';
 
 function ShiftSummaryCard({
   shift,
@@ -89,6 +94,9 @@ export default function ShiftsPage() {
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [duplicatingShift, setDuplicatingShift] = useState<Shift | null>(null);
+  const [duplicateDate, setDuplicateDate] = useState('');
+  const [duplicateNotes, setDuplicateNotes] = useState('');
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
@@ -171,15 +179,36 @@ export default function ShiftsPage() {
   });
 
   const duplicateMutation = useMutation({
-    mutationFn: async (values: ShiftFormValues) => {
+    mutationFn: async ({
+      shift,
+      targetDate,
+      note
+    }: {
+      shift: Shift;
+      targetDate: string;
+      note: string;
+    }) => {
       if (!settings) throw new Error('Settings not loaded');
-      return createShift(
-        { startISO: values.start, endISO: values.end, note: values.note },
-        settings
-      );
+      const startTime = toLocalTimeInput(shift.startISO);
+      const startDate = createDateFromLocalInputs(targetDate, startTime);
+
+      let endISO: string | null = null;
+      if (shift.endISO) {
+        const endTime = toLocalTimeInput(shift.endISO);
+        let endDate = createDateFromLocalInputs(targetDate, endTime);
+        if (endDate <= startDate) {
+          endDate = addDays(endDate, 1);
+        }
+        endISO = endDate.toISOString();
+      }
+
+      return createShift({ startISO: startDate.toISOString(), endISO, note }, settings);
     },
     onSuccess: async (newShift) => {
       setDuplicatingShift(null);
+      setDuplicateDate('');
+      setDuplicateNotes('');
+      setDuplicateError(null);
       setSelectedShift(newShift);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['shifts'] }),
@@ -220,6 +249,19 @@ export default function ShiftsPage() {
     setCurrentMonth(startOfMonth(todayDate));
     setSelectedDate(todayDate);
   };
+
+  useEffect(() => {
+    if (!duplicatingShift) {
+      setDuplicateDate('');
+      setDuplicateNotes('');
+      setDuplicateError(null);
+      return;
+    }
+
+    setDuplicateDate(toLocalDateInput(duplicatingShift.startISO));
+    setDuplicateNotes(duplicatingShift.note ?? '');
+    setDuplicateError(null);
+  }, [duplicatingShift]);
 
   return (
     <section className="flex flex-col gap-6">
@@ -464,24 +506,86 @@ export default function ShiftsPage() {
             setSelectedShift(duplicatingShift);
           }
           setDuplicatingShift(null);
+          setDuplicateDate('');
+          setDuplicateNotes('');
+          setDuplicateError(null);
         }}
         title="Copy shift"
       >
         {duplicatingShift && (
-          <ShiftForm
-            key={duplicatingShift.id}
-            initialShift={duplicatingShift}
-            submitLabel="Save copy"
-            onCancel={() => {
-              if (duplicatingShift) {
-                setSelectedShift(duplicatingShift);
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={async (event) => {
+              event.preventDefault();
+              if (!duplicateDate) {
+                setDuplicateError('Please choose a date to copy this shift to.');
+                return;
               }
-              setDuplicatingShift(null);
+              setDuplicateError(null);
+              await duplicateMutation.mutateAsync({
+                shift: duplicatingShift,
+                targetDate: duplicateDate,
+                note: duplicateNotes.trim()
+              });
             }}
-            onSubmit={async (values) => {
-              await duplicateMutation.mutateAsync(values);
-            }}
-          />
+          >
+            <div className="grid gap-2">
+              <label
+                className="text-xs font-semibold uppercase text-neutral-500"
+                htmlFor="duplicate-date"
+              >
+                Copy to date
+              </label>
+              <input
+                id="duplicate-date"
+                type="date"
+                value={duplicateDate}
+                min={toLocalDateInput('1900-01-01T00:00:00.000Z')}
+                max={toLocalDateInput('9999-12-31T00:00:00.000Z')}
+                onChange={(event) => {
+                  setDuplicateDate(event.target.value);
+                  setDuplicateError(null);
+                }}
+                className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <label className="text-xs font-semibold uppercase text-neutral-500" htmlFor="duplicate-notes">
+                Notes
+              </label>
+              <textarea
+                id="duplicate-notes"
+                value={duplicateNotes}
+                onChange={(event) => setDuplicateNotes(event.target.value)}
+                className="h-24 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
+                placeholder="Add notes to this copy (optional)"
+              />
+            </div>
+            {duplicateError && <p className="text-sm text-red-500">{duplicateError}</p>}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setDuplicateDate('');
+                  setDuplicateNotes('');
+                  setDuplicateError(null);
+                  setDuplicatingShift(null);
+                  setSelectedShift(duplicatingShift);
+                }}
+                className="w-full rounded-full border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 transition hover:border-primary hover:text-primary-emphasis dark:border-midnight-700 dark:text-neutral-200 sm:w-auto"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={duplicateMutation.isPending || !duplicateDate}
+                className="w-full rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow transition hover:bg-primary-emphasis disabled:opacity-60 sm:w-auto"
+              >
+                {duplicateMutation.isPending ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </form>
         )}
       </Modal>
 
