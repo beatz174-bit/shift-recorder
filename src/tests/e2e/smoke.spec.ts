@@ -241,9 +241,9 @@ test.describe('Chrona PWA UI', () => {
 
     await addShiftButton.click();
     await expect(createShiftDialog).toBeVisible();
-    await expect(createShiftDialog.locator('input[type="text"]').first()).toHaveAttribute(
-      'placeholder',
-      /14:30/
+    await expect(createShiftDialog.locator('input[type="time"]').first()).toHaveAttribute(
+      'lang',
+      'en-GB'
     );
     await createShiftDialog.getByRole('button', { name: 'Cancel' }).click();
 
