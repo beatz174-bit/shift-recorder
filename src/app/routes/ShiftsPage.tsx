@@ -95,6 +95,7 @@ export default function ShiftsPage() {
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [duplicatingShift, setDuplicatingShift] = useState<Shift | null>(null);
   const [duplicateDate, setDuplicateDate] = useState('');
+  const [duplicateNotes, setDuplicateNotes] = useState('');
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
@@ -178,7 +179,15 @@ export default function ShiftsPage() {
   });
 
   const duplicateMutation = useMutation({
-    mutationFn: async ({ shift, targetDate }: { shift: Shift; targetDate: string }) => {
+    mutationFn: async ({
+      shift,
+      targetDate,
+      note
+    }: {
+      shift: Shift;
+      targetDate: string;
+      note: string;
+    }) => {
       if (!settings) throw new Error('Settings not loaded');
       const startTime = toLocalTimeInput(shift.startISO);
       const startDate = createDateFromLocalInputs(targetDate, startTime);
@@ -193,14 +202,12 @@ export default function ShiftsPage() {
         endISO = endDate.toISOString();
       }
 
-      return createShift(
-        { startISO: startDate.toISOString(), endISO, note: shift.note },
-        settings
-      );
+      return createShift({ startISO: startDate.toISOString(), endISO, note }, settings);
     },
     onSuccess: async (newShift) => {
       setDuplicatingShift(null);
       setDuplicateDate('');
+      setDuplicateNotes('');
       setDuplicateError(null);
       setSelectedShift(newShift);
       await Promise.all([
@@ -246,11 +253,13 @@ export default function ShiftsPage() {
   useEffect(() => {
     if (!duplicatingShift) {
       setDuplicateDate('');
+      setDuplicateNotes('');
       setDuplicateError(null);
       return;
     }
 
     setDuplicateDate(toLocalDateInput(duplicatingShift.startISO));
+    setDuplicateNotes(duplicatingShift.note ?? '');
     setDuplicateError(null);
   }, [duplicatingShift]);
 
@@ -498,6 +507,7 @@ export default function ShiftsPage() {
           }
           setDuplicatingShift(null);
           setDuplicateDate('');
+          setDuplicateNotes('');
           setDuplicateError(null);
         }}
         title="Copy shift"
@@ -514,7 +524,8 @@ export default function ShiftsPage() {
               setDuplicateError(null);
               await duplicateMutation.mutateAsync({
                 shift: duplicatingShift,
-                targetDate: duplicateDate
+                targetDate: duplicateDate,
+                note: duplicateNotes.trim()
               });
             }}
           >
@@ -539,12 +550,25 @@ export default function ShiftsPage() {
                 required
               />
             </div>
+            <div className="grid gap-2">
+              <label className="text-xs font-semibold uppercase text-neutral-500" htmlFor="duplicate-notes">
+                Notes
+              </label>
+              <textarea
+                id="duplicate-notes"
+                value={duplicateNotes}
+                onChange={(event) => setDuplicateNotes(event.target.value)}
+                className="h-24 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-midnight-700 dark:bg-midnight-900"
+                placeholder="Add notes to this copy (optional)"
+              />
+            </div>
             {duplicateError && <p className="text-sm text-red-500">{duplicateError}</p>}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
               <button
                 type="button"
                 onClick={() => {
                   setDuplicateDate('');
+                  setDuplicateNotes('');
                   setDuplicateError(null);
                   setDuplicatingShift(null);
                   setSelectedShift(duplicatingShift);
