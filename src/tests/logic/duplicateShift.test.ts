@@ -43,4 +43,23 @@ describe('buildDuplicateShiftInput', () => {
     expect(result.endISO).toBe('2024-05-11T06:00:00.000Z');
     expect(result.note).toBeUndefined();
   });
+
+  it('anchors the duplicated times without shifting when running in a non-UTC timezone', () => {
+    const originalTZ = process.env.TZ;
+    process.env.TZ = 'America/Los_Angeles';
+
+    try {
+      const shift = makeShift({
+        startISO: '2024-05-01T00:30:00.000Z',
+        endISO: '2024-05-01T08:00:00.000Z'
+      });
+
+      const result = buildDuplicateShiftInput(shift, '2024-05-05', '');
+
+      expect(result.startISO).toBe('2024-05-05T00:30:00.000Z');
+      expect(result.endISO).toBe('2024-05-05T08:00:00.000Z');
+    } finally {
+      process.env.TZ = originalTZ;
+    }
+  });
 });
