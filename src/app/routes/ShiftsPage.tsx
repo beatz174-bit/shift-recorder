@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   addDays,
@@ -26,6 +26,11 @@ import type { Shift, WeekStart } from '../db/schema';
 import { useSettings } from '../state/SettingsContext';
 import { useDateTimeFormatter, useTimeFormatter } from '../state/useTimeFormatter';
 import { formatMinutesDuration } from '../utils/format';
+import {
+  createDateFromLocalInputs,
+  toLocalDateInput,
+  toLocalTimeInput
+} from '../utils/datetime';
 
 function ShiftSummaryCard({
   shift,
@@ -89,6 +94,9 @@ export default function ShiftsPage() {
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [duplicatingShift, setDuplicatingShift] = useState<Shift | null>(null);
+  const [duplicateDate, setDuplicateDate] = useState('');
+  const [duplicateNotes, setDuplicateNotes] = useState('');
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
@@ -220,6 +228,19 @@ export default function ShiftsPage() {
     setCurrentMonth(startOfMonth(todayDate));
     setSelectedDate(todayDate);
   };
+
+  useEffect(() => {
+    if (!duplicatingShift) {
+      setDuplicateDate('');
+      setDuplicateNotes('');
+      setDuplicateError(null);
+      return;
+    }
+
+    setDuplicateDate(toLocalDateInput(duplicatingShift.startISO));
+    setDuplicateNotes(duplicatingShift.note ?? '');
+    setDuplicateError(null);
+  }, [duplicatingShift]);
 
   return (
     <section className="flex flex-col gap-6">

@@ -53,7 +53,7 @@ export function nowLocalDateInputValue() {
 
 export function nowLocalTimeInputValue() {
   const now = new Date();
-  now.setSeconds(0, 0);
+  now.setMinutes(0, 0, 0);
   return toLocalTimeInput(now.toISOString());
 }
 
