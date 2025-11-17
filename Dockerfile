@@ -5,6 +5,7 @@ WORKDIR /app
 # Install deps first (better layer caching)
 COPY package*.json ./
 COPY scripts ./scripts
+RUN corepack enable && corepack prepare npm@11.6.1 --activate
 RUN npm ci
 
 # Copy source
