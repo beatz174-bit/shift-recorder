@@ -5,6 +5,9 @@ WORKDIR /app
 # Install deps first (better layer caching)
 COPY package*.json ./
 COPY packages/tax-engine/package.json packages/tax-engine/
+COPY packages/tax-engine/scripts packages/tax-engine/scripts
+COPY packages/tax-engine/tsconfig.build.json packages/tax-engine/tsconfig.build.json
+COPY packages/tax-engine/src packages/tax-engine/src
 COPY scripts ./scripts
 # npm 10 (bundled with Node 20) does not understand workspace:* refs in our lockfile.
 # Explicitly install npm 11 before running npm ci so workspaces resolve correctly.
